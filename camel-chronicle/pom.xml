@@ -27,7 +27,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>
-                            ${project.parent.group}.${project.artifactId}
+                            ${project.parent.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Export-Service>
                             org.apache.camel.spi.ComponentResolver;component=chronicle
