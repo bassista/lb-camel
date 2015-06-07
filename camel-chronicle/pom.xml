@@ -10,67 +10,68 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.github.lburgazzoli</groupId>
+    <artifactId>camel-chronicle</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <name>${project.parent.artifactId}/${project.artifactId}</name>
 
-  <groupId>com.github.lburgazzoli</groupId>
-  <artifactId>camel-chronicle</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+    <dependencies>
+        <dependency>
+          <groupId>org.apache.camel</groupId>
+          <artifactId>camel-core</artifactId>
+          <version>${version.camel}</version>
+        </dependency>
 
-  <name>Camel Chronicle Component</name>
+        <!-- support camel documentation -->
+        <dependency>
+          <groupId>org.apache.camel</groupId>
+          <artifactId>apt</artifactId>
+          <version>${version.camel}</version>
+        </dependency>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-core</artifactId>
-      <version>${version.camel}</version>
-    </dependency>
+        <!-- logging -->
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${version.slf4j}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+          <version>${version.slf4j}</version>
+          <scope>test</scope>
+        </dependency>
 
-    <!-- support camel documentation -->
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>apt</artifactId>
-      <version>${version.camel}</version>
-    </dependency>
+        <!-- testing -->
+        <dependency>
+          <groupId>org.apache.camel</groupId>
+          <artifactId>camel-test</artifactId>
+          <version>${version.camel}</version>
+          <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-    <!-- logging -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${version.slf4j}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${version.slf4j}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- testing -->
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-test</artifactId>
-      <version>${version.camel}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <!-- to generate the MANIFEST-FILE of the bundle -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${version.maven.bundle.plugin}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>com.github.lburgazzoli.camel-chronicle</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=chronicle</Export-Service>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
+    <build>
+        <plugins>
+            <!-- to generate the MANIFEST-FILE of the bundle -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${version.maven.bundle.plugin}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>
+                            com.github.lburgazzoli.camel-chronicle
+                        </Bundle-SymbolicName>
+                        <Export-Service>
+                            org.apache.camel.spi.ComponentResolver;component=chronicle
+                        </Export-Service>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
