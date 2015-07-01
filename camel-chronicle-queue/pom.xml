@@ -67,7 +67,7 @@
                             com.github.lburgazzoli.camel-chronicle
                         </Bundle-SymbolicName>
                         <Export-Service>
-                            org.apache.camel.spi.ComponentResolver;component=chronicle
+                            org.apache.camel.spi.ComponentResolver;component=chronicle-queue
                         </Export-Service>
                     </instructions>
                 </configuration>

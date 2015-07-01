@@ -35,8 +35,8 @@ public class ChronicleQueueComponentTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("chronicle://foo")
-                  .to("chronicle://bar")
+                from("chronicle-queue://foo")
+                  .to("chronicle-queue://bar")
                   .to("mock:result");
             }
         };
