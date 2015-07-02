@@ -12,7 +12,7 @@
     <name>lb-camel</name>
 
     <modules>
-        <module>camel-chronicle-queue</module>
+        <module>camel-chronicle</module>
     </modules>
 
     <licenses>
