@@ -12,9 +12,8 @@ buildscript {
 
 plugins {
     id "com.dorongold.task-tree" version "1.1.0"
+    id "com.github.lburgazzoli.camel" version "0.0.7"
 }
-
-apply plugin: 'com.github.lburgazzoli.camel'
 
 group 'com.github.lburgazzoli'
 version '1.0-SNAPSHOT'
@@ -61,7 +60,7 @@ dependencies {
 
 camelRun {
     trace = true
-    duration = '15s'
+    duration = '30s'
 
     //springJavaConfig {
     //    configClass 'com.github.lburgazzoli.gradle.plugin.examples.camel.MySpringRouteConfiguration'
