@@ -16,7 +16,11 @@
  */
 package org.apache.camel.component.etcd;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import mousio.etcd4j.EtcdClient;
+import mousio.etcd4j.requests.EtcdKeyPutRequest;
 import org.apache.camel.Exchange;
 import org.apache.camel.util.ObjectHelper;
 
@@ -47,13 +51,13 @@ class EtcdKeysProducer extends AbstractEtcdProducer {
 
         switch(action) {
             case EtcdConstants.ETCD_KEYS_ACTION_SET:
-                processSet(endpoint.getClient(), path);
+                processSet(endpoint.getClient(), path, exchange);
                 break;
             case EtcdConstants.ETCD_KEYS_ACTION_GET:
-                processGet(endpoint.getClient(), path);
+                processGet(endpoint.getClient(), path, exchange);
                 break;
             case EtcdConstants.ETCD_KEYS_ACTION_DELETE:
-                processDel(endpoint.getClient(), path);
+                processDel(endpoint.getClient(), path, exchange);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown action " + action);
@@ -64,12 +68,25 @@ class EtcdKeysProducer extends AbstractEtcdProducer {
     // Processors
     // *************************************************************************
 
-    private void processSet(EtcdClient client, String path) throws Exception {
+    private void processSet(EtcdClient client, String path, Exchange exchange) throws Exception {
+        EtcdKeyPutRequest request = client.put(path, exchange.getIn().getBody(String.class));
+        if (configuration.hasTimeToLive()) {
+            request.ttl(configuration.getTimeToLive());
+        }
+        if (configuration.hasTimeout()) {
+            request.timeout(configuration.getTimeout(), TimeUnit.MILLISECONDS);
+        }
+
+        try {
+            exchange.getIn().setBody(request.send().get());
+        } catch (TimeoutException e) {
+            exchange.getIn().setHeader(EtcdConstants.ETCD_TIMEOUT, true);
+        }
     }
 
-    private void processGet(EtcdClient client, String path) throws Exception {
+    private void processGet(EtcdClient client, String path, Exchange exchange) throws Exception {
     }
 
-    private void processDel(EtcdClient client, String path) throws Exception {
+    private void processDel(EtcdClient client, String path, Exchange exchange) throws Exception {
     }
 }

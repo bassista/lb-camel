@@ -32,14 +32,9 @@ public class EtcdKeysConfiguration extends EtcdConfiguration {
     @UriParam(label = "producer")
     private Integer timeToLive;
 
+    @UriParam(label = "producer,consumer")
+    private Long timeout;
 
-    public Integer getTimeToLive() {
-        return timeToLive;
-    }
-
-    public void setTimeToLive(Integer timeToLive) {
-        this.timeToLive = timeToLive;
-    }
 
     public String getPath() {
         return path;
@@ -59,5 +54,30 @@ public class EtcdKeysConfiguration extends EtcdConfiguration {
 
     public void setRecursive(boolean recursive) {
         this.recursive = recursive;
+    }
+
+
+    public Integer getTimeToLive() {
+        return timeToLive;
+    }
+
+    public void setTimeToLive(Integer timeToLive) {
+        this.timeToLive = timeToLive;
+    }
+
+    public boolean hasTimeToLive() {
+        return timeToLive != null && timeToLive > 0;
+    }
+
+    public Long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Long timeout) {
+        this.timeout = timeout;
+    }
+
+    public boolean hasTimeout() {
+        return timeout != null && timeout > 0;
     }
 }
