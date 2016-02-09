@@ -32,27 +32,12 @@ public class EtcdKeyConfiguration extends EtcdConfiguration {
     @UriParam(label = "producer")
     private Integer timeToLive;
 
-    @UriParam(label = "producer,consumer")
-    private Long timeout;
-
     public Integer getTimeToLive() {
         return timeToLive;
     }
 
     public void setTimeToLive(Integer timeToLive) {
         this.timeToLive = timeToLive;
-    }
-
-    public Long getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Long timeout) {
-        this.timeout = timeout;
-    }
-
-    public boolean hasTimeout() {
-        return timeout != null && timeout > 0;
     }
 
     public String getPath() {

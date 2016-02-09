@@ -22,9 +22,26 @@ import org.apache.camel.spi.UriParams;
 
 @UriParams
 public class EtcdWatchConfiguration extends EtcdKeyConfiguration {
+
+    @UriParam(label = "consumer")
+    private Long timeout;
+
     //TODO rename
     @UriParam
     boolean sendEmptyExchangeOnTimeout;
+
+
+    public Long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Long timeout) {
+        this.timeout = timeout;
+    }
+
+    public boolean hasTimeout() {
+        return timeout != null && timeout > 0;
+    }
 
     public boolean isSendEmptyExchangeOnTimeout() {
         return sendEmptyExchangeOnTimeout;
