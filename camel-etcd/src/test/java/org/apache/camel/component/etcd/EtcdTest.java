@@ -38,7 +38,7 @@ public class EtcdTest extends CamelTestSupport {
         @Override
         public void process(Exchange exchange) throws Exception {
             EtcdKeysResponse response = exchange.getOut().getBody(EtcdKeysResponse.class);
-            if (response != null) {
+            if (response != null && response.node != null) {
                 exchange.getOut().setBody(response.node.key + "=" + response.node.value);
             }
         }

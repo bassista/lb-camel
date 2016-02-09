@@ -39,6 +39,11 @@ public class EtcdWatchTest extends EtcdTest {
     }
 
     @Test
+    public void testWatchRecursive() throws Exception {
+        testWatch("mock:watch-recursive", "/recursive/myKey1", true);
+    }
+
+    @Test
     public void testWatchWithTimeout() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:watch-with-timeout");
         mock.expectedMessageCount(1);
@@ -78,6 +83,10 @@ public class EtcdWatchTest extends EtcdTest {
                 from("etcd:/watch/myKey1")
                     .process(NODE_TO_VALUE_OUT)
                     .to("mock:watch-with-path");
+                from("etcd:/watch/recursive?recursive=true")
+                    .process(NODE_TO_VALUE_OUT)
+                    .to("log:org.apache.camel.component.etcd?level=INFO")
+                    .to("mock:watch-recursive");
                 from("etcd:/watch?path=/myKey2")
                     .process(NODE_TO_VALUE_OUT)
                     .to("mock:watch-with-config-path");
