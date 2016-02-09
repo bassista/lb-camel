@@ -14,49 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.etcd;
 
-import org.apache.camel.spi.UriParam;
-import org.apache.camel.spi.UriParams;
-import org.apache.camel.util.ObjectHelper;
+import org.apache.camel.Consumer;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
 
-@UriParams
-public class EtcdKeyConfiguration extends EtcdConfiguration {
-    @UriParam
-    private String path;
-
-    @UriParam
-    private boolean recursive;
-
-    @UriParam(label = "producer")
-    private Integer timeToLive;
-
-    public Integer getTimeToLive() {
-        return timeToLive;
+public class EtcdKeysEndpoint extends AbstractEtcdEndpoint<EtcdKeysConfiguration> {
+    public EtcdKeysEndpoint(
+        String uri, EtcdComponent component, EtcdKeysConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
+        super(uri, component, etcdConfiguration, etcdActionNamespace, path);
     }
 
-    public void setTimeToLive(Integer timeToLive) {
-        this.timeToLive = timeToLive;
+    @Override
+    public Producer createProducer() throws Exception {
+        return new EtcdKeysProducer(this, getConfiguration(), getActionNamespace(), getPath());
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public boolean hasPath() {
-        return ObjectHelper.isNotEmpty(path);
-    }
-
-    public boolean isRecursive() {
-        return recursive;
-    }
-
-    public void setRecursive(boolean recursive) {
-        this.recursive = recursive;
+    @Override
+    public Consumer createConsumer(Processor processor) throws Exception {
+        throw new IllegalArgumentException("Consumer not enabled for " + getPath());
     }
 }

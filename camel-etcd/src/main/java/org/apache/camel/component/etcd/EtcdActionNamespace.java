@@ -20,13 +20,18 @@ import org.apache.camel.util.ObjectHelper;
 
 public enum EtcdActionNamespace {
     STATS(EtcdConstants.ETCD_PATH_STATS),
-    WATCH(EtcdConstants.ETCD_PATH_WATCH)
+    WATCH(EtcdConstants.ETCD_PATH_WATCH),
+    KEYS(EtcdConstants.ETCD_PATH_KEYS)
     ;
 
     final String path;
 
     EtcdActionNamespace(String path) {
         this.path = path;
+    }
+
+    public String path() {
+        return path;
     }
 
     static final EtcdActionNamespace[] VALUES = values();

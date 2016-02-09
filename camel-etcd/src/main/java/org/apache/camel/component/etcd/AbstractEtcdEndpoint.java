@@ -7,6 +7,7 @@ import mousio.etcd4j.EtcdSecurityContext;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriPath;
+import org.apache.camel.util.ObjectHelper;
 
 /**
  * Represents a etcd endpoint.
@@ -84,5 +85,14 @@ public abstract class AbstractEtcdEndpoint<C extends EtcdConfiguration> extends 
 
     public String getPath() {
         return this.path;
+    }
+
+    public String getRemainingPath(String defaultPath) {
+        String path = getPath().substring(etcdActionNamespace.path().length());
+        if (ObjectHelper.isEmpty(path)) {
+            path = defaultPath;
+        }
+
+        return path;
     }
 }

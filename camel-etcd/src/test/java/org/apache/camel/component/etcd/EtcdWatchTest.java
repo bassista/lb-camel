@@ -50,7 +50,7 @@ public class EtcdWatchTest extends EtcdTest {
         assertMockEndpointsSatisfied();
 
         Message msg = mock.getExchanges().get(0).getOut();
-        assertEquals("/timeoutKey", msg.getHeader(EtcdConstants.ETCD_ACTION_PATH));
+        assertEquals("/timeoutKey", msg.getHeader(EtcdConstants.ETCD_PATH));
         assertTrue(msg.getHeader(EtcdConstants.ETCD_TIMEOUT, Boolean.class));
         assertNull(msg.getBody());
     }
@@ -58,7 +58,7 @@ public class EtcdWatchTest extends EtcdTest {
     private void testWatch(String mockEndpoint, final String key, boolean updateKey) throws Exception {
         MockEndpoint mock = getMockEndpoint(mockEndpoint);
         mock.expectedMessageCount(2);
-        mock.expectedHeaderReceived(EtcdConstants.ETCD_ACTION_PATH, key);
+        mock.expectedHeaderReceived(EtcdConstants.ETCD_PATH, key);
         mock.expectedMessagesMatches(new Predicate() {
             @Override
             public boolean matches(Exchange exchange) {

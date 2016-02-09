@@ -36,7 +36,7 @@ class EtcdStatsProducer extends AbstractEtcdProducer {
         Object answer = endpoint.getStats();
 
         if (answer != null) {
-            exchange.getIn().setHeader(EtcdConstants.ETCD_ACTION_PATH, getPath());
+            exchange.getIn().setHeader(EtcdConstants.ETCD_PATH, getPath());
             exchange.getIn().setBody(answer);
         }
     }

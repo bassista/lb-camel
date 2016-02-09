@@ -19,35 +19,45 @@ package org.apache.camel.component.etcd;
 
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
+import org.apache.camel.util.ObjectHelper;
 
 @UriParams
-public class EtcdWatchConfiguration extends EtcdKeysConfiguration {
-
-    @UriParam(label = "consumer")
-    private Long timeout;
-
-    //TODO rename
+public class EtcdKeysConfiguration extends EtcdConfiguration {
     @UriParam
-    boolean sendEmptyExchangeOnTimeout;
+    private String path;
+
+    @UriParam
+    private boolean recursive;
+
+    @UriParam(label = "producer")
+    private Integer timeToLive;
 
 
-    public Long getTimeout() {
-        return timeout;
+    public Integer getTimeToLive() {
+        return timeToLive;
     }
 
-    public void setTimeout(Long timeout) {
-        this.timeout = timeout;
+    public void setTimeToLive(Integer timeToLive) {
+        this.timeToLive = timeToLive;
     }
 
-    public boolean hasTimeout() {
-        return timeout != null && timeout > 0;
+    public String getPath() {
+        return path;
     }
 
-    public boolean isSendEmptyExchangeOnTimeout() {
-        return sendEmptyExchangeOnTimeout;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public void setSendEmptyExchangeOnTimeout(boolean sendEmptyExchangeOnTimeout) {
-        this.sendEmptyExchangeOnTimeout = sendEmptyExchangeOnTimeout;
+    public boolean hasPath() {
+        return ObjectHelper.isNotEmpty(path);
+    }
+
+    public boolean isRecursive() {
+        return recursive;
+    }
+
+    public void setRecursive(boolean recursive) {
+        this.recursive = recursive;
     }
 }

@@ -17,37 +17,32 @@
 
 package org.apache.camel.component.etcd;
 
-import org.apache.camel.spi.UriParam;
-import org.apache.camel.spi.UriParams;
+import java.util.HashMap;
+import java.util.Map;
 
-@UriParams
-public class EtcdWatchConfiguration extends EtcdKeysConfiguration {
+import org.apache.camel.builder.RouteBuilder;
+import org.junit.Ignore;
+import org.junit.Test;
 
-    @UriParam(label = "consumer")
-    private Long timeout;
+@Ignore("Etcd must be started manually")
+public class EtcdKeysSetTest extends EtcdTest {
 
-    //TODO rename
-    @UriParam
-    boolean sendEmptyExchangeOnTimeout;
+    @Test
+    public void testKeysSet() throws Exception {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(EtcdConstants.ETCD_ACTION, EtcdConstants.ETCD_KEYS_ACTION_SET);
+        headers.put(EtcdConstants.ETCD_PATH, "/my/path");
 
-
-    public Long getTimeout() {
-        return timeout;
+        sendBody("direct:keys-set", "value", headers);
     }
 
-    public void setTimeout(Long timeout) {
-        this.timeout = timeout;
-    }
-
-    public boolean hasTimeout() {
-        return timeout != null && timeout > 0;
-    }
-
-    public boolean isSendEmptyExchangeOnTimeout() {
-        return sendEmptyExchangeOnTimeout;
-    }
-
-    public void setSendEmptyExchangeOnTimeout(boolean sendEmptyExchangeOnTimeout) {
-        this.sendEmptyExchangeOnTimeout = sendEmptyExchangeOnTimeout;
+    @Override
+    protected RouteBuilder createRouteBuilder() throws Exception {
+        return new RouteBuilder() {
+            public void configure() {
+                from("direct:keys-set")
+                    .to("etcd:/keys");
+            }
+        };
     }
 }

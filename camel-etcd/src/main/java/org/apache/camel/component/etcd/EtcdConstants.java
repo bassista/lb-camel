@@ -17,16 +17,20 @@
 package org.apache.camel.component.etcd;
 
 public interface EtcdConstants {
-    String ETCD_ACTION_KEY   = "CamelEtcdActionKey";
-    String ETCD_ACTION_PATH  = "CamelEtcdActionPath";
-    String ETCD_PREVIOUSNODE = "CamelEtcdPreviousNode";
-    String ETCD_TIMEOUT      = "CamelEtcdTimeout";
+    String ETCD_PATH_STATS         = "/stats";
+    String ETCD_PATH_WATCH         = "/watch";
+    String ETCD_PATH_KEYS          = "/keys";
+
+    String ETCD_ACTION             = "CamelEtcdAction";
+    String ETCD_PATH               = "CamelEtcdPath";
+    String ETCD_TIMEOUT            = "CamelEtcdTimeout";
+
+    String ETCD_KEYS_ACTION_SET    = "set";
+    String ETCD_KEYS_ACTION_DELETE = "delete";
+    String ETCD_KEYS_ACTION_GET    = "get";
 
 
-    String ETCD_PATH_STATS = "/stats";
-    String ETCD_PATH_WATCH = "/watch";
-
-    String ETCD_LEADER_STATS_PATH = "/stats/leader";
-    String ETCD_SELF_STATS_PATH   = "/stats/self";
-    String ETCD_STORE_STATS_PATH  = "/stats/store";
+    String ETCD_LEADER_STATS_PATH  = "/stats/leader";
+    String ETCD_SELF_STATS_PATH    = "/stats/self";
+    String ETCD_STORE_STATS_PATH   = "/stats/store";
 }

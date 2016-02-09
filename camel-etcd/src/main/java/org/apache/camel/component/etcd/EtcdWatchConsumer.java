@@ -27,7 +27,6 @@ import mousio.etcd4j.requests.EtcdKeyGetRequest;
 import mousio.etcd4j.responses.EtcdKeysResponse;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,7 @@ public class EtcdWatchConsumer extends AbstractEtcdConsumer implements ResponseP
     private final AtomicBoolean running;
     private final EtcdWatchEndpoint endpoint;
     private final EtcdWatchConfiguration configuration;
-    private final String key;
+    private final String defaultPath;
 
     EtcdWatchConsumer(EtcdWatchEndpoint etcdEndpoint, Processor processor, EtcdWatchConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
         super(etcdEndpoint, processor, etcdConfiguration, etcdActionNamespace, path);
@@ -45,17 +44,7 @@ public class EtcdWatchConsumer extends AbstractEtcdConsumer implements ResponseP
         this.running = new AtomicBoolean(false);
         this.endpoint = etcdEndpoint;
         this.configuration = etcdConfiguration;
-
-        String key = endpoint.getPath().substring(EtcdActionNamespace.WATCH.name().length() + 1);
-        if (ObjectHelper.isEmpty(key)) {
-            key = configuration.getPath();
-        }
-
-        if (ObjectHelper.isEmpty(key)) {
-            throw new IllegalArgumentException("No key to watch");
-        }
-
-        this.key = key;
+        this.defaultPath = etcdEndpoint.getRemainingPath(configuration.getPath());
     }
 
     @Override
@@ -83,20 +72,20 @@ public class EtcdWatchConsumer extends AbstractEtcdConsumer implements ResponseP
             EtcdKeysResponse response = promise.get();
 
             Exchange exchange = endpoint.createExchange();
-            exchange.getOut().setHeader(EtcdConstants.ETCD_ACTION_PATH, response.node.key);
+            exchange.getOut().setHeader(EtcdConstants.ETCD_PATH, response.node.key);
             exchange.getOut().setBody(response);
 
             getProcessor().process(exchange);
 
             watch();
         } catch (TimeoutException e) {
-            LOGGER.debug("Timeout watching for " + key);
+            LOGGER.debug("Timeout watching for " + defaultPath);
 
             if (configuration.isSendEmptyExchangeOnTimeout()) {
                 try {
                     Exchange exchange = endpoint.createExchange();
                     exchange.getOut().setHeader(EtcdConstants.ETCD_TIMEOUT, true);
-                    exchange.getOut().setHeader(EtcdConstants.ETCD_ACTION_PATH, key);
+                    exchange.getOut().setHeader(EtcdConstants.ETCD_PATH, defaultPath);
                     exchange.getOut().setBody(null);
 
                     getProcessor().process(exchange);
@@ -114,7 +103,7 @@ public class EtcdWatchConsumer extends AbstractEtcdConsumer implements ResponseP
             return;
         }
 
-        EtcdKeyGetRequest request = endpoint.getClient().get(key).waitForChange();
+        EtcdKeyGetRequest request = endpoint.getClient().get(defaultPath).waitForChange();
         if (configuration.isRecursive()) {
             request.recursive();
         }
