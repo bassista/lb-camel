@@ -7,12 +7,11 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore("Etcd must be started manually")
-public class EtcdStatsTest extends CamelTestSupport {
+public class EtcdStatsTest extends EtcdTest {
 
     @Test
     public void testStats() throws Exception {
@@ -50,22 +49,22 @@ public class EtcdStatsTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() {
                 // CONSUMER
-                from("etcd://stats/leader?consumer.delay=50&consumer.initialDelay=0")
+                from("etcd:/stats/leader?consumer.delay=50&consumer.initialDelay=0")
                     .to("mock:stats-leader-consumer");
-                from("etcd://stats/self?consumer.delay=50&consumer.initialDelay=0")
+                from("etcd:/stats/self?consumer.delay=50&consumer.initialDelay=0")
                     .to("mock:stats-self-consumer");
-                from("etcd://stats/store?consumer.delay=50&consumer.initialDelay=0")
+                from("etcd:/stats/store?consumer.delay=50&consumer.initialDelay=0")
                     .to("mock:stats-store-consumer");
 
                 // PRODUCER
                 from("direct:stats-leader")
-                    .to("etcd://stats/leader")
+                    .to("etcd:/stats/leader")
                         .to("mock:stats-leader-producer");
                 from("direct:stats-self")
-                    .to("etcd://stats/self")
+                    .to("etcd:/stats/self")
                         .to("mock:stats-self-producer");
                 from("direct:stats-store")
-                    .to("etcd://stats/store")
+                    .to("etcd:/stats/store")
                         .to("mock:stats-store-producer");
             }
         };

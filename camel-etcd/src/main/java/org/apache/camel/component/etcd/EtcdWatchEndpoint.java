@@ -14,32 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.camel.component.etcd;
 
-import org.apache.camel.util.ObjectHelper;
+import org.apache.camel.Consumer;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
 
-public enum EtcdActionNamespace {
-    STATS(EtcdConstants.ETCD_PATH_STATS),
-    WATCH(EtcdConstants.ETCD_PATH_WATCH)
-    ;
 
-    final String path;
-
-    EtcdActionNamespace(String path) {
-        this.path = path;
+public class EtcdWatchEndpoint extends AbstractEtcdEndpoint<EtcdWatchConfiguration> {
+    public EtcdWatchEndpoint(
+            String uri, EtcdComponent component, EtcdWatchConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
+        super(uri, component, etcdConfiguration, etcdActionNamespace, path);
     }
 
-    static final EtcdActionNamespace[] VALUES = values();
+    @Override
+    public Producer createProducer() throws Exception {
+        throw new IllegalArgumentException("Producer not enabled for " + getPath());
+    }
 
-    static EtcdActionNamespace fromPath(String name) {
-        if (ObjectHelper.isNotEmpty(name)) {
-            for (int i = VALUES.length - 1; i >= 0; --i) {
-                if (name.startsWith(VALUES[i].path)) {
-                    return VALUES[i];
-                }
-            }
-        }
-
-        return null;
+    @Override
+    public Consumer createConsumer(Processor processor) throws Exception {
+        return new EtcdWatchConsumer(this, processor, getConfiguration(), getActionNamespace(), getPath());
     }
 }

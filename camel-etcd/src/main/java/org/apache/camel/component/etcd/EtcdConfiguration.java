@@ -17,7 +17,6 @@
 package org.apache.camel.component.etcd;
 
 import java.util.Set;
-
 import javax.net.ssl.SSLContext;
 
 import org.apache.camel.spi.UriParam;
@@ -29,12 +28,6 @@ public class EtcdConfiguration {
 
     @UriParam(multiValue = true, javaType = "java.lang.String")
     private Set<String> uris;
-
-    @UriParam(label = "producer")
-    private int timeToLive;
-
-    @UriParam(label = "producer")
-    private long timeout;
 
     @UriParam(label = "security")
     private SSLContextParameters sslContextParameters;
@@ -56,22 +49,6 @@ public class EtcdConfiguration {
 
     public void setUris(Set<String> uris) {
         this.uris = uris;
-    }
-
-    public int getTimeToLive() {
-        return timeToLive;
-    }
-
-    public void setTimeToLive(int timeToLive) {
-        this.timeToLive = timeToLive;
-    }
-
-    public long getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(long timeout) {
-        this.timeout = timeout;
     }
 
     public SSLContextParameters getSslContextParameters() {

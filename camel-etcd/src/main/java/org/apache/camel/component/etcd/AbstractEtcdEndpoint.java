@@ -12,16 +12,16 @@ import org.apache.camel.spi.UriPath;
  * Represents a etcd endpoint.
  */
 @UriEndpoint(scheme = "etcd", title = "etcd", syntax="etcd:actionDomain", consumerClass = AbstractEtcdConsumer.class, label = "etcd")
-public abstract class AbstractEtcdEndpoint extends DefaultEndpoint {
+public abstract class AbstractEtcdEndpoint<C extends EtcdConfiguration> extends DefaultEndpoint {
 
     @UriPath(description = "The namespace")
     private final EtcdActionNamespace etcdActionNamespace;
-    private final EtcdConfiguration etcdConfiguration;
+    private final C etcdConfiguration;
     private final String path;
 
     private EtcdClient etcdClient;
 
-    protected AbstractEtcdEndpoint(String uri, EtcdComponent component, EtcdConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
+    protected AbstractEtcdEndpoint(String uri, EtcdComponent component, C etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
         super(uri, component);
 
         this.etcdConfiguration = etcdConfiguration;
@@ -70,7 +70,7 @@ public abstract class AbstractEtcdEndpoint extends DefaultEndpoint {
         super.doStop();
     }
 
-    public EtcdConfiguration getConfiguration() {
+    public C getConfiguration() {
         return this.etcdConfiguration;
     }
 

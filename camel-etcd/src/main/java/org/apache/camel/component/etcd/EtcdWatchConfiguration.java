@@ -14,32 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.camel.component.etcd;
 
-import org.apache.camel.util.ObjectHelper;
+import org.apache.camel.spi.UriParam;
+import org.apache.camel.spi.UriParams;
 
-public enum EtcdActionNamespace {
-    STATS(EtcdConstants.ETCD_PATH_STATS),
-    WATCH(EtcdConstants.ETCD_PATH_WATCH)
-    ;
+@UriParams
+public class EtcdWatchConfiguration extends EtcdKeyConfiguration {
+    //TODO rename
+    @UriParam
+    boolean sendEmptyExchangeOnTimeout;
 
-    final String path;
-
-    EtcdActionNamespace(String path) {
-        this.path = path;
+    public boolean isSendEmptyExchangeOnTimeout() {
+        return sendEmptyExchangeOnTimeout;
     }
 
-    static final EtcdActionNamespace[] VALUES = values();
-
-    static EtcdActionNamespace fromPath(String name) {
-        if (ObjectHelper.isNotEmpty(name)) {
-            for (int i = VALUES.length - 1; i >= 0; --i) {
-                if (name.startsWith(VALUES[i].path)) {
-                    return VALUES[i];
-                }
-            }
-        }
-
-        return null;
+    public void setSendEmptyExchangeOnTimeout(boolean sendEmptyExchangeOnTimeout) {
+        this.sendEmptyExchangeOnTimeout = sendEmptyExchangeOnTimeout;
     }
 }

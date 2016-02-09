@@ -14,22 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.etcd.internal;
+
+package org.apache.camel.component.etcd;
 
 import org.apache.camel.Consumer;
-import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
-import org.apache.camel.component.etcd.AbstractEtcdEndpoint;
-import org.apache.camel.component.etcd.EtcdActionNamespace;
-import org.apache.camel.component.etcd.EtcdComponent;
-import org.apache.camel.component.etcd.EtcdConfiguration;
-import org.apache.camel.component.etcd.EtcdConstants;
 
 
-public class EtcdStatsEndpoint extends AbstractEtcdEndpoint{
+public class EtcdStatsEndpoint extends AbstractEtcdEndpoint<EtcdStatsConfiguration> {
     public EtcdStatsEndpoint(
-            String uri, EtcdComponent component, EtcdConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
+            String uri, EtcdComponent component, EtcdStatsConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
         super(uri, component, etcdConfiguration, etcdActionNamespace, path);
     }
 
@@ -54,12 +49,5 @@ public class EtcdStatsEndpoint extends AbstractEtcdEndpoint{
             default:
                 throw new IllegalStateException("No stats for " + getPath());
         }
-    }
-
-    Exchange fillExchange(Exchange exchange, Object body) {
-        exchange.getIn().setHeader(EtcdConstants.ETCD_ACTION_PATH, getPath());
-        exchange.getIn().setBody(body);
-
-        return exchange;
     }
 }

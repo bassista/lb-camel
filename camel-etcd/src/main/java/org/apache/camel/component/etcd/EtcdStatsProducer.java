@@ -14,16 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.etcd.internal;
 
-import org.apache.camel.Processor;
-import org.apache.camel.component.etcd.AbstractEtcdPollingConsumer;
-import org.apache.camel.component.etcd.EtcdActionNamespace;
-import org.apache.camel.component.etcd.EtcdConfiguration;
+package org.apache.camel.component.etcd;
 
-class EtcdStatsConsumer extends AbstractEtcdPollingConsumer {
-    EtcdStatsConsumer(EtcdStatsEndpoint etcdEndpoint, Processor processor, EtcdConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
-        super(etcdEndpoint, processor, etcdConfiguration, etcdActionNamespace, path);
+import org.apache.camel.Exchange;
+
+
+class EtcdStatsProducer extends AbstractEtcdProducer {
+    EtcdStatsProducer(EtcdStatsEndpoint etcdEndpoint, EtcdStatsConfiguration etcdConfiguration, EtcdActionNamespace etcdActionNamespace, String path) {
+        super(etcdEndpoint, etcdConfiguration, etcdActionNamespace, path);
     }
 
     @Override
@@ -32,16 +31,13 @@ class EtcdStatsConsumer extends AbstractEtcdPollingConsumer {
     }
 
     @Override
-    protected int poll() throws Exception {
+    public void process(Exchange exchange) throws Exception {
         EtcdStatsEndpoint endpoint = getEndpoint();
         Object answer = endpoint.getStats();
 
         if (answer != null) {
-            getProcessor().process(endpoint.fillExchange(endpoint.createExchange(), answer));
-
-            return 1;
+            exchange.getIn().setHeader(EtcdConstants.ETCD_ACTION_PATH, getPath());
+            exchange.getIn().setBody(answer);
         }
-
-        return 0;
     }
 }

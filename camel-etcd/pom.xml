@@ -27,6 +27,12 @@
       <version>${version.etcd4j}</version>
     </dependency>
 
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+
     <!-- testing -->
     <dependency>
       <groupId>org.apache.camel</groupId>
