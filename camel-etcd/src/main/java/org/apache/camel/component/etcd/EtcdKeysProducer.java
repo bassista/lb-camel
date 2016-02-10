@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import mousio.etcd4j.EtcdClient;
+import mousio.etcd4j.requests.EtcdKeyDeleteRequest;
+import mousio.etcd4j.requests.EtcdKeyGetRequest;
 import mousio.etcd4j.requests.EtcdKeyPutRequest;
 import org.apache.camel.Exchange;
 import org.apache.camel.util.ObjectHelper;
@@ -57,7 +59,10 @@ class EtcdKeysProducer extends AbstractEtcdProducer {
                 processGet(endpoint.getClient(), path, exchange);
                 break;
             case EtcdConstants.ETCD_KEYS_ACTION_DELETE:
-                processDel(endpoint.getClient(), path, exchange);
+                processDel(endpoint.getClient(), path, false, exchange);
+                break;
+            case EtcdConstants.ETCD_KEYS_ACTION_DELETE_DIR:
+                processDel(endpoint.getClient(), path, true, exchange);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown action " + action);
@@ -85,8 +90,37 @@ class EtcdKeysProducer extends AbstractEtcdProducer {
     }
 
     private void processGet(EtcdClient client, String path, Exchange exchange) throws Exception {
+        EtcdKeyGetRequest request = client.get(path);
+        if (configuration.hasTimeout()) {
+            request.timeout(configuration.getTimeout(), TimeUnit.MILLISECONDS);
+        }
+        if (configuration.isRecursive()) {
+            request.recursive();
+        }
+
+        try {
+            exchange.getIn().setBody(request.send().get());
+        } catch (TimeoutException e) {
+            exchange.getIn().setHeader(EtcdConstants.ETCD_TIMEOUT, true);
+        }
     }
 
-    private void processDel(EtcdClient client, String path, Exchange exchange) throws Exception {
+    private void processDel(EtcdClient client, String path, boolean dir, Exchange exchange) throws Exception {
+        EtcdKeyDeleteRequest request = client.delete(path);
+        if (configuration.hasTimeout()) {
+            request.timeout(configuration.getTimeout(), TimeUnit.MILLISECONDS);
+        }
+        if (configuration.isRecursive()) {
+            request.recursive();
+        }
+        if (dir) {
+            request.dir();
+        }
+
+        try {
+            exchange.getIn().setBody(request.send().get());
+        } catch (TimeoutException e) {
+            exchange.getIn().setHeader(EtcdConstants.ETCD_TIMEOUT, true);
+        }
     }
 }

@@ -25,9 +25,10 @@ public interface EtcdConstants {
     String ETCD_PATH               = "CamelEtcdPath";
     String ETCD_TIMEOUT            = "CamelEtcdTimeout";
 
-    String ETCD_KEYS_ACTION_SET    = "set";
-    String ETCD_KEYS_ACTION_DELETE = "delete";
-    String ETCD_KEYS_ACTION_GET    = "get";
+    String ETCD_KEYS_ACTION_SET        = "set";
+    String ETCD_KEYS_ACTION_DELETE     = "delete";
+    String ETCD_KEYS_ACTION_DELETE_DIR = "deleteDir";
+    String ETCD_KEYS_ACTION_GET        = "get";
 
 
     String ETCD_LEADER_STATS_PATH  = "/stats/leader";
