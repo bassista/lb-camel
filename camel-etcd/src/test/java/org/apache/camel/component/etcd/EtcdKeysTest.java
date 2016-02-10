@@ -39,7 +39,6 @@ public class EtcdKeysTest extends EtcdTest {
         final String path = "/camel/" + UUID.randomUUID().toString();
         final String value = UUID.randomUUID().toString();
         final EtcdClient client = getClient();
-
         final Map<String, Object> headers = new HashMap<>();
 
         // *******************************************
@@ -55,8 +54,7 @@ public class EtcdKeysTest extends EtcdTest {
         MockEndpoint mockSet = getMockEndpoint("mock:result-set");
         mockSet.expectedMinimumMessageCount(1);
         mockSet.expectedHeaderReceived(EtcdConstants.ETCD_PATH, path);
-
-        assertMockEndpointsSatisfied();
+        mockSet.assertIsSatisfied();
 
         // *******************************************
         // GET
@@ -69,8 +67,8 @@ public class EtcdKeysTest extends EtcdTest {
         sendBody("direct:keys-get", value, headers);
 
         MockEndpoint mockGet = getMockEndpoint("mock:result-get");
-        mockSet.expectedMinimumMessageCount(1);
-        mockSet.expectedHeaderReceived(EtcdConstants.ETCD_PATH, path);
+        mockGet.expectedMinimumMessageCount(1);
+        mockGet.expectedHeaderReceived(EtcdConstants.ETCD_PATH, path);
         mockGet.expectedMessagesMatches(new Predicate() {
             @Override
             public boolean matches(Exchange exchange) {
@@ -83,7 +81,7 @@ public class EtcdKeysTest extends EtcdTest {
             }
         });
 
-        assertMockEndpointsSatisfied();
+        mockGet.assertIsSatisfied();
 
         // *******************************************
         // DELETE
@@ -98,8 +96,7 @@ public class EtcdKeysTest extends EtcdTest {
         MockEndpoint mockDel = getMockEndpoint("mock:result-del");
         mockDel.expectedMinimumMessageCount(1);
         mockDel.expectedHeaderReceived(EtcdConstants.ETCD_PATH, path);
-
-        assertMockEndpointsSatisfied();
+        mockDel.assertIsSatisfied();
 
         // *******************************************
         // VALIDATION
