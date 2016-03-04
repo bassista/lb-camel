@@ -48,7 +48,7 @@
         <version.common.lang3>3.4</version.common.lang3>
         <version.chronicle.engine>1.11.4</version.chronicle.engine>
 
-        <jdk.version>1.7</jdk.version>
+        <jdk.version>1.8</jdk.version>
         <cxf-version>3.1.5</cxf-version>
         <htmlunit.version>2.15</htmlunit.version>
         <jackson2-version>2.7.2</jackson2-version>
@@ -289,8 +289,8 @@
     <!-- ******************************************************************* -->
 
     <modules>
-        <module>camel-servicenow</module>
-    <module>camel-chronicle</module>
+        <!--<module>camel-servicenow</module>-->
+        <module>camel-chronicle</module>
   </modules>
         
 </project>

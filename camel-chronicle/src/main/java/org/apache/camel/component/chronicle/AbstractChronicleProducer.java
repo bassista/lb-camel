@@ -26,7 +26,7 @@ abstract class AbstractChronicleProducer<E extends AbstractChronicleEndpoint<C>,
         super(endpoint);
     }
 
-    @SuppressWarnings("uncheked")
+    @SuppressWarnings("unchecked")
     protected E getChronicleEnpoint() {
         return (E)super.getEndpoint();
     }

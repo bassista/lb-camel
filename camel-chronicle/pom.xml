@@ -13,7 +13,6 @@
   <groupId>org.apache.camel.component.chronicle</groupId>
   <artifactId>camel-chronicle</artifactId>
   <packaging>bundle</packaging>
-  <version>${parent.version}}</version>
 
   <name>Camel Chronicle Component</name>
   <url>http://camel.apache.org</url>
