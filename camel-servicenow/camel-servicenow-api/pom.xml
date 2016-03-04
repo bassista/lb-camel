@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.camel.component.servicenow</groupId>
+    <artifactId>camel-servicenow-parent</artifactId>
+    <version>2.17-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>camel-servicenow-api</artifactId>
+  <name>Camel ServiceNow Component API</name>
+  <description>API for Camel ServiceNow Component</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencies>
+  <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-core</artifactId>
+      <version>${cxf-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+      <version>${cxf-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-security-oauth2</artifactId>
+      <version>${cxf-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-extension-providers</artifactId>
+      <version>${cxf-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.htmlunit</groupId>
+      <artifactId>htmlunit</artifactId>
+      <version>${htmlunit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson2-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-rs-client</artifactId>
+      <version>${cxf-version}</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <defaultGoal>install</defaultGoal>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-wadl2java-plugin</artifactId>
+        <version>${cxf-version}</version>
+        <executions>
+          <execution>
+            <id>generate-wadl-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>wadl2java</goal>
+            </goals>
+            <configuration>
+              <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+              <wadlOptions>
+                <wadlOption>
+                  <wadl>${project.basedir}/src/main/resources/servicenow-api-wadl.xml</wadl>
+                  <packagename>org.apache.camel.component.linkedin.api</packagename>
+                  <bindingFiles>
+                    <bindingFile>${project.basedir}/src/main/resources/servicenow-api-schema.xjb</bindingFile>
+                  </bindingFiles>
+                  <extraargs>
+                    <extraarg>-verbose</extraarg>
+                    <extraarg>-generateEnums</extraarg>
+                    <extraarg>-xjc-quiet</extraarg>
+                  </extraargs>
+                </wadlOption>
+              </wadlOptions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- add generated source to build -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-generated-sources</id>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/cxf</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- to generate API Javadoc -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-javadoc</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <attach>true</attach>
+              <source>${jdk.version}</source>
+              <quiet>true</quiet>
+              <detectOfflineLinks>false</detectOfflineLinks>
+              <javadocVersion>${jdk.version}</javadocVersion>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <!-- Disable Java 8 doclint checks to avoid Javadoc plugin failures -->
+  <profiles>
+    <profile>
+      <id>doclint-java8-disable</id>
+      <activation>
+        <jdk>[1.8,</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>
