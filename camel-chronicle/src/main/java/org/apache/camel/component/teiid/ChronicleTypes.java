@@ -14,26 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.teiid;
 
-import org.apache.camel.impl.DefaultEndpoint;
+public enum ChronicleTypes {
+    ENGINE,
+    MAP,
+    QUEUE;
 
-abstract class AbstractChronicleEndpoint<C> extends DefaultEndpoint {
+    private final static ChronicleTypes[] VALUES = values();
 
-    private final C configuration;
+    public static ChronicleTypes fromName(String name) {
+        for (int i = VALUES.length; i >= 0; i--) {
+            if (VALUES[i].name().equalsIgnoreCase(name)) {
+                return VALUES[i];
+            }
+        }
 
-    protected AbstractChronicleEndpoint(String uri, ChronicleComponent component, C configuration) {
-        super(uri, component);
-
-        this.configuration = configuration;
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return true;
-    }
-
-    protected C getConfiguration() {
-        return configuration;
+        throw new IllegalArgumentException("Unknown Chronicle type: " + name);
     }
 }

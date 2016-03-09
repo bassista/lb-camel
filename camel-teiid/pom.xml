@@ -11,10 +11,10 @@
   </parent>
 
   <groupId>org.apache.camel.component.chronicle</groupId>
-  <artifactId>camel-chronicle</artifactId>
+  <artifactId>camel-teiid</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Chronicle Component</name>
+  <name>Camel Teiid Component</name>
   <url>http://camel.apache.org</url>
 
   <properties>
@@ -24,9 +24,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>net.openhft</groupId>
-      <artifactId>chronicle-engine</artifactId>
-      <version>${version.chronicle.engine}</version>
+      <groupId>org.jboss.teiid</groupId>
+      <artifactId>teiid-client</artifactId>
+      <version>${version.teiid}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.teiid</groupId>
+      <artifactId>teiid</artifactId>
+      <version>${version.teiid}</version>
     </dependency>
   </dependencies>
 
@@ -62,8 +67,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-chronicle</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=chronicle</Export-Service>
+            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-teiid</Bundle-SymbolicName>
+            <Export-Service>org.apache.camel.spi.ComponentResolver;component=teiid</Export-Service>
           </instructions>
         </configuration>
       </plugin>

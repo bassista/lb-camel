@@ -47,6 +47,7 @@
         <version.log4j>1.2.17</version.log4j>
         <version.common.lang3>3.4</version.common.lang3>
         <version.chronicle.engine>1.11.4</version.chronicle.engine>
+        <version.teiid>8.13.1</version.teiid>
 
         <jdk.version>1.8</jdk.version>
         <cxf-version>3.1.5</cxf-version>
@@ -291,6 +292,28 @@
     <modules>
         <!--<module>camel-servicenow</module>-->
         <module>camel-chronicle</module>
-  </modules>
+        <module>camel-teiid</module>
+    </modules>
+
+    <!-- ******************************************************************* -->
+    <!--                                                                     -->
+    <!-- ******************************************************************* -->
+
+    <repositories>
+        <repository>
+            <id>jboss-public-repository-group</id>
+            <name>JBoss Public Maven Repository Group</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
         
 </project>

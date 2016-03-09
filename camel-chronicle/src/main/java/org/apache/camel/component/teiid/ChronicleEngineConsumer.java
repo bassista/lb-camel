@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.teiid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +32,8 @@ import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.util.ObjectHelper;
 
-import static org.apache.camel.component.chronicle.ChronicleEngineHelper.fromMapEventTypeName;
-import static org.apache.camel.component.chronicle.ChronicleEngineHelper.toMapEventTypeName;
+import static org.apache.camel.component.teiid.ChronicleEngineHelper.fromMapEventTypeName;
+import static org.apache.camel.component.teiid.ChronicleEngineHelper.toMapEventTypeName;
 
 /**
  * The Chronicle Engine consumer.

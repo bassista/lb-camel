@@ -1,4 +1,4 @@
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.teiid;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
