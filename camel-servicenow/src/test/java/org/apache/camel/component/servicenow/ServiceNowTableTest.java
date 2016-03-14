@@ -17,6 +17,7 @@
 package org.apache.camel.component.servicenow;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
@@ -37,17 +38,20 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         headers.put(ServiceNowConstants.RESOURCE, "table");
         headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_RETRIEVE);
         headers.put(ServiceNowConstants.TABLE, "incident");
-        headers.put(ServiceNowConstants.SYSPARM_LIMIT, "2");
+        headers.put(ServiceNowConstants.SYSPARM_LIMIT, "10");
 
         template().sendBodyAndHeaders("direct:retrieve", null, headers);
 
         mock.assertIsSatisfied();
 
         Exchange exchange = mock.getExchanges().get(0);
-        Map<?, ?> message = exchange.getIn().getBody(Map.class);
+        Map<?, ?> items = exchange.getIn().getBody(Map.class);
 
-        assertNotNull(message.size());
-        assertNotNull(message.get("result"));
+        assertNotNull(items);
+        assertNotNull(items.get("result"));
+
+        List<?> incidents = (List<?>)items.get("result");
+        assertTrue(incidents.size() <= 10);
     }
     
     @Test
@@ -63,7 +67,35 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_RETRIEVE);
         headers.put(ServiceNowConstants.SYSPARM_ID, sysid);
         headers.put(ServiceNowConstants.TABLE, "incident");
-        headers.put(ServiceNowConstants.SYSPARM_LIMIT, "2");
+
+        template().sendBodyAndHeaders("direct:retrieve", null, headers);
+
+        mock.assertIsSatisfied();
+
+        Exchange exchange = mock.getExchanges().get(0);
+        Map<?, ?> items = exchange.getIn().getBody(Map.class);
+
+        assertNotNull(items.size());
+        assertNotNull(items.get("result"));
+
+        Map<?, ?> incident = (Map<?, ?>)items.get("result");
+        assertEquals(sysid, incident.get("sys_id"));
+        assertEquals(number, incident.get("number"));
+    }
+
+    @Test
+    public void testRetrieveWithQuery() throws Exception {
+        MockEndpoint mock = getMockEndpoint("mock:retrieve");
+        mock.expectedMessageCount(1);
+
+        final String sysid = "9c573169c611228700193229fff72400";
+        final String number = "INC0000001";
+
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(ServiceNowConstants.RESOURCE, "table");
+        headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_RETRIEVE);
+        headers.put(ServiceNowConstants.SYSPARM_QUERY, "number=" + number);
+        headers.put(ServiceNowConstants.TABLE, "incident");
 
         template().sendBodyAndHeaders("direct:retrieve", null, headers);
 
@@ -75,10 +107,12 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         assertNotNull(message.size());
         assertNotNull(message.get("result"));
 
-        Map<?, ?> result = (Map<?, ?>)message.get("result");
-        assertEquals(sysid, result.get("sys_id"));
-        assertEquals(number, result.get("number"));
+        List<?> items = (List<?>)message.get("result");
+        assertEquals(1, items.size());
 
+        Map<?, ?> result = (Map<?, ?>)items.get(0);
+        assertEquals(sysid,  result.get("sys_id"));
+        assertEquals(number, result.get("number"));
     }
 
     // *************************************************************************
