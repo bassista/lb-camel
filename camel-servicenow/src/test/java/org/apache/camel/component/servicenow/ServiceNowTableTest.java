@@ -55,10 +55,13 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:retrieve");
         mock.expectedMessageCount(1);
 
+        final String sysid = "9c573169c611228700193229fff72400";
+        final String number = "INC0000001";
+
         Map<String, Object> headers = new HashMap<>();
         headers.put(ServiceNowConstants.RESOURCE, "table");
         headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_RETRIEVE);
-        headers.put(ServiceNowConstants.SYSPARM_ID, "9c573169c611228700193229fff72400");
+        headers.put(ServiceNowConstants.SYSPARM_ID, sysid);
         headers.put(ServiceNowConstants.TABLE, "incident");
         headers.put(ServiceNowConstants.SYSPARM_LIMIT, "2");
 
@@ -73,8 +76,8 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         assertNotNull(message.get("result"));
 
         Map<?, ?> result = (Map<?, ?>)message.get("result");
-        assertEquals("9c573169c611228700193229fff72400", result.get("sys_id"));
-        assertEquals("INC0000001", result.get("number"));
+        assertEquals(sysid, result.get("sys_id"));
+        assertEquals(number, result.get("number"));
 
     }
 
@@ -90,7 +93,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
                 df.setUnmarshalType(Map.class);
 
                 from("direct:retrieve")
-                    .to("servicenow:https://dev21005.service-now.com/api/now"
+                    .to("servicenow:{{env:SERVICENOW_INSTANCE}}"
                         + "?userName={{env:SERVICENOW_USERNAME}}"
                         + "&password={{env:SERVICENOW_PASSWORD}}")
                     .unmarshal(df)
