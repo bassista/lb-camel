@@ -31,6 +31,8 @@
   <packaging>bundle</packaging>
 
   <name>Camel Teiid Component</name>
+  <description>Camel Teiid support</description>
+
   <url>http://camel.apache.org</url>
 
   <properties>

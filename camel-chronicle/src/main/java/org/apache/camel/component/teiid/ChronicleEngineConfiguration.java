@@ -58,6 +58,9 @@ class ChronicleEngineConfiguration {
         return hostPortDescription;
     }
 
+    /**
+     * Description
+     */
     public void setHostPortDescription(String hostPortDescription) {
         this.hostPortDescription = hostPortDescription;
     }
@@ -66,6 +69,9 @@ class ChronicleEngineConfiguration {
         return wireType;
     }
 
+    /**
+     * Description
+     */
     public void setWireType(String wireType) {
         this.wireType = wireType;
     }
@@ -78,6 +84,9 @@ class ChronicleEngineConfiguration {
         return subscribeMapEvents;
     }
 
+    /**
+     * Description
+     */
     public void setSubscribeMapEvents(boolean subscribeMapEvents) {
         this.subscribeMapEvents = subscribeMapEvents;
     }
@@ -86,6 +95,9 @@ class ChronicleEngineConfiguration {
         return filteredMapEvents;
     }
 
+    /**
+     * Description
+     */
     public void setFilteredMapEvents(String filteredMapEvents) {
         this.filteredMapEvents = filteredMapEvents;
     }
@@ -98,6 +110,9 @@ class ChronicleEngineConfiguration {
         return subscribeTopologicalEvents;
     }
 
+    /**
+     * Description
+     */
     public void setSubscribeTopologicalEvents(boolean subscribeTopologicalEvents) {
         this.subscribeTopologicalEvents = subscribeTopologicalEvents;
     }
@@ -110,6 +125,9 @@ class ChronicleEngineConfiguration {
         return subscribeTopicEvents;
     }
 
+    /**
+     * Description
+     */
     public void setSubscribeTopicEvents(boolean subscribeTopicEvents) {
         this.subscribeTopicEvents = subscribeTopicEvents;
     }

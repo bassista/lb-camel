@@ -31,6 +31,8 @@
   <packaging>bundle</packaging>
 
   <name>Camel ServiceNow Component</name>
+  <description>Camel ServiceNow support</description>
+
   <url>http://camel.apache.org</url>
 
   <properties>

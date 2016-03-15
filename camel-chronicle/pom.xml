@@ -31,6 +31,8 @@
   <packaging>bundle</packaging>
 
   <name>Camel Chronicle Component</name>
+  <description>Camel Chronicle support</description>
+
   <url>http://camel.apache.org</url>
 
   <properties>
