@@ -1,7 +1,7 @@
 sudo: false
 language: java
 script:
-- mvn clean test
+- mvn clean install -Dtest=false
 jdk:
 - oraclejdk7
 env:

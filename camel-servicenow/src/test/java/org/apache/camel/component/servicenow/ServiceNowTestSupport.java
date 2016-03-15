@@ -16,6 +16,10 @@
  */
 package org.apache.camel.component.servicenow;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -31,5 +35,30 @@ class ServiceNowTestSupport extends CamelTestSupport {
     @Override
     protected CamelContext createCamelContext() throws Exception {
         return super.createCamelContext();
+    }
+
+    protected static class KVBuilder {
+        private final Map<String, Object> headers;
+
+        public KVBuilder() {
+            this(new HashMap<>());
+        }
+
+        private KVBuilder(Map<String, Object> headers) {
+            this.headers = headers;
+        }
+
+        public KVBuilder on(Map<String, Object> headers) {
+            return new KVBuilder(headers);
+        }
+
+        public KVBuilder put(String key, Object val) {
+            headers.put(key, val);
+            return this;
+        }
+
+        public Map<String, Object> build() {
+            return Collections.unmodifiableMap(this.headers);
+        }
     }
 }
