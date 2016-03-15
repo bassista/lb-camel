@@ -59,7 +59,7 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Consumer interface is not supported");
     }
 
     @Override
