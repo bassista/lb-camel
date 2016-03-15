@@ -17,11 +17,16 @@
 package org.apache.camel.component.servicenow.model;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+
+import org.apache.cxf.jaxrs.ext.PATCH;
 
 @Path("/table")
 @Produces("application/json")
@@ -49,5 +54,53 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
         @QueryParam("sysparm_fields") String fields,
         @QueryParam("sysparm_view") String view
+    );
+
+    @POST
+    @Path("{tableName}")
+    String createRecord(
+        @PathParam("tableName") String tableName,
+        @QueryParam("sysparm_display_value") String displayValue,
+        @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
+        @QueryParam("sysparm_fields") String fields,
+        @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
+        @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
+        @QueryParam("sysparm_view") String view,
+        String body
+    );
+
+    @PUT
+    @Path("{tableName}/{sysId}")
+    String modifyRecord(
+        @PathParam("tableName") String tableName,
+        @PathParam("sysId") String id,
+        @QueryParam("sysparm_display_value") String displayValue,
+        @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
+        @QueryParam("sysparm_fields") String fields,
+        @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
+        @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
+        @QueryParam("sysparm_view") String view,
+        String body
+    );
+
+    @DELETE
+    @Path("{tableName}/{sysId}")
+    String deleteRecord(
+        @PathParam("tableName") String tableName,
+        @PathParam("sysId") String id
+    );
+
+    @PATCH
+    @Path("{tableName}/{sysId}")
+    String patchRecord(
+        @PathParam("tableName") String tableName,
+        @PathParam("sysId") String id,
+        @QueryParam("sysparm_display_value") String displayValue,
+        @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
+        @QueryParam("sysparm_fields") String fields,
+        @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
+        @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
+        @QueryParam("sysparm_view") String view,
+        String body
     );
 }

@@ -17,9 +17,9 @@
 package org.apache.camel.component.servicenow;
 
 public interface ServiceNowConstants {
-    String RESOURCE = "ServiceNowResource";
-    String TABLE = "ServiceNowTable";
-    String ACTION = "ServiceNowAction";
+    String RESOURCE = "CamelServiceNowResource";
+    String TABLE = "CamelServiceNowTable";
+    String ACTION = "CamelServiceNowAction";
 
     String RESOURCE_TABLE = "table";
     String RESOURCE_AGGREGATE = "aggregate";
@@ -28,14 +28,16 @@ public interface ServiceNowConstants {
     String ACTION_RETRIEVE = "retrieve";
     String ACTION_CREATE = "create";
     String ACTION_MODIFY = "modify";
-    String ACTION_DELETE = "modify";
+    String ACTION_DELETE = "delete";
     String ACTION_UPDATE = "update";
 
-    String SYSPARM_ID = "ServiceNowSysId";
-    String SYSPARM_QUERY = "ServiceNowQuery";
-    String SYSPARM_DISPLAY_VALUE = "ServiceNowDisplayValue";
-    String SYSPARM_EXCLUDE_REFERENCE_LINK = "ServiceNowExcludeReferenceLink";
-    String SYSPARM_FIELDS = "ServiceNowFields";
-    String SYSPARM_LIMIT = "ServiceNowLimit";
-    String SYSPARM_VIEW = "ServiceNowView";
+    String SYSPARM_ID = "CamelServiceNowSysId";
+    String SYSPARM_QUERY = "CamelServiceNowQuery";
+    String SYSPARM_DISPLAY_VALUE = "CamelServiceNowDisplayValue";
+    String SYSPARM_INPUT_DISPLAY_VALUE = "CamelServiceNowInputDisplayValue";
+    String SYSPARM_EXCLUDE_REFERENCE_LINK = "CamelServiceNowExcludeReferenceLink";
+    String SYSPARM_FIELDS = "CamelServiceNowFields";
+    String SYSPARM_LIMIT = "CamelServiceNowLimit";
+    String SYSPARM_VIEW = "CamelServiceNowView";
+    String SYSPARM_SUPPRESS_AUTO_SYS_FIELD = "CamelServiceNowSuppressAutoSysField";
 }

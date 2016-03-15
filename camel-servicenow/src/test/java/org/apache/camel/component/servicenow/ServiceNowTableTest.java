@@ -31,7 +31,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
 
     @Test
     public void testRetrieveAll() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:retrieve");
+        MockEndpoint mock = getMockEndpoint("mock:servicenow");
         mock.expectedMessageCount(1);
 
         Map<String, Object> headers = new HashMap<>();
@@ -40,7 +40,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         headers.put(ServiceNowConstants.TABLE, "incident");
         headers.put(ServiceNowConstants.SYSPARM_LIMIT, "10");
 
-        template().sendBodyAndHeaders("direct:retrieve", null, headers);
+        template().sendBodyAndHeaders("direct:servicenow", null, headers);
 
         mock.assertIsSatisfied();
 
@@ -56,7 +56,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
     
     @Test
     public void testRetrieve() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:retrieve");
+        MockEndpoint mock = getMockEndpoint("mock:servicenow");
         mock.expectedMessageCount(1);
 
         final String sysid = "9c573169c611228700193229fff72400";
@@ -68,7 +68,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         headers.put(ServiceNowConstants.SYSPARM_ID, sysid);
         headers.put(ServiceNowConstants.TABLE, "incident");
 
-        template().sendBodyAndHeaders("direct:retrieve", null, headers);
+        template().sendBodyAndHeaders("direct:servicenow", null, headers);
 
         mock.assertIsSatisfied();
 
@@ -85,7 +85,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
 
     @Test
     public void testRetrieveWithQuery() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:retrieve");
+        MockEndpoint mock = getMockEndpoint("mock:servicenow");
         mock.expectedMessageCount(1);
 
         final String sysid = "9c573169c611228700193229fff72400";
@@ -97,14 +97,15 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         headers.put(ServiceNowConstants.SYSPARM_QUERY, "number=" + number);
         headers.put(ServiceNowConstants.TABLE, "incident");
 
-        template().sendBodyAndHeaders("direct:retrieve", null, headers);
+        template().sendBodyAndHeaders("direct:servicenow", null, headers);
 
         mock.assertIsSatisfied();
 
         Exchange exchange = mock.getExchanges().get(0);
         Map<?, ?> message = exchange.getIn().getBody(Map.class);
 
-        assertNotNull(message.size());
+        assertNotNull(message);
+        assertEquals(1, message.size());
         assertNotNull(message.get("result"));
 
         List<?> items = (List<?>)message.get("result");
@@ -113,6 +114,142 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         Map<?, ?> result = (Map<?, ?>)items.get(0);
         assertEquals(sysid,  result.get("sys_id"));
         assertEquals(number, result.get("number"));
+    }
+
+    @Test
+    public void testCreateAndSearch() throws Exception {
+
+        final Map<String, Object> headers = new HashMap<>();
+        final Map<String, Object> fields = new HashMap<>();
+
+        Map<?, ?> incident = null;
+        MockEndpoint mock = getMockEndpoint("mock:servicenow");
+
+        // ************************
+        // Create incident
+        // ************************
+
+        {
+            mock.expectedMessageCount(1);
+
+            headers.clear();
+            headers.put(ServiceNowConstants.RESOURCE, "table");
+            headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_CREATE);
+            headers.put(ServiceNowConstants.TABLE, "incident");
+
+            fields.clear();
+            fields.put("description", "my incident");
+            fields.put("severity", 1);
+            fields.put("impact", 1);
+            fields.put("short_description", "An incident");
+
+            template().sendBodyAndHeaders("direct:servicenow", fields, headers);
+
+            mock.assertIsSatisfied();
+
+            Exchange exchange = mock.getExchanges().get(0);
+            Map<?, ?> items = exchange.getIn().getBody(Map.class);
+
+            assertNotNull(items);
+            assertEquals(1, items.size());
+            assertNotNull(items.get("result"));
+
+            incident = (Map<?, ?>) items.get("result");
+
+            LOGGER.info("*** Incident created ***");
+            LOGGER.info("sysid={}, number={}", incident.get("sys_id"), incident.get("number"));
+            LOGGER.info("************************");
+        }
+
+        mock.reset();
+
+        // ************************
+        // Search for the incident
+        // ************************
+
+        {
+            mock.expectedMessageCount(1);
+
+            headers.clear();
+            headers.put(ServiceNowConstants.RESOURCE, "table");
+            headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_RETRIEVE);
+            headers.put(ServiceNowConstants.SYSPARM_QUERY, "number=" + incident.get("number"));
+            headers.put(ServiceNowConstants.TABLE, "incident");
+
+            template().sendBodyAndHeaders("direct:servicenow", null, headers);
+
+            mock.assertIsSatisfied();
+
+            Exchange exchange = mock.getExchanges().get(0);
+            Map<?, ?> items = exchange.getIn().getBody(Map.class);
+
+            assertNotNull(items);
+            assertEquals(1, items.size());
+            assertNotNull(items.get("result"));
+
+            assertEquals(1, ((List<?>) items.get("result")).size());
+
+            Map<?, ?> result = (Map<?, ?>) ((List<?>) items.get("result")).get(0);
+            assertEquals(incident.get("number"), result.get("number"));
+        }
+
+        mock.reset();
+
+        // *******
+        // Modify the incident
+        // *******
+
+        {
+            mock.expectedMessageCount(1);
+
+            headers.clear();
+            headers.put(ServiceNowConstants.RESOURCE, "table");
+            headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_MODIFY);
+            headers.put(ServiceNowConstants.SYSPARM_ID, incident.get("sys_id"));
+            headers.put(ServiceNowConstants.TABLE, "incident");
+
+            fields.clear();
+            fields.put("severity", 2);
+            fields.put("impact", 2);
+            fields.put("short_description", "The incident");
+
+            template().sendBodyAndHeaders("direct:servicenow", fields, headers);
+
+            mock.assertIsSatisfied();
+
+            Exchange exchange = mock.getExchanges().get(0);
+            Map<?, ?> items = exchange.getIn().getBody(Map.class);
+
+            assertNotNull(items);
+            assertEquals(1, items.size());
+            assertNotNull(items.get("result"));
+
+            Map<?, ?> result = (Map<?, ?>)items.get("result");
+            assertEquals(incident.get("number"), result.get("number"));
+            assertEquals("2", result.get("severity"));
+            assertEquals("2", result.get("impact"));
+            assertEquals("The incident", result.get("short_description"));
+        }
+
+        mock.reset();
+
+        // *******
+        // Delete it
+        // *******
+
+        {
+            mock.expectedMessageCount(1);
+
+            headers.clear();
+            headers.put(ServiceNowConstants.RESOURCE, "table");
+            headers.put(ServiceNowConstants.ACTION, ServiceNowConstants.ACTION_DELETE);
+            headers.put(ServiceNowConstants.SYSPARM_ID, incident.get("sys_id"));
+            headers.put(ServiceNowConstants.TABLE, "incident");
+
+            template().sendBodyAndHeaders("direct:servicenow", null, headers);
+
+            mock.assertIsSatisfied();
+        }
     }
 
     // *************************************************************************
@@ -126,13 +263,21 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
                 JsonDataFormat df = new JsonDataFormat(JsonLibrary.Jackson);
                 df.setUnmarshalType(Map.class);
 
-                from("direct:retrieve")
+                from("direct:servicenow")
+                    .marshal(df)
                     .to("servicenow:{{env:SERVICENOW_INSTANCE}}"
                         + "?userName={{env:SERVICENOW_USERNAME}}"
                         + "&password={{env:SERVICENOW_PASSWORD}}")
-                    .unmarshal(df)
-                    //.to("log:org.apache.camel.component.servicenow?level=INFO&showAll=true")
-                    .to("mock:retrieve");
+                    .choice()
+                        .when(body().isNotNull())
+                            .unmarshal(df)
+                            .to("direct:servicenow-reply")
+                        .otherwise()
+                            .to("direct:servicenow-reply");
+
+                from("direct:servicenow-reply")
+                    .to("log:org.apache.camel.component.servicenow?level=INFO&showAll=true")
+                    .to("mock:servicenow");
             }
         };
     }

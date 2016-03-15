@@ -38,12 +38,17 @@ public class ServiceNowProducer extends DefaultProducer {
     @Override
     public void process(Exchange exchange) throws Exception {
         String resource = exchange.getIn().getHeader(ServiceNowConstants.RESOURCE, String.class);
+        String table = exchange.getIn().getHeader(ServiceNowConstants.TABLE, String.class);
+        if (table == null) {
+            table = endpoint.getConfiguration().getTable();
+        }
 
         if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_TABLE, resource, true)) {
             ServiceNowTableHelper.process(
+                endpoint.getConfiguration(),
                 endpoint.getClient(ServiceNowTable.class),
                 exchange,
-                exchange.getIn().getHeader(ServiceNowConstants.TABLE, String.class),
+                table,
                 exchange.getIn().getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
                 exchange.getIn().getHeader(ServiceNowConstants.ACTION, String.class)
             );

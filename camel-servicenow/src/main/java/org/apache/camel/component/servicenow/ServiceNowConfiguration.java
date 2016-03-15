@@ -28,6 +28,21 @@ public class ServiceNowConfiguration {
     @UriParam
     private String password;
 
+    @UriParam
+    private String table;
+
+    @UriParam(defaultValue = "false")
+    private Boolean excludeReferenceLink = false;
+
+    @UriParam(defaultValue = "false")
+    private Boolean suppressAutoSysField = false;
+
+    @UriParam(defaultValue = "false")
+    private String displayValue = "false";
+
+    @UriParam(defaultValue = "false")
+    private Boolean inputDisplayValue = false;
+
     public String getUserName() {
         return userName;
     }
@@ -52,5 +67,48 @@ public class ServiceNowConfiguration {
 
     public boolean hasBasicAuthentication() {
         return ObjectHelper.isNotEmpty(userName) && ObjectHelper.isNotEmpty(password);
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    /**
+     * The default table, can be overridden by header CamelServiceNowTable
+     */
+    public void setTable(String table) {
+        this.table = table;
+    }
+
+    public Boolean getExcludeReferenceLink() {
+        return excludeReferenceLink;
+    }
+
+    public void setExcludeReferenceLink(Boolean excludeReferenceLink) {
+        this.excludeReferenceLink = excludeReferenceLink;
+    }
+
+    public Boolean getSuppressAutoSysField() {
+        return suppressAutoSysField;
+    }
+
+    public void setSuppressAutoSysField(Boolean suppressAutoSysField) {
+        this.suppressAutoSysField = suppressAutoSysField;
+    }
+
+    public String getDisplayValue() {
+        return displayValue;
+    }
+
+    public void setDisplayValue(String displayValue) {
+        this.displayValue = displayValue;
+    }
+
+    public Boolean getInputDisplayValue() {
+        return inputDisplayValue;
+    }
+
+    public void setInputDisplayValue(Boolean inputDisplayValue) {
+        this.inputDisplayValue = inputDisplayValue;
     }
 }
