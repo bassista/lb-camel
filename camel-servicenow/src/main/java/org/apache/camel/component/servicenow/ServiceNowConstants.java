@@ -37,7 +37,15 @@ public interface ServiceNowConstants {
     String SYSPARM_INPUT_DISPLAY_VALUE = "CamelServiceNowInputDisplayValue";
     String SYSPARM_EXCLUDE_REFERENCE_LINK = "CamelServiceNowExcludeReferenceLink";
     String SYSPARM_FIELDS = "CamelServiceNowFields";
+    String SYSPARM_MIN_FIELDS = "CamelServiceNowMinFields";
+    String SYSPARM_MAX_FIELDS = "CamelServiceNowMaxFields";
+    String SYSPARM_SUM_FIELDS = "CamelServiceNowSumFields";
     String SYSPARM_LIMIT = "CamelServiceNowLimit";
     String SYSPARM_VIEW = "CamelServiceNowView";
     String SYSPARM_SUPPRESS_AUTO_SYS_FIELD = "CamelServiceNowSuppressAutoSysField";
+    String SYSPARM_AVG_FIELDS = "CamelServiceNowAvgFields";
+    String SYSPARM_COUNT = "CamelServiceNowCount";
+    String SYSPARM_GROUP_BY = "CamelServiceGroupBy";
+    String SYSPARM_ORDER_BY = "CamelServiceOrderBy";
+    String SYSPARM_HAVING = "CamelServiceHaving";
 }

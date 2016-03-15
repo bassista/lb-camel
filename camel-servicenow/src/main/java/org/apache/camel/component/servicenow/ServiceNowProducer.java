@@ -17,6 +17,11 @@
 package org.apache.camel.component.servicenow;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
+import org.apache.camel.component.servicenow.model.ServiceNowAggregate;
+import org.apache.camel.component.servicenow.model.ServiceNowAggregateHelper;
+import org.apache.camel.component.servicenow.model.ServiceNowImportSet;
+import org.apache.camel.component.servicenow.model.ServiceNowImportSetHelper;
 import org.apache.camel.component.servicenow.model.ServiceNowTable;
 import org.apache.camel.component.servicenow.model.ServiceNowTableHelper;
 import org.apache.camel.impl.DefaultProducer;
@@ -27,33 +32,48 @@ import org.apache.camel.util.ObjectHelper;
  */
 public class ServiceNowProducer extends DefaultProducer {
 
-    private final  ServiceNowEndpoint endpoint;
+    private final ServiceNowEndpoint endpoint;
+    private final ServiceNowConfiguration configuration;
 
     public ServiceNowProducer(ServiceNowEndpoint endpoint) {
         super(endpoint);
 
         this.endpoint = endpoint;
+        this.configuration = endpoint.getConfiguration();
     }
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        String resource = exchange.getIn().getHeader(ServiceNowConstants.RESOURCE, String.class);
-        String table = exchange.getIn().getHeader(ServiceNowConstants.TABLE, String.class);
-        if (table == null) {
-            table = endpoint.getConfiguration().getTable();
-        }
+        final String resource = exchange.getIn().getHeader(ServiceNowConstants.RESOURCE, String.class);
+        final Message message = exchange.getIn();
 
         if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_TABLE, resource, true)) {
             ServiceNowTableHelper.process(
-                endpoint.getConfiguration(),
+                configuration,
                 endpoint.getClient(ServiceNowTable.class),
                 exchange,
-                table,
-                exchange.getIn().getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
-                exchange.getIn().getHeader(ServiceNowConstants.ACTION, String.class)
+                message.getHeader(ServiceNowConstants.TABLE, configuration.getTable(), String.class),
+                message.getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
+                message.getHeader(ServiceNowConstants.ACTION, String.class)
             );
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_AGGREGATE, resource, true)) {
+            ServiceNowImportSetHelper.process(
+                configuration,
+                endpoint.getClient(ServiceNowImportSet.class),
+                exchange,
+                message.getHeader(ServiceNowConstants.TABLE, configuration.getTable(), String.class),
+                message.getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
+                message.getHeader(ServiceNowConstants.ACTION, String.class)
+            );
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_IMPORT, resource, true)) {
+            ServiceNowAggregateHelper.process(
+                configuration,
+                endpoint.getClient(ServiceNowAggregate.class),
+                exchange,
+                message.getHeader(ServiceNowConstants.TABLE, configuration.getTable(), String.class),
+                message.getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
+                message.getHeader(ServiceNowConstants.ACTION, String.class)
+            );
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + resource);
         }
