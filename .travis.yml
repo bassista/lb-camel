@@ -1,10 +1,15 @@
 sudo: false
-language: java
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+language:
+  - java
 script:
-- mvn clean install -Dtest=false
+  - mvn clean install -Dtest=false
 jdk:
-- oraclejdk7
+  - oraclejdk8
 env:
   global:
-  - secure: QMQwg2d0J0Jlq2LEBY9hJX5W/DcyW/lp38Ft6AAnizN7hG1bJVHEj1NdAZ4lNf04abh26CvxNkw7WM0JOaXInWBLvFgyfa4vct+fUrb/igLDLBQ+DPgTm3xUE95wqUefjMk4XUPYm+nJyIh28L1i53lKXsCn4jHxOtpvJBNXofc=
-  - secure: rQ9azzIVSNSH5gzEG+au5tdmskcJ/uDKfmoo9dDb5RQ9n1ASLiL34nMDEhPQ1xh8s7qJqNbWp7RARE9cOZMelOyNzQNsO4MQXN6A9nJ8SLE/nO3AwJ1iFtG0N0hUA8Ntvgv/M3dBy9CgM/iMVnGBfitGmCOwqQJjpR7DtXtWhJg=
+    - secure: QMQwg2d0J0Jlq2LEBY9hJX5W/DcyW/lp38Ft6AAnizN7hG1bJVHEj1NdAZ4lNf04abh26CvxNkw7WM0JOaXInWBLvFgyfa4vct+fUrb/igLDLBQ+DPgTm3xUE95wqUefjMk4XUPYm+nJyIh28L1i53lKXsCn4jHxOtpvJBNXofc=
+    - secure: rQ9azzIVSNSH5gzEG+au5tdmskcJ/uDKfmoo9dDb5RQ9n1ASLiL34nMDEhPQ1xh8s7qJqNbWp7RARE9cOZMelOyNzQNsO4MQXN6A9nJ8SLE/nO3AwJ1iFtG0N0hUA8Ntvgv/M3dBy9CgM/iMVnGBfitGmCOwqQJjpR7DtXtWhJg=
