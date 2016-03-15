@@ -84,6 +84,9 @@ public class ServiceNowConfiguration {
         return excludeReferenceLink;
     }
 
+    /**
+     * True to exclude Table API links for reference fields (default: false)
+     */
     public void setExcludeReferenceLink(Boolean excludeReferenceLink) {
         this.excludeReferenceLink = excludeReferenceLink;
     }
@@ -92,6 +95,9 @@ public class ServiceNowConfiguration {
         return suppressAutoSysField;
     }
 
+    /**
+     * True to suppress auto generation of system fields (default: false)
+     */
     public void setSuppressAutoSysField(Boolean suppressAutoSysField) {
         this.suppressAutoSysField = suppressAutoSysField;
     }
@@ -100,6 +106,10 @@ public class ServiceNowConfiguration {
         return displayValue;
     }
 
+    /**
+     * Return the display value (true), actual value (false), or both (all) for
+     * reference fields (default: false)
+     */
     public void setDisplayValue(String displayValue) {
         this.displayValue = displayValue;
     }
@@ -108,6 +118,9 @@ public class ServiceNowConfiguration {
         return inputDisplayValue;
     }
 
+    /**
+     * True to set raw value of input fields (default: false)
+     */
     public void setInputDisplayValue(Boolean inputDisplayValue) {
         this.inputDisplayValue = inputDisplayValue;
     }

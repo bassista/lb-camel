@@ -92,7 +92,7 @@ public interface ServiceNowTable {
 
     @PATCH
     @Path("{tableName}/{sysId}")
-    String patchRecord(
+    String updateRecord(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id,
         @QueryParam("sysparm_display_value") String displayValue,

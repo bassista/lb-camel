@@ -35,6 +35,8 @@ public class ServiceNowTableHelper  {
             modifyRecord(config, table, exchange, tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_DELETE, action, true)) {
             deleteRecord(config, table, exchange, tableName, sysId);
+        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_UPDATE, action, true)) {
+            updateRecord(config, table, exchange, tableName, sysId);
         }
     }
 
@@ -116,6 +118,26 @@ public class ServiceNowTableHelper  {
         String result = table.deleteRecord(
             tableName,
             sysId
+        );
+
+        in.setBody(result);
+    }
+
+    public static void updateRecord(
+        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId) throws Exception {
+
+        final Message in = exchange.getIn();
+
+        String result = table.updateRecord(
+            tableName,
+            sysId,
+            in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+            in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+            in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+            in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
+            in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
+            in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
+            in.getBody(String.class)
         );
 
         in.setBody(result);
