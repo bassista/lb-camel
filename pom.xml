@@ -48,6 +48,7 @@
         <version.common.lang3>3.4</version.common.lang3>
         <version.chronicle.engine>1.11.4</version.chronicle.engine>
         <version.teiid>8.13.1</version.teiid>
+        <version.oltu.oauth2>1.0.1</version.oltu.oauth2>
 
         <jdk.version>1.8</jdk.version>
         <cxf-version>3.1.5</cxf-version>
@@ -140,6 +141,12 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-client</artifactId>
                 <version>${cxf-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.oltu.oauth2</groupId>
+                <artifactId>org.apache.oltu.oauth2.client</artifactId>
+                <version>${version.oltu.oauth2}</version>
             </dependency>
 
             <!-- logging -->

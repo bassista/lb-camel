@@ -294,7 +294,9 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
                     .marshal(df)
                     .to("servicenow:{{env:SERVICENOW_INSTANCE}}"
                         + "?userName={{env:SERVICENOW_USERNAME}}"
-                        + "&password={{env:SERVICENOW_PASSWORD}}")
+                        + "&password={{env:SERVICENOW_PASSWORD}}"
+                        + "&oauthClientId={{env:SERVICENOW_OAUTH2_CLIENT_ID}}"
+                        + "&oauthClientSecret={{env:SERVICENOW_OAUTH2_CLIENT_SECRET}}")
                     .choice()
                         .when(body().isNotNull())
                             .unmarshal(df)

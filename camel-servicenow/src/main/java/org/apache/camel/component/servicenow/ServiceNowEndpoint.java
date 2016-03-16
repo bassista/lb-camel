@@ -16,40 +16,48 @@
  */
 package org.apache.camel.component.servicenow;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
+import org.apache.camel.component.servicenow.auth.AuthenticationRequestFilter;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriPath;
-import org.apache.cxf.configuration.security.AuthorizationPolicy;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
-import org.apache.cxf.jaxrs.client.WebClient;
 
 /**
  * Represents a ServiceNow endpoint.
  */
-@UriEndpoint(scheme = "servicenow", title = "ServiceNow", syntax="servicenow:basePath", consumerClass = ServiceNowConsumer.class, label = "ServiceNow")
+@UriEndpoint(scheme = "servicenow", title = "ServiceNow", syntax="servicenow:instanceName", consumerClass = ServiceNowConsumer.class, label = "ServiceNow")
 public class ServiceNowEndpoint extends DefaultEndpoint {
 
-    @UriPath(description = "The ServiceNow REST gateway base path")
+    @UriPath(description = "The ServiceNow instance name ")
     @Metadata(required = "true")
-    private final String basePath;
+    private final String instanceName;
 
     private final ServiceNowConfiguration configuration;
     private final Map<Class<?>, Object> clients;
+    private final String apiUrl;
+    private final String oauthUrl;
 
-    public ServiceNowEndpoint(String uri, ServiceNowComponent component, ServiceNowConfiguration configuration, String basePath) throws Exception{
+    public ServiceNowEndpoint(String uri, ServiceNowComponent component, ServiceNowConfiguration configuration, String instanceName) throws Exception{
         super(uri, component);
 
         this.configuration = configuration;
-        this.basePath = component.getCamelContext().resolvePropertyPlaceholders(basePath);
+        this.instanceName = component.getCamelContext().resolvePropertyPlaceholders(instanceName);
         this.clients = new HashMap<>();
+
+        this.apiUrl = configuration.hasApiUrl()
+            ? configuration.getApiUrl()
+            : String.format("https://%s.service-now.com/api/now", instanceName);
+        this.oauthUrl = configuration.hasOautTokenUrl()
+            ? configuration.getOauthTokenUrl()
+            : String.format("https://%s.service-now.com/oauth_token.do", instanceName);
     }
 
     @Override
@@ -76,25 +84,18 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         return configuration;
     }
 
-    public String getBasePath() {
-        return basePath;
+    public String getInstanceUrl() {
+        return instanceName;
     }
 
     synchronized <T> T getClient(Class<T> type) throws Exception {
         T client = type.cast(clients.get(type));
         if (client == null) {
-            client = JAXRSClientFactory.create(this.basePath, type);
-            ClientConfiguration config = WebClient.getConfig(client);
-
-            if (configuration.hasBasicAuthentication()) {
-                AuthorizationPolicy authorization = new AuthorizationPolicy();
-                authorization.setUserName(
-                    getCamelContext().resolvePropertyPlaceholders(configuration.getUserName()));
-                authorization.setPassword(
-                    getCamelContext().resolvePropertyPlaceholders(configuration.getPassword()));
-
-                config.getHttpConduit().setAuthorization(authorization);
-            }
+            client = JAXRSClientFactory.create(
+                apiUrl,
+                type,
+                Arrays.asList(new AuthenticationRequestFilter(oauthUrl, configuration, type))
+            );
 
             clients.put(type, client);
         }

@@ -27,6 +27,15 @@ public class ServiceNowConfiguration {
     private String userName;
     @UriParam
     private String password;
+    @UriParam
+    private String oauthClientId;
+    @UriParam
+    private String oauthClientSecret;
+    @UriParam
+    private String oauthTokenUrl;
+
+    @UriParam
+    private String apiUrl;
 
     @UriParam
     private String table;
@@ -47,6 +56,21 @@ public class ServiceNowConfiguration {
         return userName;
     }
 
+    public String getApiUrl() {
+        return apiUrl;
+    }
+
+    /**
+     * The ServiceNow REST API url
+     */
+    public void setApiUrl(String apiUrl) {
+        this.apiUrl = apiUrl;
+    }
+
+    public boolean hasApiUrl() {
+        return apiUrl != null;
+    }
+
     /**
      * ServiceNow user account name, MUST be provided
      */
@@ -65,8 +89,53 @@ public class ServiceNowConfiguration {
         this.password = password;
     }
 
+    public String getOauthClientId() {
+        return oauthClientId;
+    }
+
+    /**
+     * OAuth2 ClientID
+     */
+    public void setOauthClientId(String oauthClientId) {
+        this.oauthClientId = oauthClientId;
+    }
+
+    public String getOauthClientSecret() {
+        return oauthClientSecret;
+    }
+
+    /**
+     * OAuth2 ClientSecret
+     */
+    public void setOauthClientSecret(String oauthClientSecret) {
+        this.oauthClientSecret = oauthClientSecret;
+    }
+
+    public String getOauthTokenUrl() {
+        return oauthTokenUrl;
+    }
+
+    public boolean hasOautTokenUrl() {
+        return oauthTokenUrl != null;
+    }
+
+    /**
+     * OAuth token Url
+     */
+    public void setOauthTokenUrl(String oauthTokenUrl) {
+        this.oauthTokenUrl = oauthTokenUrl;
+    }
+
     public boolean hasBasicAuthentication() {
-        return ObjectHelper.isNotEmpty(userName) && ObjectHelper.isNotEmpty(password);
+        return ObjectHelper.isNotEmpty(userName)
+            && ObjectHelper.isNotEmpty(password);
+    }
+
+    public boolean hasOAuthAuthentication() {
+        return ObjectHelper.isNotEmpty(userName)
+            && ObjectHelper.isNotEmpty(password)
+            && ObjectHelper.isNotEmpty(oauthClientId)
+            && ObjectHelper.isNotEmpty(oauthClientSecret);
     }
 
     public String getTable() {
