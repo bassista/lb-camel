@@ -29,29 +29,31 @@ public class ServiceNowAggregateHelper {
         ServiceNowConfiguration config, ServiceNowAggregate aggregate, Exchange exchange, String tableName, String sysId, String action) throws Exception {
 
         if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveStats(config, aggregate, exchange, tableName);
+            retrieveStats(config, aggregate, exchange.getIn(), tableName);
+        } else {
+            throw new IllegalArgumentException("Unknown action " + action);
         }
     }
 
     public static void retrieveStats(
-        ServiceNowConfiguration config, ServiceNowAggregate aggregate, Exchange exchange, String tableName) throws Exception {
+        ServiceNowConfiguration config, ServiceNowAggregate aggregate, Message in, String tableName) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
 
-        String result = aggregate.retrieveStats(
-            tableName,
-            in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_AVG_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_COUNT, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_MIN_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_MAX_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_SUM_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_GROUP_BY, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_ORDER_BY, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_HAVING, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class)
+        in.setBody(
+            aggregate.retrieveStats(
+                tableName,
+                in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_AVG_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_COUNT, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_MIN_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_MAX_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_SUM_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_GROUP_BY, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_ORDER_BY, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_HAVING, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class)
+            )
         );
-
-        in.setBody(result);
     }
 }

@@ -27,119 +27,125 @@ public class ServiceNowTableHelper  {
     public static void process(
         ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId, String action) throws Exception {
 
+        ObjectHelper.notNull(tableName, "tableName");
+
         if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveRecord(config, table, exchange, tableName, sysId);
+            retrieveRecord(config, table, exchange.getIn(), tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
-            createRecord(config, table, exchange, tableName);
+            createRecord(config, table, exchange.getIn(), tableName);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_MODIFY, action, true)) {
-            modifyRecord(config, table, exchange, tableName, sysId);
+            modifyRecord(config, table, exchange.getIn(), tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_DELETE, action, true)) {
-            deleteRecord(config, table, exchange, tableName, sysId);
+            deleteRecord(config, table, exchange.getIn(), tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_UPDATE, action, true)) {
-            updateRecord(config, table, exchange, tableName, sysId);
+            updateRecord(config, table, exchange.getIn(), tableName, sysId);
+        } else {
+            throw new IllegalArgumentException("Unknown action " + action);
         }
     }
 
     public static void retrieveRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId) throws Exception {
+        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
 
         if (sysId == null) {
-            String result = table.retrieveRecord(
+            in.setBody(
+                table.retrieveRecord(
+                    tableName,
+                    in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+                )
+            );
+        } else {
+            in.setBody(
+                table.retrieveRecordById(
+                    tableName,
+                    sysId,
+                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+                )
+            );
+        }
+    }
+
+    public static void createRecord(
+        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName) throws Exception {
+
+        ObjectHelper.notNull(tableName, "tableName");
+
+        in.setBody(
+            table.createRecord(
                 tableName,
-                in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
-            );
+                in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
+                in.getBody(String.class)
+            )
+        );
+    }
 
-            in.setBody(result);
-        } else {
-            String result = table.retrieveRecordById(
+    public static void modifyRecord(
+        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
+
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(sysId, "sysId");
+
+        in.setBody(
+            table.modifyRecord(
                 tableName,
                 sysId,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
-            );
-
-            in.setBody(result);
-        }
-    }
-
-    public static void createRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName) throws Exception {
-
-        final Message in = exchange.getIn();
-
-        String result = table.createRecord(
-            tableName,
-            in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-            in.getBody(String.class)
+                in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
+                in.getBody(String.class)
+            )
         );
-
-        in.setBody(result);
-    }
-
-    public static void modifyRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId) throws Exception {
-
-        final Message in = exchange.getIn();
-
-        String result = table.modifyRecord(
-            tableName,
-            sysId,
-            in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-            in.getBody(String.class)
-        );
-
-        in.setBody(result);
     }
 
     public static void deleteRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId) throws Exception {
+        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(sysId, "sysId");
 
-        String result = table.deleteRecord(
-            tableName,
-            sysId
+        in.setBody(
+            table.deleteRecord(
+                tableName,
+                sysId)
         );
-
-        in.setBody(result);
     }
 
     public static void updateRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId) throws Exception {
+        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(sysId, "sysId");
 
-        String result = table.updateRecord(
-            tableName,
-            sysId,
-            in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-            in.getBody(String.class)
+        in.setBody(
+            table.updateRecord(
+                tableName,
+                sysId,
+                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
+                in.getBody(String.class)
+            )
         );
-
-        in.setBody(result);
     }
 }

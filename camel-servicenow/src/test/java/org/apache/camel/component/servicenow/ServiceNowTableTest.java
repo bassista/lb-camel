@@ -36,7 +36,6 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:servicenow");
         mock.expectedMessageCount(1);
 
-
         template().sendBodyAndHeaders(
             "direct:servicenow",
             null,

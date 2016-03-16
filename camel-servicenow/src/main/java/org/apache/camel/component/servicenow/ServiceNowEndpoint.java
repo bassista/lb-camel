@@ -24,6 +24,7 @@ import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.component.servicenow.auth.AuthenticationRequestFilter;
+import org.apache.camel.component.servicenow.auth.OAuthToken;
 import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
@@ -44,6 +45,7 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
     private final Map<Class<?>, Object> clients;
     private final String apiUrl;
     private final String oauthUrl;
+    private final OAuthToken token;
 
     public ServiceNowEndpoint(String uri, ServiceNowComponent component, ServiceNowConfiguration configuration, String instanceName) throws Exception{
         super(uri, component);
@@ -58,6 +60,10 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         this.oauthUrl = configuration.hasOautTokenUrl()
             ? configuration.getOauthTokenUrl()
             : String.format("https://%s.service-now.com/oauth_token.do", instanceName);
+
+        this.token = configuration.hasOAuthAuthentication()
+            ? new OAuthToken(this.oauthUrl, this.configuration)
+            : null;
     }
 
     @Override
@@ -84,7 +90,7 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         return configuration;
     }
 
-    public String getInstanceUrl() {
+    public String getInstanceName() {
         return instanceName;
     }
 
@@ -94,7 +100,7 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
             client = JAXRSClientFactory.create(
                 apiUrl,
                 type,
-                Arrays.asList(new AuthenticationRequestFilter(oauthUrl, configuration, type))
+                Arrays.asList(new AuthenticationRequestFilter(configuration, token))
             );
 
             clients.put(type, client);

@@ -29,34 +29,37 @@ public class ServiceNowImportSetHelper {
         ServiceNowConfiguration config, ServiceNowImportSet importSet, Exchange exchange, String tableName, String sysId, String action) throws Exception {
 
         if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveRecord(config, importSet, exchange, tableName, sysId);
+            retrieveRecord(config, importSet, exchange.getIn(), tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
-            createRecord(config, importSet, exchange, tableName);
+            createRecord(config, importSet, exchange.getIn(), tableName);
+        } else {
+            throw new IllegalArgumentException("Unknown action " + action);
         }
     }
 
     public static void retrieveRecord(
-        ServiceNowConfiguration config, ServiceNowImportSet importSet, Exchange exchange, String tableName, String sysId) throws Exception {
+        ServiceNowConfiguration config, ServiceNowImportSet importSet, Message in, String tableName, String sysId) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(sysId, "sysId");
 
-        String result = importSet.retrieveRecordById(
-            tableName,
-            sysId);
-
-        in.setBody(result);
+        in.setBody(
+            importSet.retrieveRecordById(
+                tableName,
+                sysId)
+        );
     }
 
     public static void createRecord(
-        ServiceNowConfiguration config, ServiceNowImportSet importSet, Exchange exchange, String tableName) throws Exception {
+        ServiceNowConfiguration config, ServiceNowImportSet importSet, Message in, String tableName) throws Exception {
 
-        final Message in = exchange.getIn();
+        ObjectHelper.notNull(tableName, "tableName");
 
-        String result = importSet.createRecord(
-            tableName,
-            in.getBody(String.class)
+        in.setBody(
+            importSet.createRecord(
+                tableName,
+                in.getBody(String.class)
+            )
         );
-
-        in.setBody(result);
     }
 }

@@ -33,14 +33,18 @@ public class OAuthToken {
     private final String url;
     private final ServiceNowConfiguration configuration;
     private ClientAccessToken token;
+    private String authString;
+    private long expireAt;
 
     public OAuthToken(String url, ServiceNowConfiguration configuration) {
         this.url = url;
         this.configuration = configuration;
         this.token = null;
+        this.authString = null;
+        this.expireAt = 0;
     }
 
-    public synchronized ClientAccessToken get() {
+    private synchronized void getOrRefreshAccessToken() {
         if (token == null) {
             LOGGER.debug("Generate OAuth token");
 
@@ -59,7 +63,10 @@ public class OAuthToken {
 
             token.setIssuedAt(System.currentTimeMillis());
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
-        } else if (AuthenticationUtil.isExpired(token)) {
+
+            authString = token.toString();
+            expireAt = token.getIssuedAt() + token.getExpiresIn();
+        } else if (System.currentTimeMillis() >= expireAt) {
             LOGGER.debug("OAuth token is expired, refresh it");
 
             token = OAuthClientUtils.refreshAccessToken(
@@ -76,8 +83,19 @@ public class OAuthToken {
 
             token.setIssuedAt(System.currentTimeMillis());
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
-        }
 
+            authString = token.toString();
+            expireAt = token.getIssuedAt() + token.getExpiresIn();
+        }
+    }
+
+    public ClientAccessToken getClientAccess() {
+        getOrRefreshAccessToken();
         return token;
+    }
+
+    public String getAuthString() {
+        getOrRefreshAccessToken();
+        return authString;
     }
 }
