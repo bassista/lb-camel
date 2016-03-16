@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.slf4j.Logger;
@@ -29,8 +28,6 @@ import org.slf4j.LoggerFactory;
 class ServiceNowTestSupport extends CamelTestSupport {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServiceNowTestSupport.class);
-    protected static final String TEST_OPTIONS_PROPERTIES = "/test-options.properties";
-    protected static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     protected CamelContext createCamelContext() throws Exception {
