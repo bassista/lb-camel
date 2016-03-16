@@ -31,24 +31,18 @@ public class ServiceNowConfiguration {
     private String oauthClientId;
     @UriParam
     private String oauthClientSecret;
-    @UriParam
+    @UriParam(label = "advanced")
     private String oauthTokenUrl;
-
-    @UriParam
+    @UriParam(label = "advanced")
     private String apiUrl;
-
     @UriParam
     private String table;
-
     @UriParam(defaultValue = "false")
     private Boolean excludeReferenceLink = false;
-
     @UriParam(defaultValue = "false")
     private Boolean suppressAutoSysField = false;
-
     @UriParam(defaultValue = "false")
     private String displayValue = "false";
-
     @UriParam(defaultValue = "false")
     private Boolean inputDisplayValue = false;
 
