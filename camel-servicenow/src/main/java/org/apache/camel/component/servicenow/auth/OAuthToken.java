@@ -65,8 +65,11 @@ public class OAuthToken {
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
 
             authString = token.toString();
-            expireAt = token.getIssuedAt() + token.getExpiresIn();
-        } else if (System.currentTimeMillis() >= expireAt) {
+
+            if (token.getExpiresIn() > 0) {
+                expireAt = token.getIssuedAt() + token.getExpiresIn();
+            }
+        } else if (expireAt > 0 && System.currentTimeMillis() >= expireAt) {
             LOGGER.debug("OAuth token is expired, refresh it");
 
             token = OAuthClientUtils.refreshAccessToken(
@@ -79,13 +82,16 @@ public class OAuthToken {
                 false
             );
 
-            LOGGER.debug("OAuth token expires in {}s", token.getExpiresIn());
+            LOGGER.debug("Refreshed OAuth token expires in {}s", token.getExpiresIn());
 
             token.setIssuedAt(System.currentTimeMillis());
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
 
             authString = token.toString();
-            expireAt = token.getIssuedAt() + token.getExpiresIn();
+
+            if (token.getExpiresIn() > 0) {
+                expireAt = token.getIssuedAt() + token.getExpiresIn();
+            }
         }
     }
 
