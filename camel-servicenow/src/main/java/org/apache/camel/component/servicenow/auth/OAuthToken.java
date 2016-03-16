@@ -61,6 +61,7 @@ public class OAuthToken {
 
             LOGGER.debug("OAuth token expires in {}s", token.getExpiresIn());
 
+            // Set expiration time related info in milliseconds
             token.setIssuedAt(System.currentTimeMillis());
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
 
@@ -84,6 +85,7 @@ public class OAuthToken {
 
             LOGGER.debug("Refreshed OAuth token expires in {}s", token.getExpiresIn());
 
+            // Set expiration time related info in milliseconds
             token.setIssuedAt(System.currentTimeMillis());
             token.setExpiresIn(TimeUnit.MILLISECONDS.convert(token.getExpiresIn(), TimeUnit.SECONDS));
 
