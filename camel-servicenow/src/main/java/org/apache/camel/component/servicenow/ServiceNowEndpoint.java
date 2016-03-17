@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
@@ -100,7 +101,10 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
             client = JAXRSClientFactory.create(
                 apiUrl,
                 type,
-                Arrays.asList(new AuthenticationRequestFilter(configuration, token))
+                Arrays.asList(
+                    new AuthenticationRequestFilter(configuration, token),
+                    new JacksonJsonProvider(configuration.getMapper())
+                )
             );
 
             clients.put(type, client);

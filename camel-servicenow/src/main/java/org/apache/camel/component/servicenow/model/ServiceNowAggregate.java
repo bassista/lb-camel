@@ -24,6 +24,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 @Path("/stats")
 @Produces("application/json")
 @Consumes("application/json")
@@ -31,7 +33,7 @@ public interface ServiceNowAggregate {
 
     @GET
     @Path("{tableName}")
-    String retrieveStats(
+    JsonNode retrieveStats(
         @PathParam("tableName") String tableName,
         @QueryParam("sysparm_query") String query,
         @QueryParam("sysparm_avg_fields") String avgFields,

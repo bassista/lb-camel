@@ -20,6 +20,7 @@ public interface ServiceNowConstants {
     String RESOURCE = "CamelServiceNowResource";
     String TABLE = "CamelServiceNowTable";
     String ACTION = "CamelServiceNowAction";
+    String MODEL = "CamelServiceNowModel";
 
     String RESOURCE_TABLE = "table";
     String RESOURCE_AGGREGATE = "aggregate";

@@ -16,6 +16,12 @@
  */
 package org.apache.camel.component.servicenow;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 import org.apache.camel.util.ObjectHelper;
@@ -23,6 +29,15 @@ import org.apache.camel.util.ObjectHelper;
 
 @UriParams
 public class ServiceNowConfiguration {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .configure(
+            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+            false)
+        .setSerializationInclusion(
+            JsonInclude.Include.NON_NULL
+        );
+
     @UriParam
     private String userName;
     @UriParam
@@ -45,6 +60,11 @@ public class ServiceNowConfiguration {
     private String displayValue = "false";
     @UriParam(defaultValue = "false")
     private Boolean inputDisplayValue = false;
+    @UriParam(prefix = "model.", multiValue = true, javaType = "java.lang.String")
+    private Map<String, Class<?>> models;
+    @UriParam(label = "advanced")
+    private ObjectMapper mapper = MAPPER;
+
 
     public String getUserName() {
         return userName;
@@ -186,5 +206,53 @@ public class ServiceNowConfiguration {
      */
     public void setInputDisplayValue(Boolean inputDisplayValue) {
         this.inputDisplayValue = inputDisplayValue;
+    }
+
+    public Map<String, Class<?>> getModels() {
+        return models;
+    }
+
+    /**
+     * Defines the default model to use for a table
+     */
+    public void setModels(Map<String, Class<?>> models) {
+        this.models = models;
+    }
+
+    public void addModel(String name, Class<?> type) {
+        if (this.models == null) {
+            this.models = new HashMap<>();
+        }
+
+        this.models.put(name, type);
+    }
+
+    public Class<?> getModel(String name) {
+        return getModel(name, null);
+    }
+
+    public Class<?> getModel(String name, Class<?> defaultType) {
+        Class<?> model = defaultType;
+
+        if (this.models != null && this.models.containsKey(name)) {
+            model = this.models.get(name);
+        }
+
+        return model;
+    }
+
+    /**
+     * Sets Jackson's ObjectMapper to use for request/reply
+     */
+    public void setMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public ObjectMapper getMapper() {
+        return mapper;
+    }
+
+    public boolean hasMapper() {
+        return mapper != null;
     }
 }

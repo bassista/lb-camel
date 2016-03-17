@@ -17,13 +17,16 @@
 
 package org.apache.camel.component.servicenow.model;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowAggregateHelper {
+public class ServiceNowAggregateHelper extends ServiceNowHelper {
 
     public static void process(
         ServiceNowConfiguration config, ServiceNowAggregate aggregate, Exchange exchange, String tableName, String sysId, String action) throws Exception {
@@ -38,9 +41,15 @@ public class ServiceNowAggregateHelper {
     public static void retrieveStats(
         ServiceNowConfiguration config, ServiceNowAggregate aggregate, Message in, String tableName) throws Exception {
 
-        ObjectHelper.notNull(tableName, "tableName");
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
 
-        in.setBody(
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(mapper, "objectMapper");
+
+        Object result = extractResult(
+            mapper,
+            model,
             aggregate.retrieveStats(
                 tableName,
                 in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
@@ -55,5 +64,7 @@ public class ServiceNowAggregateHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class)
             )
         );
+
+        in.setBody(result);
     }
 }

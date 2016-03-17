@@ -18,8 +18,11 @@ package org.apache.camel.component.servicenow;
 
 import java.util.Map;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.impl.UriEndpointComponent;
+import org.apache.camel.util.EndpointHelper;
+import org.apache.camel.util.IntrospectionSupport;
 
 /**
  * Represents the component that manages {@link ServiceNowEndpoint}.
@@ -32,7 +35,16 @@ public class ServiceNowComponent extends UriEndpointComponent {
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        ServiceNowConfiguration configuration = new ServiceNowConfiguration();
+        final CamelContext context = getCamelContext();
+        final ServiceNowConfiguration configuration = new ServiceNowConfiguration();
+
+        Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, "model.");
+        for (Map.Entry<String, Object> entry : models.entrySet()) {
+            configuration.addModel(
+                entry.getKey(),
+                EndpointHelper.resolveParameter(context, (String)entry.getValue(), Class.class));
+        }
+
         setProperties(configuration, parameters);
 
         return new ServiceNowEndpoint(uri, this, configuration, remaining);

@@ -24,6 +24,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 @Path("/import")
 @Produces("application/json")
 @Consumes("application/json")
@@ -31,14 +33,14 @@ public interface ServiceNowImportSet {
 
     @GET
     @Path("{tableName}/{sysId}")
-    String retrieveRecordById(
+    JsonNode retrieveRecordById(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id
     );
 
     @POST
     @Path("{tableName}")
-    String createRecord(
+    JsonNode createRecord(
         @PathParam("tableName") String tableName,
         String body
     );

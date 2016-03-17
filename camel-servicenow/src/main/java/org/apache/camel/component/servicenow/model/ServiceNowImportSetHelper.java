@@ -17,13 +17,16 @@
 
 package org.apache.camel.component.servicenow.model;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowImportSetHelper {
+public class ServiceNowImportSetHelper extends ServiceNowHelper {
 
     public static void process(
         ServiceNowConfiguration config, ServiceNowImportSet importSet, Exchange exchange, String tableName, String sysId, String action) throws Exception {
@@ -40,26 +43,42 @@ public class ServiceNowImportSetHelper {
     public static void retrieveRecord(
         ServiceNowConfiguration config, ServiceNowImportSet importSet, Message in, String tableName, String sysId) throws Exception {
 
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
+
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
+        ObjectHelper.notNull(mapper, "objectMapper");
 
-        in.setBody(
+        Object result = extractResult(
+            mapper,
+            model,
             importSet.retrieveRecordById(
                 tableName,
                 sysId)
         );
+
+        in.setBody(result);
     }
 
     public static void createRecord(
         ServiceNowConfiguration config, ServiceNowImportSet importSet, Message in, String tableName) throws Exception {
 
-        ObjectHelper.notNull(tableName, "tableName");
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
 
-        in.setBody(
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(mapper, "objectMapper");
+
+        Object result = extractResult(
+            mapper,
+            model,
             importSet.createRecord(
                 tableName,
                 in.getBody(String.class)
             )
         );
+
+        in.setBody(result);
     }
 }

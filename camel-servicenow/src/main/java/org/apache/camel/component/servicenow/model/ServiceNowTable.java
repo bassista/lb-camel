@@ -26,6 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.cxf.jaxrs.ext.PATCH;
 
 @Path("/table")
@@ -35,7 +36,7 @@ public interface ServiceNowTable {
 
     @GET
     @Path("{tableName}")
-    String retrieveRecord(
+    JsonNode retrieveRecord(
         @PathParam("tableName") String tableName,
         @QueryParam("sysparm_query") String query,
         @QueryParam("sysparm_display_value") String displayValue,
@@ -47,7 +48,7 @@ public interface ServiceNowTable {
 
     @GET
     @Path("{tableName}/{sysId}")
-    String retrieveRecordById(
+    JsonNode retrieveRecordById(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id,
         @QueryParam("sysparm_display_value") String displayValue,
@@ -58,7 +59,7 @@ public interface ServiceNowTable {
 
     @POST
     @Path("{tableName}")
-    String createRecord(
+    JsonNode createRecord(
         @PathParam("tableName") String tableName,
         @QueryParam("sysparm_display_value") String displayValue,
         @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
@@ -66,12 +67,12 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        String body
+        byte[] body
     );
 
     @PUT
     @Path("{tableName}/{sysId}")
-    String modifyRecord(
+    JsonNode modifyRecord(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id,
         @QueryParam("sysparm_display_value") String displayValue,
@@ -80,19 +81,19 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        String body
+        byte[] body
     );
 
     @DELETE
     @Path("{tableName}/{sysId}")
-    String deleteRecord(
+    JsonNode deleteRecord(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id
     );
 
     @PATCH
     @Path("{tableName}/{sysId}")
-    String updateRecord(
+    JsonNode updateRecord(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id,
         @QueryParam("sysparm_display_value") String displayValue,
@@ -101,6 +102,6 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        String body
+        byte[] body
     );
 }

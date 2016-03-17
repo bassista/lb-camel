@@ -16,13 +16,17 @@
  */
 package org.apache.camel.component.servicenow.model;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowTableHelper  {
+public class ServiceNowTableHelper extends ServiceNowHelper {
 
     public static void process(
         ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId, String action) throws Exception {
@@ -47,40 +51,51 @@ public class ServiceNowTableHelper  {
     public static void retrieveRecord(
         ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
-        ObjectHelper.notNull(tableName, "tableName");
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
 
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(mapper, "objectMapper");
+
+        JsonNode node;
         if (sysId == null) {
-            in.setBody(
-                table.retrieveRecord(
-                    tableName,
-                    in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
-                )
+            node = table.retrieveRecord(
+                tableName,
+                in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
             );
         } else {
-            in.setBody(
-                table.retrieveRecordById(
-                    tableName,
-                    sysId,
-                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
-                )
+            ObjectHelper.notNull(sysId, "sysId");
+
+            node = table.retrieveRecordById(
+                tableName,
+                sysId,
+                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
             );
         }
+
+        in.setBody(extractResult(mapper, model, node));
     }
 
     public static void createRecord(
         ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName) throws Exception {
 
-        ObjectHelper.notNull(tableName, "tableName");
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
 
-        in.setBody(
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(mapper, "objectMapper");
+
+        Object result = extractResult(
+            mapper,
+            model,
             table.createRecord(
                 tableName,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
@@ -89,18 +104,26 @@ public class ServiceNowTableHelper  {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                in.getBody(String.class)
+                mapper.writeValueAsBytes(in.getBody())
             )
         );
+
+        in.setBody(result);
     }
 
     public static void modifyRecord(
         ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
+
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
+        ObjectHelper.notNull(mapper, "objectMapper");
 
-        in.setBody(
+        Object result = extractResult(
+            mapper,
+            model,
             table.modifyRecord(
                 tableName,
                 sysId,
@@ -110,31 +133,47 @@ public class ServiceNowTableHelper  {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                in.getBody(String.class)
+                mapper.writeValueAsBytes(in.getBody())
             )
         );
+
+        in.setBody(result);
     }
 
     public static void deleteRecord(
         ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
+
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
+        ObjectHelper.notNull(mapper, "objectMapper");
 
-        in.setBody(
+        Object result = extractResult(
+            mapper,
+            model,
             table.deleteRecord(
                 tableName,
                 sysId)
         );
+
+        in.setBody(result);
     }
 
     public static void updateRecord(
         ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
 
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final ObjectMapper mapper = config.getMapper();
+
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
+        ObjectHelper.notNull(mapper, "objectMapper");
 
-        in.setBody(
+        Object result = extractResult(
+            mapper,
+            model,
             table.updateRecord(
                 tableName,
                 sysId,
@@ -144,8 +183,10 @@ public class ServiceNowTableHelper  {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                in.getBody(String.class)
+                mapper.writeValueAsBytes(in.getBody())
             )
         );
+
+        in.setBody(result);
     }
 }
