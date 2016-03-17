@@ -40,14 +40,15 @@ public class ServiceNowExceptionMapper implements ResponseExceptionMapper<Servic
         int code = r.getStatus();
 
         try {
+            // Only ServiceNow known error status codes are mapped
+            // See http://wiki.servicenow.com/index.php?title=REST_API#REST_Response_HTTP_Status_Codes
             if (code == Response.Status.NOT_FOUND.getStatusCode() ||
                 code == Response.Status.BAD_REQUEST.getStatusCode() ||
                 code == Response.Status.UNAUTHORIZED.getStatusCode() ||
                 code == Response.Status.FORBIDDEN.getStatusCode() ||
                 code == Response.Status.METHOD_NOT_ALLOWED.getStatusCode()) {
 
-                ServiceNowException res = mapper.readValue((InputStream)r.getEntity(), ServiceNowException.class);
-                return res;
+                return mapper.readValue((InputStream)r.getEntity(), ServiceNowException.class);
             }
         } catch (IOException e) {
             return new ServiceNowException(e);
