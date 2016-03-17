@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.camel.component.servicenow.ServiceNowException;
 
 @Path("/stats")
 @Produces("application/json")
@@ -45,5 +46,5 @@ public interface ServiceNowAggregate {
         @QueryParam("sysparm_order_by") String orderBy,
         @QueryParam("sysparm_having") String having,
         @QueryParam("sysparm_display_value") String displayValue
-    );
+    ) throws ServiceNowException;
 }

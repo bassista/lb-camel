@@ -25,6 +25,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.camel.component.servicenow.ServiceNowException;
 
 @Path("/import")
 @Produces("application/json")
@@ -36,12 +37,12 @@ public interface ServiceNowImportSet {
     JsonNode retrieveRecordById(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id
-    );
+    ) throws ServiceNowException;
 
     @POST
     @Path("{tableName}")
     JsonNode createRecord(
         @PathParam("tableName") String tableName,
         String body
-    );
+    ) throws ServiceNowException;
 }

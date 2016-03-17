@@ -103,7 +103,8 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
                 type,
                 Arrays.asList(
                     new AuthenticationRequestFilter(configuration, token),
-                    new JacksonJsonProvider(configuration.getMapper())
+                    new JacksonJsonProvider(configuration.getMapper()),
+                    new ServiceNowExceptionMapper(configuration.getMapper())
                 )
             );
 

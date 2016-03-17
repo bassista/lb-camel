@@ -27,6 +27,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.camel.component.servicenow.ServiceNowException;
 import org.apache.cxf.jaxrs.ext.PATCH;
 
 @Path("/table")
@@ -44,7 +45,7 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_fields") String fields,
         @QueryParam("sysparm_limit") Integer limit,
         @QueryParam("sysparm_view") String view
-    );
+    ) throws ServiceNowException;
 
     @GET
     @Path("{tableName}/{sysId}")
@@ -55,7 +56,7 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_exclude_reference_link") Boolean excludeReferenceLink,
         @QueryParam("sysparm_fields") String fields,
         @QueryParam("sysparm_view") String view
-    );
+    ) throws ServiceNowException;
 
     @POST
     @Path("{tableName}")
@@ -68,7 +69,7 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
         String body
-    );
+    ) throws ServiceNowException;
 
     @PUT
     @Path("{tableName}/{sysId}")
@@ -82,14 +83,14 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
         String body
-    );
+    ) throws ServiceNowException;
 
     @DELETE
     @Path("{tableName}/{sysId}")
     JsonNode deleteRecord(
         @PathParam("tableName") String tableName,
         @PathParam("sysId") String id
-    );
+    ) throws ServiceNowException;
 
     @PATCH
     @Path("{tableName}/{sysId}")
@@ -103,5 +104,5 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
         String body
-    );
+    ) throws ServiceNowException;
 }
