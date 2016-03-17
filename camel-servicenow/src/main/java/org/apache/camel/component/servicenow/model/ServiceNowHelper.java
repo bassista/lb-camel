@@ -19,9 +19,11 @@ package org.apache.camel.component.servicenow.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.camel.util.ObjectHelper;
 
 class ServiceNowHelper {
 
@@ -35,12 +37,16 @@ class ServiceNowHelper {
                     result = mapper.writeValueAsString(node);
                 } else {
                     if (node.isArray()) {
-                        List<Object> list = new ArrayList<>(node.size());
-                        for (int i = 0; i < node.size(); i++) {
-                            list.add(mapper.treeToValue(node.get(i), model));
-                        }
+                        if (model.isInstance(Map.class)) {
+                            result = mapper.treeToValue(node, List.class);
+                        } else {
+                            List<Object> list = new ArrayList<>(node.size());
+                            for (int i = 0; i < node.size(); i++) {
+                                list.add(mapper.treeToValue(node.get(i), model));
+                            }
 
-                        result = list;
+                            result = list;
+                        }
                     } else {
                         result = mapper.treeToValue(node, model);
                     }
@@ -49,5 +55,14 @@ class ServiceNowHelper {
         }
 
         return result;
+    }
+
+    protected static void validateBody(Object body, Class<?> model) {
+        ObjectHelper.notNull(body, "body");
+
+        if (!body.getClass().isAssignableFrom(model)) {
+            throw new IllegalArgumentException(
+                "Body is not compatible with model (body=" + body.getClass() + ", model=" + model);
+        }
     }
 }

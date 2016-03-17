@@ -89,9 +89,12 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
 
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
+        final Object body = in.getBody();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(mapper, "objectMapper");
+
+        validateBody(body, model);
 
         Object result = extractResult(
             mapper,
@@ -104,7 +107,7 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsBytes(in.getBody())
+                mapper.writeValueAsString(body)
             )
         );
 
@@ -116,10 +119,13 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
 
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
+        final Object body = in.getBody();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
         ObjectHelper.notNull(mapper, "objectMapper");
+
+        validateBody(body, model);
 
         Object result = extractResult(
             mapper,
@@ -133,7 +139,7 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsBytes(in.getBody())
+                mapper.writeValueAsString(body)
             )
         );
 
@@ -166,10 +172,13 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
 
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
+        final Object body = in.getBody();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
         ObjectHelper.notNull(mapper, "objectMapper");
+
+        validateBody(body, model);
 
         Object result = extractResult(
             mapper,
@@ -183,7 +192,7 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsBytes(in.getBody())
+                mapper.writeValueAsString(body)
             )
         );
 

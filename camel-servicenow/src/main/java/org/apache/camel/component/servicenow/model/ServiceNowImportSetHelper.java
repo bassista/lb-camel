@@ -66,16 +66,19 @@ public class ServiceNowImportSetHelper extends ServiceNowHelper {
 
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
+        final Object body = in.getBody();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(mapper, "objectMapper");
+
+        validateBody(body, model);
 
         Object result = extractResult(
             mapper,
             model,
             importSet.createRecord(
                 tableName,
-                in.getBody(String.class)
+                mapper.writeValueAsString(body)
             )
         );
 

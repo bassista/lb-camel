@@ -67,7 +67,7 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        byte[] body
+        String body
     );
 
     @PUT
@@ -81,7 +81,7 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        byte[] body
+        String body
     );
 
     @DELETE
@@ -102,6 +102,6 @@ public interface ServiceNowTable {
         @QueryParam("sysparm_input_display_value") Boolean inputDisplayValue,
         @QueryParam("sysparm_suppress_auto_sys_field") Boolean suppressAutoSysField,
         @QueryParam("sysparm_view") String view,
-        byte[] body
+        String body
     );
 }
