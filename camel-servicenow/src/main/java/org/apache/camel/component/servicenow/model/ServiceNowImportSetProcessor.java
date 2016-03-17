@@ -32,11 +32,11 @@ import org.apache.camel.util.ObjectHelper;
 public class ServiceNowImportSetProcessor implements ServiceNowProcessor {
 
     public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
-            @Override
-            public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
-                return new ServiceNowImportSetProcessor(endpoint);
-            }
-        };
+        @Override
+        public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
+            return new ServiceNowImportSetProcessor(endpoint);
+        }
+    };
 
     private final ServiceNowEndpoint endpoint;
     private final ServiceNowConfiguration config;
