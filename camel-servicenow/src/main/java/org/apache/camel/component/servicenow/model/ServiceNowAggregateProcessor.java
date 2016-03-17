@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.servicenow.model;
 
 import java.util.Map;
@@ -24,33 +23,64 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
+import org.apache.camel.component.servicenow.ServiceNowEndpoint;
+import org.apache.camel.component.servicenow.ServiceNowHelper;
+import org.apache.camel.component.servicenow.ServiceNowProcessor;
+import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowAggregateHelper extends ServiceNowHelper {
+public class ServiceNowAggregateProcessor implements ServiceNowProcessor {
 
-    public static void process(
-        ServiceNowConfiguration config, ServiceNowAggregate aggregate, Exchange exchange, String tableName, String sysId, String action) throws Exception {
-
-        if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveStats(config, aggregate, exchange.getIn(), tableName);
-        } else {
-            throw new IllegalArgumentException("Unknown action " + action);
+    public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
+        @Override
+        public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
+            return new ServiceNowAggregateProcessor(endpoint);
         }
+    };
+
+    private final ServiceNowEndpoint endpoint;
+    private final ServiceNowConfiguration config;
+    private final ServiceNowAggregate client;
+
+    public ServiceNowAggregateProcessor(ServiceNowEndpoint endpoint) throws Exception {
+        this.endpoint = endpoint;
+        this.config = endpoint.getConfiguration();
+        this.client = endpoint.getClient(ServiceNowAggregate.class);
     }
 
-    public static void retrieveStats(
-        ServiceNowConfiguration config, ServiceNowAggregate aggregate, Message in, String tableName) throws Exception {
+    @Override
+    public void process(
+        Exchange exchange,
+        String tableName,
+        String sysId,
+        String action) throws Exception {
 
+        final Message in = exchange.getIn();
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(mapper, "objectMapper");
 
-        Object result = extractResult(
+        if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
+            retrieveStats(config, client, in, model, mapper, tableName);
+        } else {
+            throw new IllegalArgumentException("Unknown action " + action);
+        }
+    }
+
+    private void retrieveStats(
+        ServiceNowConfiguration config,
+        ServiceNowAggregate client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName) throws Exception {
+
+        Object result = ServiceNowHelper.extractResult(
             mapper,
             model,
-            aggregate.retrieveStats(
+            client.retrieveStats(
                 tableName,
                 in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_AVG_FIELDS, String.class),

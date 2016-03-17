@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.servicenow.model;
+package org.apache.camel.component.servicenow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +23,15 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.camel.Message;
 import org.apache.camel.util.ObjectHelper;
 
-class ServiceNowHelper {
+public final class ServiceNowHelper {
 
-    protected static Object extractResult(ObjectMapper mapper, Class<?> model, JsonNode answer) throws Exception {
+    private ServiceNowHelper() {
+    }
+
+    public static Object extractResult(ObjectMapper mapper, Class<?> model, JsonNode answer) throws Exception {
         Object result = null;
 
         if (answer != null) {
@@ -57,7 +61,11 @@ class ServiceNowHelper {
         return result;
     }
 
-    protected static void validateBody(Object body, Class<?> model) {
+    public static void validateBody(Message message, Class<?> model) {
+        validateBody(message.getBody(), model);
+    }
+
+    public static void validateBody(Object body, Class<?> model) {
         ObjectHelper.notNull(body, "body");
 
         if (!body.getClass().isAssignableFrom(model)) {

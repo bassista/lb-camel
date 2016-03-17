@@ -18,7 +18,6 @@ package org.apache.camel.component.servicenow;
 
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.NotFoundException;
 
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
@@ -304,7 +303,7 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
 
                 fail("Record +" + number + " should have been deleted");
             } catch (CamelExecutionException e) {
-                assertTrue(e.getCause() instanceof NotFoundException);
+                assertTrue(e.getCause() instanceof ServiceNowException);
                 // we are good
             }
         }

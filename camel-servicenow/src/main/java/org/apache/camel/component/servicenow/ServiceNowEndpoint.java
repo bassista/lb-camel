@@ -95,7 +95,7 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         return instanceName;
     }
 
-    synchronized <T> T getClient(Class<T> type) throws Exception {
+    public synchronized <T> T getClient(Class<T> type) throws Exception {
         T client = type.cast(clients.get(type));
         if (client == null) {
             client = JAXRSClientFactory.create(

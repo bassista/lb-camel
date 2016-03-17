@@ -24,42 +24,76 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
+import org.apache.camel.component.servicenow.ServiceNowEndpoint;
+import org.apache.camel.component.servicenow.ServiceNowHelper;
+import org.apache.camel.component.servicenow.ServiceNowProcessor;
+import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowTableHelper extends ServiceNowHelper {
+public class ServiceNowTableProcessor implements ServiceNowProcessor {
 
-    public static void process(
-        ServiceNowConfiguration config, ServiceNowTable table, Exchange exchange, String tableName, String sysId, String action) throws Exception {
+    public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
+            @Override
+            public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
+                return new ServiceNowTableProcessor(endpoint);
+            }
+        };
 
-        ObjectHelper.notNull(tableName, "tableName");
+    private final ServiceNowEndpoint endpoint;
+    private final ServiceNowConfiguration config;
+    private final ServiceNowTable client;
 
-        if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveRecord(config, table, exchange.getIn(), tableName, sysId);
-        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
-            createRecord(config, table, exchange.getIn(), tableName);
-        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_MODIFY, action, true)) {
-            modifyRecord(config, table, exchange.getIn(), tableName, sysId);
-        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_DELETE, action, true)) {
-            deleteRecord(config, table, exchange.getIn(), tableName, sysId);
-        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_UPDATE, action, true)) {
-            updateRecord(config, table, exchange.getIn(), tableName, sysId);
-        } else {
-            throw new IllegalArgumentException("Unknown action " + action);
-        }
+    public ServiceNowTableProcessor(ServiceNowEndpoint endpoint) throws Exception {
+        this.endpoint = endpoint;
+        this.config = endpoint.getConfiguration();
+        this.client = endpoint.getClient(ServiceNowTable.class);
     }
 
-    public static void retrieveRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
+    @Override
+    public void process(
+        Exchange exchange,
+        String tableName,
+        String sysId,
+        String action) throws Exception {
 
+        final Message in = exchange.getIn();
         final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
         final ObjectMapper mapper = config.getMapper();
 
         ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(mapper, "objectMapper");
 
+        if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
+            retrieveRecord(config, client, in, model, mapper, tableName, sysId);
+        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
+            createRecord(config, client, in, model, mapper, tableName);
+        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_MODIFY, action, true)) {
+            modifyRecord(config, client, in, model, mapper, tableName, sysId);
+        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_DELETE, action, true)) {
+            deleteRecord(config, client, in, model, mapper, tableName, sysId);
+        } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_UPDATE, action, true)) {
+            updateRecord(config, client, in, model, mapper, tableName, sysId);
+        } else {
+            throw new IllegalArgumentException("Unknown action " + action);
+        }
+    }
+
+    /*
+     * GET https://instance.service-now.com/api/now/table/{tableName}
+     * GET https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
+     */
+    private void retrieveRecord(
+        ServiceNowConfiguration config,
+        ServiceNowTable client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName,
+        String sysId) throws Exception {
+
         JsonNode node;
         if (sysId == null) {
-            node = table.retrieveRecord(
+            node = client.retrieveRecord(
                 tableName,
                 in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
@@ -71,7 +105,7 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
         } else {
             ObjectHelper.notNull(sysId, "sysId");
 
-            node = table.retrieveRecordById(
+            node = client.retrieveRecordById(
                 tableName,
                 sysId,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
@@ -81,25 +115,26 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
             );
         }
 
-        in.setBody(extractResult(mapper, model, node));
+        in.setBody(ServiceNowHelper.extractResult(mapper, model, node));
     }
 
-    public static void createRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName) throws Exception {
+    /*
+     * POST https://instance.service-now.com/api/now/table/{tableName}
+     */
+    private void createRecord(
+        ServiceNowConfiguration config,
+        ServiceNowTable client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName) throws Exception {
 
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-        final Object body = in.getBody();
+        ServiceNowHelper.validateBody(in, model);
 
-        ObjectHelper.notNull(tableName, "tableName");
-        ObjectHelper.notNull(mapper, "objectMapper");
-
-        validateBody(body, model);
-
-        Object result = extractResult(
+        Object result = ServiceNowHelper.extractResult(
             mapper,
             model,
-            table.createRecord(
+            client.createRecord(
                 tableName,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
@@ -107,30 +142,33 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsString(body)
+                mapper.writeValueAsString(in.getBody())
             )
         );
 
         in.setBody(result);
     }
 
-    public static void modifyRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
+    /*
+     * PUT https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
+     */
+    private void modifyRecord(
+        ServiceNowConfiguration config,
+        ServiceNowTable client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName,
+        String sysId) throws Exception {
 
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-        final Object body = in.getBody();
-
-        ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
-        ObjectHelper.notNull(mapper, "objectMapper");
 
-        validateBody(body, model);
+        ServiceNowHelper.validateBody(in, model);
 
-        Object result = extractResult(
+        Object result = ServiceNowHelper.extractResult(
             mapper,
             model,
-            table.modifyRecord(
+            client.modifyRecord(
                 tableName,
                 sysId,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
@@ -139,27 +177,31 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsString(body)
+                mapper.writeValueAsString(in.getBody())
             )
         );
 
         in.setBody(result);
     }
 
-    public static void deleteRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
+    /*
+     * DELETE https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
+     */
+    private void deleteRecord(
+        ServiceNowConfiguration config,
+        ServiceNowTable client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName,
+        String sysId) throws Exception {
 
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-
-        ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
-        ObjectHelper.notNull(mapper, "objectMapper");
 
-        Object result = extractResult(
+        Object result = ServiceNowHelper.extractResult(
             mapper,
             model,
-            table.deleteRecord(
+            client.deleteRecord(
                 tableName,
                 sysId)
         );
@@ -167,23 +209,26 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
         in.setBody(result);
     }
 
-    public static void updateRecord(
-        ServiceNowConfiguration config, ServiceNowTable table, Message in, String tableName, String sysId) throws Exception {
+    /*
+     * PATCH instance://dev21005.service-now.com/api/now/table/{tableName}/{sys_id}
+     */
+    private void updateRecord(
+        ServiceNowConfiguration config,
+        ServiceNowTable client,
+        Message in,
+        Class<?> model,
+        ObjectMapper mapper,
+        String tableName,
+        String sysId) throws Exception {
 
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-        final Object body = in.getBody();
-
-        ObjectHelper.notNull(tableName, "tableName");
         ObjectHelper.notNull(sysId, "sysId");
-        ObjectHelper.notNull(mapper, "objectMapper");
 
-        validateBody(body, model);
+        ServiceNowHelper.validateBody(in, model);
 
-        Object result = extractResult(
+        Object result = ServiceNowHelper.extractResult(
             mapper,
             model,
-            table.updateRecord(
+            client.updateRecord(
                 tableName,
                 sysId,
                 in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
@@ -192,7 +237,7 @@ public class ServiceNowTableHelper extends ServiceNowHelper {
                 in.getHeader(ServiceNowConstants.SYSPARM_INPUT_DISPLAY_VALUE, config.getInputDisplayValue(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_SUPPRESS_AUTO_SYS_FIELD, config.getSuppressAutoSysField(), Boolean.class),
                 in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class),
-                mapper.writeValueAsString(body)
+                mapper.writeValueAsString(in.getBody())
             )
         );
 
