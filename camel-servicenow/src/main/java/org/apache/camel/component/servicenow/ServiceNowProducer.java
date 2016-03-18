@@ -33,18 +33,18 @@ public class ServiceNowProducer extends DefaultProducer {
 
     private final ServiceNowEndpoint endpoint;
     private final ServiceNowConfiguration configuration;
-    private final ThreadLocal<WeakReference<ServiceNowProcessor>> tableCache;
-    private final ThreadLocal<WeakReference<ServiceNowProcessor>> aggregateCache;
-    private final ThreadLocal<WeakReference<ServiceNowProcessor>> importSetCache;
+    private final WeakThreadLocal tableCache;
+    private final WeakThreadLocal aggregateCache;
+    private final WeakThreadLocal importSetCache;
 
     public ServiceNowProducer(ServiceNowEndpoint endpoint) {
         super(endpoint);
 
         this.endpoint = endpoint;
         this.configuration = endpoint.getConfiguration();
-        this.tableCache = new ThreadLocal<>();
-        this.aggregateCache = new ThreadLocal<>();
-        this.importSetCache = new ThreadLocal<>();
+        this.tableCache = new WeakThreadLocal(ServiceNowTableProcessor.SUPPLIER);
+        this.aggregateCache = new WeakThreadLocal(ServiceNowAggregateProcessor.SUPPLIER);
+        this.importSetCache = new WeakThreadLocal(ServiceNowImportSetProcessor.SUPPLIER);
     }
 
     @Override
@@ -54,11 +54,11 @@ public class ServiceNowProducer extends DefaultProducer {
 
         ServiceNowProcessor processor;
         if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_TABLE, resource, true)) {
-            processor = getProcessor(tableCache, ServiceNowTableProcessor.SUPPLIER);
+            processor = tableCache.get();
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_AGGREGATE, resource, true)) {
-            processor = getProcessor(aggregateCache, ServiceNowAggregateProcessor.SUPPLIER);
+            processor = aggregateCache.get();
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_IMPORT, resource, true)) {
-            processor = getProcessor(importSetCache, ServiceNowImportSetProcessor.SUPPLIER);
+            processor = importSetCache.get();
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + resource);
         }
@@ -76,21 +76,28 @@ public class ServiceNowProducer extends DefaultProducer {
     // safe. To be refactored once moved to Java 8
     // *************************************************************************
 
-    private ServiceNowProcessor getProcessor(
-        ThreadLocal<WeakReference<ServiceNowProcessor>> cache,
-        ServiceNowProcessorSupplier supplier) throws Exception {
+    private final class WeakThreadLocal {
+        private final ThreadLocal<WeakReference<ServiceNowProcessor>> cache;
+        private final ServiceNowProcessorSupplier supplier;
 
-        ServiceNowProcessor processor = null;
-        WeakReference<ServiceNowProcessor> ref = cache.get();
-        if (ref != null) {
-            processor = ref.get();
+        public WeakThreadLocal(ServiceNowProcessorSupplier supplier) {
+            this.cache = new ThreadLocal<>();
+            this.supplier = supplier;
         }
 
-        if (processor == null) {
-            processor = supplier.get(endpoint);
-            cache.set(new WeakReference<>(processor));
-        }
+        public ServiceNowProcessor get() throws Exception {
+            ServiceNowProcessor processor = null;
+            WeakReference<ServiceNowProcessor> ref = cache.get();
+            if (ref != null) {
+                processor = ref.get();
+            }
 
-        return processor;
+            if (processor == null) {
+                processor = supplier.get(endpoint);
+                cache.set(new WeakReference<>(processor));
+            }
+
+            return processor;
+        }
     }
 }
