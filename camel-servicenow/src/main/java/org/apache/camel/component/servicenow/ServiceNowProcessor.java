@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.servicenow;
 
 import java.util.ArrayList;
@@ -28,9 +27,6 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.util.ObjectHelper;
 
-/**
- * @author lburgazzoli
- */
 public abstract class ServiceNowProcessor<T> implements Processor {
 
     protected final ServiceNowEndpoint endpoint;

@@ -17,13 +17,13 @@
 package org.apache.camel.component.servicenow.auth;
 
 import java.io.IOException;
-import java.util.Base64;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.camel.component.servicenow.ServiceNowConfiguration;
 
@@ -56,7 +56,6 @@ public class AuthenticationRequestFilter implements ClientRequestFilter {
         }
 
         String userAndPassword = configuration.getUserName() + ":" + configuration.getPassword();
-        byte[] userAndPasswordBytes = userAndPassword.getBytes("UTF-8");
-        return "Basic " + Base64.getEncoder().encodeToString(userAndPasswordBytes);
+        return "Basic " + DatatypeConverter.printBase64Binary(userAndPassword.getBytes("UTF-8"));
     }
 }

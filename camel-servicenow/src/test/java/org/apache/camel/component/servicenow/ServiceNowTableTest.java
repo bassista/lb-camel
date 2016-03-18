@@ -321,8 +321,8 @@ public class ServiceNowTableTest extends ServiceNowTestSupport {
                     .to("servicenow:{{env:SERVICENOW_INSTANCE}}"
                         + "?userName={{env:SERVICENOW_USERNAME}}"
                         + "&password={{env:SERVICENOW_PASSWORD}}"
-                        //+ "&oauthClientId={{env:SERVICENOW_OAUTH2_CLIENT_ID}}"
-                        //+ "&oauthClientSecret={{env:SERVICENOW_OAUTH2_CLIENT_SECRET}}"
+                        + "&oauthClientId={{env:SERVICENOW_OAUTH2_CLIENT_ID}}"
+                        + "&oauthClientSecret={{env:SERVICENOW_OAUTH2_CLIENT_SECRET}}"
                         + "&model.incident=org.apache.camel.component.servicenow.model.Incident")
                     .to("log:org.apache.camel.component.servicenow?level=INFO&showAll=true")
                     .to("mock:servicenow");
