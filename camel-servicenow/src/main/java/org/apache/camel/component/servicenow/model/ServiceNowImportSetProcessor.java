@@ -16,12 +16,9 @@
  */
 package org.apache.camel.component.servicenow.model;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.component.servicenow.ServiceNowConfiguration;
+import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.component.servicenow.ServiceNowEndpoint;
 import org.apache.camel.component.servicenow.ServiceNowHelper;
@@ -29,43 +26,25 @@ import org.apache.camel.component.servicenow.ServiceNowProcessor;
 import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowImportSetProcessor implements ServiceNowProcessor {
+public class ServiceNowImportSetProcessor extends ServiceNowProcessor<ServiceNowImportSet> {
 
     public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
         @Override
-        public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
+        public Processor get(ServiceNowEndpoint endpoint) throws Exception {
             return new ServiceNowImportSetProcessor(endpoint);
         }
     };
 
-    private final ServiceNowEndpoint endpoint;
-    private final ServiceNowConfiguration config;
-    private final ServiceNowImportSet client;
-
     public ServiceNowImportSetProcessor(ServiceNowEndpoint endpoint) throws Exception {
-        this.endpoint = endpoint;
-        this.config = endpoint.getConfiguration();
-        this.client = endpoint.createClient(ServiceNowImportSet.class);
+        super(endpoint, ServiceNowImportSet.class);
     }
 
     @Override
-    public void process(
-        Exchange exchange,
-        String tableName,
-        String sysId,
-        String action) throws Exception {
-
-        final Message in = exchange.getIn();
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-
-        ObjectHelper.notNull(tableName, "tableName");
-        ObjectHelper.notNull(mapper, "objectMapper");
-
+    protected void doProcess(Exchange exchange, Class<?> model, String action, String tableName, String sysId) throws Exception {
         if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveRecord(config, client, in, model, mapper, tableName, sysId);
+            retrieveRecord(exchange.getIn(), model, tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
-            createRecord(config, client, in, model, mapper, tableName);
+            createRecord(exchange.getIn(), model, tableName);
         } else {
             throw new IllegalArgumentException("Unknown action " + action);
         }
@@ -74,43 +53,27 @@ public class ServiceNowImportSetProcessor implements ServiceNowProcessor {
     /*
      * GET https://instance.service-now.com/api/now/import/{tableName}/{sys_id}
      */
-    private void retrieveRecord(
-        ServiceNowConfiguration config,
-        ServiceNowImportSet client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName,
-        String sysId) throws Exception {
-
+    private void retrieveRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
         ObjectHelper.notNull(sysId, "sysId");
 
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.retrieveRecordById(
                 tableName,
                 sysId)
         );
-
-        in.setBody(result);
     }
 
 
     /*
      * POST https://instance.service-now.com/api/now/import/{tableName}
      */
-    private void createRecord(
-        ServiceNowConfiguration config,
-        ServiceNowImportSet client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName) throws Exception {
-
+    private void createRecord(Message in, Class<?> model, String tableName) throws Exception {
         ServiceNowHelper.validateBody(in, model);
-
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.createRecord(
@@ -118,7 +81,5 @@ public class ServiceNowImportSetProcessor implements ServiceNowProcessor {
                 mapper.writeValueAsString(in.getBody())
             )
         );
-
-        in.setBody(result);
     }
 }

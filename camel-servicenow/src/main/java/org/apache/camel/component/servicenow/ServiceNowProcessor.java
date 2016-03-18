@@ -17,12 +17,52 @@
 
 package org.apache.camel.component.servicenow;
 
-import org.apache.camel.Exchange;
+import java.util.Map;
 
-public interface ServiceNowProcessor {
-    void process(
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
+import org.apache.camel.Processor;
+import org.apache.camel.util.ObjectHelper;
+
+/**
+ * @author lburgazzoli
+ */
+public abstract class ServiceNowProcessor<T> implements Processor {
+
+    protected final ServiceNowEndpoint endpoint;
+    protected final ServiceNowConfiguration config;
+    protected final T client;
+    protected final ObjectMapper mapper;
+
+    protected ServiceNowProcessor(ServiceNowEndpoint endpoint, Class<T> type) throws Exception {
+        this.endpoint = endpoint;
+        this.config = endpoint.getConfiguration();
+        this.client = endpoint.createClient(type);
+        this.mapper = config.getMapper();
+
+        ObjectHelper.notNull(mapper, "objectMapper");
+    }
+
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        final Message in = exchange.getIn();
+        final String tableName = in.getHeader(ServiceNowConstants.TABLE, config.getTable(), String.class);
+        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
+        final String action = in.getHeader(ServiceNowConstants.ACTION, String.class);
+        final String sysId = in.getHeader(ServiceNowConstants.SYSPARM_ID, String.class);
+
+        ObjectHelper.notNull(tableName, "tableName");
+        ObjectHelper.notNull(model, "model");
+        ObjectHelper.notNull(action, "action");
+
+        doProcess(exchange, model, action, tableName, sysId);
+    }
+
+    protected abstract void doProcess(
         Exchange exchange,
+        Class<?> model,
+        String action,
         String tableName,
-        String sysId,
-        String action) throws Exception;
+        String sysId) throws Exception;
 }

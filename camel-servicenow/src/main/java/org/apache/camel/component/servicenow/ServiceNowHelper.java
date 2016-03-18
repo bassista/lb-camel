@@ -31,6 +31,10 @@ public final class ServiceNowHelper {
     private ServiceNowHelper() {
     }
 
+    public static void setBody(Message message, ObjectMapper mapper, Class<?> model, JsonNode answer) throws Exception {
+        message.setBody(extractResult(mapper, model, answer));
+    }
+
     public static Object extractResult(ObjectMapper mapper, Class<?> model, JsonNode answer) throws Exception {
         Object result = null;
 

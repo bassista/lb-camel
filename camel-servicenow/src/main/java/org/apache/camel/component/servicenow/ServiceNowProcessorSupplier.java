@@ -16,6 +16,13 @@
  */
 package org.apache.camel.component.servicenow;
 
+import org.apache.camel.Processor;
+
+/*
+ * To be replaced by:
+ *
+ *     java.util.function.Function<ServiceNowEndpoint,ServiceNowProcessor>
+ */
 public interface ServiceNowProcessorSupplier {
-    ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception;
+    Processor get(ServiceNowEndpoint endpoint) throws Exception;
 }

@@ -16,13 +16,10 @@
  */
 package org.apache.camel.component.servicenow.model;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.component.servicenow.ServiceNowConfiguration;
+import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.component.servicenow.ServiceNowEndpoint;
 import org.apache.camel.component.servicenow.ServiceNowHelper;
@@ -30,49 +27,31 @@ import org.apache.camel.component.servicenow.ServiceNowProcessor;
 import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowTableProcessor implements ServiceNowProcessor {
+public class ServiceNowTableProcessor extends ServiceNowProcessor<ServiceNowTable> {
 
     public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
         @Override
-        public ServiceNowProcessor get(ServiceNowEndpoint endpoint) throws Exception {
+        public Processor get(ServiceNowEndpoint endpoint) throws Exception {
             return new ServiceNowTableProcessor(endpoint);
         }
     };
 
-    private final ServiceNowEndpoint endpoint;
-    private final ServiceNowConfiguration config;
-    private final ServiceNowTable client;
-
     public ServiceNowTableProcessor(ServiceNowEndpoint endpoint) throws Exception {
-        this.endpoint = endpoint;
-        this.config = endpoint.getConfiguration();
-        this.client = endpoint.createClient(ServiceNowTable.class);
+        super(endpoint, ServiceNowTable.class);
     }
 
     @Override
-    public void process(
-        Exchange exchange,
-        String tableName,
-        String sysId,
-        String action) throws Exception {
-
-        final Message in = exchange.getIn();
-        final Class<?> model = in.getHeader(ServiceNowConstants.MODEL, config.getModel(tableName, Map.class), Class.class);
-        final ObjectMapper mapper = config.getMapper();
-
-        ObjectHelper.notNull(tableName, "tableName");
-        ObjectHelper.notNull(mapper, "objectMapper");
-
+    protected void doProcess(Exchange exchange, Class<?> model, String action, String tableName, String sysId) throws Exception {
         if (ObjectHelper.equal(ServiceNowConstants.ACTION_RETRIEVE, action, true)) {
-            retrieveRecord(config, client, in, model, mapper, tableName, sysId);
+            retrieveRecord(exchange.getIn(), model, tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_CREATE, action, true)) {
-            createRecord(config, client, in, model, mapper, tableName);
+            createRecord(exchange.getIn(), model, tableName);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_MODIFY, action, true)) {
-            modifyRecord(config, client, in, model, mapper, tableName, sysId);
+            modifyRecord(exchange.getIn(), model, tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_DELETE, action, true)) {
-            deleteRecord(config, client, in, model, mapper, tableName, sysId);
+            deleteRecord(exchange.getIn(), model, tableName, sysId);
         } else if (ObjectHelper.equal(ServiceNowConstants.ACTION_UPDATE, action, true)) {
-            updateRecord(config, client, in, model, mapper, tableName, sysId);
+            updateRecord(exchange.getIn(), model, tableName, sysId);
         } else {
             throw new IllegalArgumentException("Unknown action " + action);
         }
@@ -82,56 +61,49 @@ public class ServiceNowTableProcessor implements ServiceNowProcessor {
      * GET https://instance.service-now.com/api/now/table/{tableName}
      * GET https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
      */
-    private void retrieveRecord(
-        ServiceNowConfiguration config,
-        ServiceNowTable client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName,
-        String sysId) throws Exception {
-
+    private void retrieveRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
         JsonNode node;
         if (sysId == null) {
-            node = client.retrieveRecord(
-                tableName,
-                in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+            ServiceNowHelper.setBody(
+                in,
+                mapper,
+                model,
+                client.retrieveRecord(
+                    tableName,
+                    in.getHeader(ServiceNowConstants.SYSPARM_QUERY, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_LIMIT, Integer.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+                )
             );
         } else {
             ObjectHelper.notNull(sysId, "sysId");
 
-            node = client.retrieveRecordById(
-                tableName,
-                sysId,
-                in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
-                in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+            ServiceNowHelper.setBody(
+                in,
+                mapper,
+                model,
+                client.retrieveRecordById(
+                    tableName,
+                    sysId,
+                    in.getHeader(ServiceNowConstants.SYSPARM_DISPLAY_VALUE, config.getDisplayValue(), String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_EXCLUDE_REFERENCE_LINK, config.getExcludeReferenceLink(), Boolean.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_FIELDS, String.class),
+                    in.getHeader(ServiceNowConstants.SYSPARM_VIEW, String.class)
+                )
             );
         }
-
-        in.setBody(ServiceNowHelper.extractResult(mapper, model, node));
     }
 
     /*
      * POST https://instance.service-now.com/api/now/table/{tableName}
      */
-    private void createRecord(
-        ServiceNowConfiguration config,
-        ServiceNowTable client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName) throws Exception {
-
+    private void createRecord(Message in, Class<?> model, String tableName) throws Exception {
         ServiceNowHelper.validateBody(in, model);
-
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.createRecord(
@@ -145,27 +117,17 @@ public class ServiceNowTableProcessor implements ServiceNowProcessor {
                 mapper.writeValueAsString(in.getBody())
             )
         );
-
-        in.setBody(result);
     }
 
     /*
      * PUT https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
      */
-    private void modifyRecord(
-        ServiceNowConfiguration config,
-        ServiceNowTable client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName,
-        String sysId) throws Exception {
-
+    private void modifyRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
         ObjectHelper.notNull(sysId, "sysId");
 
         ServiceNowHelper.validateBody(in, model);
-
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.modifyRecord(
@@ -180,52 +142,33 @@ public class ServiceNowTableProcessor implements ServiceNowProcessor {
                 mapper.writeValueAsString(in.getBody())
             )
         );
-
-        in.setBody(result);
     }
 
     /*
      * DELETE https://instance.service-now.com/api/now/table/{tableName}/{sys_id}
      */
-    private void deleteRecord(
-        ServiceNowConfiguration config,
-        ServiceNowTable client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName,
-        String sysId) throws Exception {
-
+    private void deleteRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
         ObjectHelper.notNull(sysId, "sysId");
 
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.deleteRecord(
                 tableName,
                 sysId)
         );
-
-        in.setBody(result);
     }
 
     /*
      * PATCH instance://dev21005.service-now.com/api/now/table/{tableName}/{sys_id}
      */
-    private void updateRecord(
-        ServiceNowConfiguration config,
-        ServiceNowTable client,
-        Message in,
-        Class<?> model,
-        ObjectMapper mapper,
-        String tableName,
-        String sysId) throws Exception {
-
+    private void updateRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
         ObjectHelper.notNull(sysId, "sysId");
 
         ServiceNowHelper.validateBody(in, model);
-
-        Object result = ServiceNowHelper.extractResult(
+        ServiceNowHelper.setBody(
+            in,
             mapper,
             model,
             client.updateRecord(
@@ -240,7 +183,5 @@ public class ServiceNowTableProcessor implements ServiceNowProcessor {
                 mapper.writeValueAsString(in.getBody())
             )
         );
-
-        in.setBody(result);
     }
 }

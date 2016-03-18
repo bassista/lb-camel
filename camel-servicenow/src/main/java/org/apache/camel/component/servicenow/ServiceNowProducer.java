@@ -19,7 +19,7 @@ package org.apache.camel.component.servicenow;
 import java.lang.ref.WeakReference;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Message;
+import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.model.ServiceNowAggregateProcessor;
 import org.apache.camel.component.servicenow.model.ServiceNowImportSetProcessor;
 import org.apache.camel.component.servicenow.model.ServiceNowTableProcessor;
@@ -50,34 +50,34 @@ public class ServiceNowProducer extends DefaultProducer {
     @Override
     public void process(Exchange exchange) throws Exception {
         final String resource = exchange.getIn().getHeader(ServiceNowConstants.RESOURCE, String.class);
-        final Message in = exchange.getIn();
 
-        ServiceNowProcessor processor;
         if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_TABLE, resource, true)) {
-            processor = tableCache.get();
+            tableCache.get().process(exchange);
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_AGGREGATE, resource, true)) {
-            processor = aggregateCache.get();
+            aggregateCache.get().process(exchange);
         } else if (ObjectHelper.equal(ServiceNowConstants.RESOURCE_IMPORT, resource, true)) {
-            processor = importSetCache.get();
+            importSetCache.get().process(exchange);
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + resource);
         }
-
-        processor.process(
-            exchange,
-            in.getHeader(ServiceNowConstants.TABLE, configuration.getTable(), String.class),
-            in.getHeader(ServiceNowConstants.SYSPARM_ID, String.class),
-            in.getHeader(ServiceNowConstants.ACTION, String.class)
-        );
     }
 
     // *************************************************************************
     // Thread-Local processor instances as CXF client proxies are not thread
-    // safe. To be refactored once moved to Java 8
+    // safe. To be refactored once moved to Java 8 as ServiceNowProcessorSupplier
+    // can be replaced by:
+    //
+    //     java.util.function.Function<ServiceNowEndpoint,ServiceNowProcessor>
+    //
+    // so an instance of a specific processor can be obtained by a constructor
+    // ref, i.e:
+    //
+    //     ServiceNowImportSetProcessor::new
+    //
     // *************************************************************************
 
     private final class WeakThreadLocal {
-        private final ThreadLocal<WeakReference<ServiceNowProcessor>> cache;
+        private final ThreadLocal<WeakReference<Processor>> cache;
         private final ServiceNowProcessorSupplier supplier;
 
         public WeakThreadLocal(ServiceNowProcessorSupplier supplier) {
@@ -85,9 +85,9 @@ public class ServiceNowProducer extends DefaultProducer {
             this.supplier = supplier;
         }
 
-        public ServiceNowProcessor get() throws Exception {
-            ServiceNowProcessor processor = null;
-            WeakReference<ServiceNowProcessor> ref = cache.get();
+        public Processor get() throws Exception {
+            Processor processor = null;
+            WeakReference<Processor> ref = cache.get();
             if (ref != null) {
                 processor = ref.get();
             }
