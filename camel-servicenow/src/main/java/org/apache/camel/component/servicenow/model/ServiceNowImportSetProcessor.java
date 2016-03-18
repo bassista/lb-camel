@@ -45,7 +45,7 @@ public class ServiceNowImportSetProcessor implements ServiceNowProcessor {
     public ServiceNowImportSetProcessor(ServiceNowEndpoint endpoint) throws Exception {
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
-        this.client = endpoint.getClient(ServiceNowImportSet.class);
+        this.client = endpoint.createClient(ServiceNowImportSet.class);
     }
 
     @Override

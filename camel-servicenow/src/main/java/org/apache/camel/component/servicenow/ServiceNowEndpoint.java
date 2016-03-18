@@ -17,8 +17,6 @@
 package org.apache.camel.component.servicenow;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.camel.Consumer;
@@ -43,7 +41,6 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
     private final String instanceName;
 
     private final ServiceNowConfiguration configuration;
-    private final Map<Class<?>, Object> clients;
     private final String apiUrl;
     private final String oauthUrl;
     private final OAuthToken token;
@@ -53,7 +50,6 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
 
         this.configuration = configuration;
         this.instanceName = component.getCamelContext().resolvePropertyPlaceholders(instanceName);
-        this.clients = new HashMap<>();
 
         this.apiUrl = configuration.hasApiUrl()
             ? configuration.getApiUrl()
@@ -82,11 +78,6 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         return false;
     }
 
-    @Override
-    public ServiceNowComponent getComponent() {
-        return (ServiceNowComponent)super.getComponent();
-    }
-
     public ServiceNowConfiguration getConfiguration() {
         return configuration;
     }
@@ -95,22 +86,15 @@ public class ServiceNowEndpoint extends DefaultEndpoint {
         return instanceName;
     }
 
-    public synchronized <T> T getClient(Class<T> type) throws Exception {
-        T client = type.cast(clients.get(type));
-        if (client == null) {
-            client = JAXRSClientFactory.create(
-                apiUrl,
-                type,
-                Arrays.asList(
-                    new AuthenticationRequestFilter(configuration, token),
-                    new JacksonJsonProvider(configuration.getMapper()),
-                    new ServiceNowExceptionMapper(configuration.getMapper())
-                )
-            );
-
-            clients.put(type, client);
-        }
-
-        return client;
+    public <T> T createClient(Class<T> type) throws Exception {
+        return JAXRSClientFactory.create(
+            apiUrl,
+            type,
+            Arrays.asList(
+                new AuthenticationRequestFilter(configuration, token),
+                new JacksonJsonProvider(configuration.getMapper()),
+                new ServiceNowExceptionMapper(configuration.getMapper())
+            )
+        );
     }
 }

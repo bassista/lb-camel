@@ -46,7 +46,7 @@ public class ServiceNowTableProcessor implements ServiceNowProcessor {
     public ServiceNowTableProcessor(ServiceNowEndpoint endpoint) throws Exception {
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
-        this.client = endpoint.getClient(ServiceNowTable.class);
+        this.client = endpoint.createClient(ServiceNowTable.class);
     }
 
     @Override

@@ -45,7 +45,7 @@ public class ServiceNowAggregateProcessor implements ServiceNowProcessor {
     public ServiceNowAggregateProcessor(ServiceNowEndpoint endpoint) throws Exception {
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
-        this.client = endpoint.getClient(ServiceNowAggregate.class);
+        this.client = endpoint.createClient(ServiceNowAggregate.class);
     }
 
     @Override
