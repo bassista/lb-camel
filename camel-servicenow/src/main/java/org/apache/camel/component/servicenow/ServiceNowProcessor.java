@@ -17,8 +17,11 @@
 
 package org.apache.camel.component.servicenow;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -39,9 +42,7 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
         this.client = endpoint.createClient(type);
-        this.mapper = config.getMapper();
-
-        ObjectHelper.notNull(mapper, "objectMapper");
+        this.mapper = ObjectHelper.notNull(config.getMapper(), "mapper");
     }
 
     @Override
@@ -52,11 +53,12 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         final String action = in.getHeader(ServiceNowConstants.ACTION, String.class);
         final String sysId = in.getHeader(ServiceNowConstants.SYSPARM_ID, String.class);
 
-        ObjectHelper.notNull(tableName, "tableName");
-        ObjectHelper.notNull(model, "model");
-        ObjectHelper.notNull(action, "action");
-
-        doProcess(exchange, model, action, tableName, sysId);
+        doProcess(
+            exchange,
+            ObjectHelper.notNull(model, "model"),
+            ObjectHelper.notNull(action, "action"),
+            ObjectHelper.notNull(tableName, "tableName"),
+            sysId);
     }
 
     protected abstract void doProcess(
@@ -65,4 +67,52 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         String action,
         String tableName,
         String sysId) throws Exception;
+
+
+    protected void setBody(Message message, Class<?> model, JsonNode answer) throws Exception {
+        message.setBody(extractResult(model, answer));
+    }
+
+    protected Object extractResult(Class<?> model, JsonNode answer) throws Exception {
+        Object result = null;
+
+        if (answer != null) {
+            JsonNode node = answer.get("result");
+            if (node != null) {
+                if (model == null) {
+                    result = mapper.writeValueAsString(node);
+                } else {
+                    if (node.isArray()) {
+                        if (model.isInstance(Map.class)) {
+                            result = mapper.treeToValue(node, List.class);
+                        } else {
+                            List<Object> list = new ArrayList<>(node.size());
+                            for (int i = 0; i < node.size(); i++) {
+                                list.add(mapper.treeToValue(node.get(i), model));
+                            }
+
+                            result = list;
+                        }
+                    } else {
+                        result = mapper.treeToValue(node, model);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    protected void validateBody(Message message, Class<?> model) {
+        validateBody(message.getBody(), model);
+    }
+
+    protected void validateBody(Object body, Class<?> model) {
+        ObjectHelper.notNull(body, "body");
+
+        if (!body.getClass().isAssignableFrom(model)) {
+            throw new IllegalArgumentException(
+                "Body is not compatible with model (body=" + body.getClass() + ", model=" + model);
+        }
+    }
 }

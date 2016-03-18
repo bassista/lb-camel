@@ -21,7 +21,6 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.component.servicenow.ServiceNowEndpoint;
-import org.apache.camel.component.servicenow.ServiceNowHelper;
 import org.apache.camel.component.servicenow.ServiceNowProcessor;
 import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
@@ -49,9 +48,8 @@ public class ServiceNowAggregateProcessor extends ServiceNowProcessor<ServiceNow
     }
 
     private void retrieveStats(Message in, Class<?> model, String tableName) throws Exception {
-        ServiceNowHelper.setBody(
+        setBody(
             in,
-            mapper,
             model,
             client.retrieveStats(
                 tableName,

@@ -21,7 +21,6 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.component.servicenow.ServiceNowEndpoint;
-import org.apache.camel.component.servicenow.ServiceNowHelper;
 import org.apache.camel.component.servicenow.ServiceNowProcessor;
 import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
 import org.apache.camel.util.ObjectHelper;
@@ -54,15 +53,12 @@ public class ServiceNowImportSetProcessor extends ServiceNowProcessor<ServiceNow
      * GET https://instance.service-now.com/api/now/import/{tableName}/{sys_id}
      */
     private void retrieveRecord(Message in, Class<?> model, String tableName, String sysId) throws Exception {
-        ObjectHelper.notNull(sysId, "sysId");
-
-        ServiceNowHelper.setBody(
+        setBody(
             in,
-            mapper,
             model,
             client.retrieveRecordById(
                 tableName,
-                sysId)
+                ObjectHelper.notNull(sysId, "sysId"))
         );
     }
 
@@ -71,10 +67,9 @@ public class ServiceNowImportSetProcessor extends ServiceNowProcessor<ServiceNow
      * POST https://instance.service-now.com/api/now/import/{tableName}
      */
     private void createRecord(Message in, Class<?> model, String tableName) throws Exception {
-        ServiceNowHelper.validateBody(in, model);
-        ServiceNowHelper.setBody(
+        validateBody(in, model);
+        setBody(
             in,
-            mapper,
             model,
             client.createRecord(
                 tableName,
