@@ -16,10 +16,11 @@
  */
 package org.apache.camel.component.servicenow;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
@@ -28,6 +29,8 @@ import org.apache.camel.Processor;
 import org.apache.camel.util.ObjectHelper;
 
 public abstract class ServiceNowProcessor<T> implements Processor {
+    // Cache for JavaTypes
+    private final CollectionValue<List> javaTypeCache;
 
     protected final ServiceNowEndpoint endpoint;
     protected final ServiceNowConfiguration config;
@@ -35,6 +38,7 @@ public abstract class ServiceNowProcessor<T> implements Processor {
     protected final ObjectMapper mapper;
 
     protected ServiceNowProcessor(ServiceNowEndpoint endpoint, Class<T> type) throws Exception {
+        this.javaTypeCache = new CollectionValue<>(List.class);
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
         this.client = endpoint.createClient(type);
@@ -80,14 +84,12 @@ public abstract class ServiceNowProcessor<T> implements Processor {
                 } else {
                     if (node.isArray()) {
                         if (model.isInstance(Map.class)) {
+                            // If the model is a Map, there's no need to use any
+                            // specific JavaType to instruct Jackson about the
+                            // expected element type
                             result = mapper.treeToValue(node, List.class);
                         } else {
-                            List<Object> list = new ArrayList<>(node.size());
-                            for (int i = 0; i < node.size(); i++) {
-                                list.add(mapper.treeToValue(node.get(i), model));
-                            }
-
-                            result = list;
+                            result = mapper.readValue(node.traverse(), javaTypeCache.get(model));
                         }
                     } else {
                         result = mapper.treeToValue(node, model);
@@ -109,6 +111,19 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         if (!body.getClass().isAssignableFrom(model)) {
             throw new IllegalArgumentException(
                 "Body is not compatible with model (body=" + body.getClass() + ", model=" + model);
+        }
+    }
+
+    private class CollectionValue<T extends Collection> extends ClassValue<JavaType> {
+        private final Class<T> collectionType;
+
+        public CollectionValue(Class<T> collectionType) {
+            this.collectionType = collectionType;
+        }
+
+        @Override
+        protected JavaType computeValue(Class<?> type) {
+            return mapper.getTypeFactory().constructCollectionType(collectionType, type);
         }
     }
 }
