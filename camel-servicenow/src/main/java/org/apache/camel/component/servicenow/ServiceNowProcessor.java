@@ -16,7 +16,6 @@
  */
 package org.apache.camel.component.servicenow;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +29,7 @@ import org.apache.camel.util.ObjectHelper;
 
 public abstract class ServiceNowProcessor<T> implements Processor {
     // Cache for JavaTypes
-    private final CollectionValue<List> javaTypeCache;
+    private final JavaTypeCache javaTypeCache;
 
     protected final ServiceNowEndpoint endpoint;
     protected final ServiceNowConfiguration config;
@@ -38,7 +37,7 @@ public abstract class ServiceNowProcessor<T> implements Processor {
     protected final ObjectMapper mapper;
 
     protected ServiceNowProcessor(ServiceNowEndpoint endpoint, Class<T> type) throws Exception {
-        this.javaTypeCache = new CollectionValue<>(List.class);
+        this.javaTypeCache = new JavaTypeCache();
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
         this.client = endpoint.createClient(type);
@@ -79,21 +78,17 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         if (answer != null) {
             JsonNode node = answer.get("result");
             if (node != null) {
-                if (model == null) {
-                    result = mapper.writeValueAsString(node);
-                } else {
-                    if (node.isArray()) {
-                        if (model.isInstance(Map.class)) {
-                            // If the model is a Map, there's no need to use any
-                            // specific JavaType to instruct Jackson about the
-                            // expected element type
-                            result = mapper.treeToValue(node, List.class);
-                        } else {
-                            result = mapper.readValue(node.traverse(), javaTypeCache.get(model));
-                        }
+                if (node.isArray()) {
+                    if (model.isInstance(Map.class)) {
+                        // If the model is a Map, there's no need to use any
+                        // specific JavaType to instruct Jackson about the
+                        // expected element type
+                        result = mapper.treeToValue(node, List.class);
                     } else {
-                        result = mapper.treeToValue(node, model);
+                        result = mapper.readValue(node.traverse(), javaTypeCache.get(model));
                     }
+                } else {
+                    result = mapper.treeToValue(node, model);
                 }
             }
         }
@@ -114,16 +109,10 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         }
     }
 
-    private class CollectionValue<T extends Collection> extends ClassValue<JavaType> {
-        private final Class<T> collectionType;
-
-        public CollectionValue(Class<T> collectionType) {
-            this.collectionType = collectionType;
-        }
-
+    private class JavaTypeCache extends ClassValue<JavaType> {
         @Override
         protected JavaType computeValue(Class<?> type) {
-            return mapper.getTypeFactory().constructCollectionType(collectionType, type);
+            return mapper.getTypeFactory().constructCollectionType(List.class, type);
         }
     }
 }
