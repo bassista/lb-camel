@@ -70,10 +70,10 @@ public abstract class ServiceNowProcessor<T> implements Processor {
 
 
     protected void setBody(Message message, Class<?> model, JsonNode answer) throws Exception {
-        message.setBody(extractResult(model, answer));
+        message.setBody(unwrap(answer, model));
     }
 
-    protected Object extractResult(Class<?> model, JsonNode answer) throws Exception {
+    protected Object unwrap(JsonNode answer, Class<?> model) throws Exception {
         Object result = null;
 
         if (answer != null) {
