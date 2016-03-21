@@ -27,7 +27,7 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.util.ObjectHelper;
 
-public abstract class ServiceNowProcessor<T> implements Processor {
+public abstract class ServiceNowProducerProcessor<T> implements Processor {
     // Cache for JavaTypes
     private final JavaTypeCache javaTypeCache;
 
@@ -36,7 +36,7 @@ public abstract class ServiceNowProcessor<T> implements Processor {
     protected final T client;
     protected final ObjectMapper mapper;
 
-    protected ServiceNowProcessor(ServiceNowEndpoint endpoint, Class<T> type) throws Exception {
+    protected ServiceNowProducerProcessor(ServiceNowEndpoint endpoint, Class<T> type) throws Exception {
         this.javaTypeCache = new JavaTypeCache();
         this.endpoint = endpoint;
         this.config = endpoint.getConfiguration();
@@ -68,8 +68,25 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         String sysId) throws Exception;
 
 
-    protected void setBody(Message message, Class<?> model, JsonNode answer) throws Exception {
+    protected ServiceNowProducerProcessor<T> validateBody(Message message, Class<?> model) {
+        return validateBody(message.getBody(), model);
+    }
+
+    protected ServiceNowProducerProcessor<T> validateBody(Object body, Class<?> model) {
+        ObjectHelper.notNull(body, "body");
+
+        if (!body.getClass().isAssignableFrom(model)) {
+            throw new IllegalArgumentException(
+                "Body is not compatible with model (body=" + body.getClass() + ", model=" + model);
+        }
+
+        return this;
+    }
+
+    protected ServiceNowProducerProcessor<T> setBody(Message message, Class<?> model, JsonNode answer) throws Exception {
         message.setBody(unwrap(answer, model));
+
+        return this;
     }
 
     protected Object unwrap(JsonNode answer, Class<?> model) throws Exception {
@@ -96,23 +113,26 @@ public abstract class ServiceNowProcessor<T> implements Processor {
         return result;
     }
 
-    protected void validateBody(Message message, Class<?> model) {
-        validateBody(message.getBody(), model);
-    }
-
-    protected void validateBody(Object body, Class<?> model) {
-        ObjectHelper.notNull(body, "body");
-
-        if (!body.getClass().isAssignableFrom(model)) {
-            throw new IllegalArgumentException(
-                "Body is not compatible with model (body=" + body.getClass() + ", model=" + model);
-        }
-    }
+    // *************************************************************************
+    // Use ClassValue to lazy create and cache JavaType
+    // *************************************************************************
 
     private class JavaTypeCache extends ClassValue<JavaType> {
         @Override
         protected JavaType computeValue(Class<?> type) {
             return mapper.getTypeFactory().constructCollectionType(List.class, type);
         }
+    }
+
+    // *************************************************************************
+    // To be replaced with:
+    //
+    //     java.util.function.Function<ServiceNowEndpoint, Processor>
+    //
+    // Once Camel will be Java 8 ready
+    // *************************************************************************
+
+    public interface Supplier {
+        Processor get(ServiceNowEndpoint endpoint) throws Exception;
     }
 }

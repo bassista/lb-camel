@@ -67,7 +67,7 @@ public class ServiceNowProducer extends DefaultProducer {
     // safe. To be refactored once moved to Java 8 as ServiceNowProcessorSupplier
     // can be replaced by:
     //
-    //     java.util.function.Function<ServiceNowEndpoint,ServiceNowProcessor>
+    //     java.util.function.Function<ServiceNowEndpoint, Processor>
     //
     // so an instance of a specific processor can be obtained by a constructor
     // ref, i.e:
@@ -78,9 +78,9 @@ public class ServiceNowProducer extends DefaultProducer {
 
     private final class WeakThreadLocal {
         private final ThreadLocal<WeakReference<Processor>> cache;
-        private final ServiceNowProcessorSupplier supplier;
+        private final ServiceNowProducerProcessor.Supplier supplier;
 
-        public WeakThreadLocal(ServiceNowProcessorSupplier supplier) {
+        public WeakThreadLocal(ServiceNowProducerProcessor.Supplier supplier) {
             this.cache = new ThreadLocal<>();
             this.supplier = supplier;
         }

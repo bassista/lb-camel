@@ -21,13 +21,12 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.component.servicenow.ServiceNowConstants;
 import org.apache.camel.component.servicenow.ServiceNowEndpoint;
-import org.apache.camel.component.servicenow.ServiceNowProcessor;
-import org.apache.camel.component.servicenow.ServiceNowProcessorSupplier;
+import org.apache.camel.component.servicenow.ServiceNowProducerProcessor;
 import org.apache.camel.util.ObjectHelper;
 
-public class ServiceNowTableProcessor extends ServiceNowProcessor<ServiceNowTable> {
+public class ServiceNowTableProcessor extends ServiceNowProducerProcessor<ServiceNowTable> {
 
-    public static final ServiceNowProcessorSupplier SUPPLIER = new ServiceNowProcessorSupplier() {
+    public static final ServiceNowProducerProcessor.Supplier SUPPLIER = new ServiceNowProducerProcessor.Supplier() {
         @Override
         public Processor get(ServiceNowEndpoint endpoint) throws Exception {
             return new ServiceNowTableProcessor(endpoint);
