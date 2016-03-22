@@ -367,7 +367,6 @@
     <!-- ******************************************************************* -->
 
     <modules>
-        <module>camel-servicenow</module>
         <module>camel-chronicle</module>
         <module>camel-teiid</module>
     </modules>
