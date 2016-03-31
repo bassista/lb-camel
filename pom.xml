@@ -57,6 +57,7 @@
         <spring4-version>4.2.5.RELEASE</spring4-version>
         <spring-version>${spring4-version}</spring-version>
         <consul-api-version>1.1.9</consul-api-version>
+        <ehcache-version>3.0.0.rc2</ehcache-version>
     </properties>
 
     <!-- ******************************************************************* -->
@@ -371,6 +372,7 @@
         <module>camel-chronicle</module>
         <module>camel-teiid</module>
         <module>camel-consul</module>
+        <module>camel-ehcache</module>
     </modules>
 
     <!-- ******************************************************************* -->
