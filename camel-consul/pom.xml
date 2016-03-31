@@ -26,12 +26,12 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.apache.camel.component.chronicle</groupId>
-  <artifactId>camel-chronicle</artifactId>
+  <groupId>org.apache.camel.component.consul</groupId>
+  <artifactId>camel-consul</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Chronicle Component</name>
-  <description>Camel Chronicle support</description>
+  <name>Camel Consul Component</name>
+  <description>Camel Consul support</description>
 
   <url>http://camel.apache.org</url>
 
@@ -42,9 +42,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>net.openhft</groupId>
-      <artifactId>chronicle-engine</artifactId>
-      <version>${version.chronicle.engine}</version>
+      <groupId>com.ecwid.consul</groupId>
+      <artifactId>consul-api</artifactId>
+      <version>${consul-api-version}</version>
     </dependency>
   </dependencies>
 
@@ -58,8 +58,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-chronicle</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=chronicle</Export-Service>
+            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-consul</Bundle-SymbolicName>
+            <Export-Service>org.apache.camel.spi.ComponentResolver;component=consul</Export-Service>
           </instructions>
         </configuration>
       </plugin>
