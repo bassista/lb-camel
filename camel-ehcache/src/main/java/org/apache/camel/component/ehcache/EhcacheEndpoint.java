@@ -14,31 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.camel.component.consul.enpoint;
+package org.apache.camel.component.ehcache;
 
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
-import org.apache.camel.component.consul.AbstractConsulEndpoint;
-import org.apache.camel.component.consul.ConsulComponent;
-import org.apache.camel.component.consul.ConsulConfiguration;
-import org.apache.camel.spi.UriEndpoint;
+import org.apache.camel.impl.DefaultEndpoint;
 
-
-@UriEndpoint(scheme = "consul", title = "Consul KeyValue", syntax = "consul://event", consumerOnly = true, label = "api,cloud")
-public class ConsulEventEndpoint extends AbstractConsulEndpoint {
-    public ConsulEventEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
-        super("event", uri, component, configuration);
-    }
-
+/**
+ * @author lburgazzoli
+ */
+public class EhcacheEndpoint extends DefaultEndpoint {
     @Override
     public Producer createProducer() throws Exception {
-        return new ConsulEventProducer(this, getConfiguration());
+        return null;
     }
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
+        return null;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return false;
     }
 }

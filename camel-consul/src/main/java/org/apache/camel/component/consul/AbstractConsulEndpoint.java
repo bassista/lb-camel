@@ -18,20 +18,27 @@ package org.apache.camel.component.consul;
 
 import com.orbitz.consul.Consul;
 import org.apache.camel.impl.DefaultEndpoint;
-import org.apache.camel.spi.UriEndpoint;
+import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
+import org.apache.camel.spi.UriPath;
 
-@UriEndpoint(scheme = "consul", title = "Consul", syntax = "consul://endpoint", label = "api,cloud")
 public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
 
-    @UriParam
+    @UriPath(description = "The consul configuration")
+    @Metadata(required = "true")
     private final ConsulConfiguration configuration;
+
+    @UriParam(description = "The API endpoint")
+    @Metadata(required = "true")
+    private final String apiEndpoint;
+
     private Consul consul;
 
-    protected AbstractConsulEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
+    protected AbstractConsulEndpoint(String apiEndpoint, String uri, ConsulComponent component, ConsulConfiguration configuration) {
         super(uri, component);
 
         this.configuration = configuration;
+        this.apiEndpoint = apiEndpoint;
     }
 
     @Override
@@ -45,6 +52,10 @@ public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
 
     public ConsulConfiguration getConfiguration() {
         return this.configuration;
+    }
+
+    public String getApiEndpoint() {
+        return this.apiEndpoint;
     }
 
     public synchronized Consul getConsul() throws Exception {

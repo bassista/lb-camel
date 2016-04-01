@@ -58,7 +58,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-ehcache</Bundle-SymbolicName>
+            <Bundle-SymbolicName>org.apache.camel.component.ehcache.camel-ehcache</Bundle-SymbolicName>
             <Export-Service>org.apache.camel.spi.ComponentResolver;component=ehcache</Export-Service>
           </instructions>
         </configuration>
