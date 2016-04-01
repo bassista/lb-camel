@@ -42,12 +42,20 @@ public class ConsulConfiguration {
     @Metadata(label = "advanced")
     private ObjectMapper objectMapper;
 
-    @UriParam
+    @UriParam(label = "producer")
     private String action;
 
-    @UriParam(defaultValue = "FALSE")
+    @UriParam(label = "producer,kv", defaultValue = "false")
     private boolean valueAsString = false;
 
+    @UriParam
+    private String key;
+
+    @UriParam(label = "consumer,watch", defaultValue = "10")
+    private Integer blockSeconds = 10;
+
+    @UriParam(label = "consumer,watch", defaultValue = "0")
+    private long firstIndex = 0;
 
     public String getUrl() {
         return url;
@@ -115,5 +123,38 @@ public class ConsulConfiguration {
      */
     public void setValueAsString(boolean valueAsString) {
         this.valueAsString = valueAsString;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    /**
+     * The default action. Can be overridden by CamelConsulKey
+     */
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public Integer getBlockSeconds() {
+        return blockSeconds;
+    }
+
+    /**
+     * The second to wait for a watch event, default 10 seconds
+     */
+    public void setBlockSeconds(Integer blockSeconds) {
+        this.blockSeconds = blockSeconds;
+    }
+
+    public long getFirstIndex() {
+        return firstIndex;
+    }
+
+    /**
+     * The first index for watch event, default 0
+     */
+    public void setFirstIndex(long firstIndex) {
+        this.firstIndex = firstIndex;
     }
 }

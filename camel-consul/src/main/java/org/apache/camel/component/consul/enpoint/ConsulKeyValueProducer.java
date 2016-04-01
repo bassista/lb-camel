@@ -16,6 +16,8 @@
  */
 package org.apache.camel.component.consul.enpoint;
 
+import java.lang.reflect.Method;
+
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.option.PutOptions;
 import com.orbitz.consul.option.QueryOptions;
@@ -32,16 +34,28 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         super(endpoint, configuration);
 
         this.client = null;
+
+        forEachMethodAnnotation(
+            this,
+            (final ConsulActionProcessor annotation, final Method method) ->
+                processors.put(
+                    annotation.value(),
+                    message -> method.invoke(this, message)
+                )
+        );
     }
 
     @Override
     protected void doStart() throws Exception {
+        super.doStart();
+
         client = endpoint.getConsul().keyValueClient();
     }
 
     @Override
     protected void doStop() throws Exception {
         client = null;
+        super.doStop();
     }
 
     // *************************************************************************

@@ -31,22 +31,14 @@ import org.apache.camel.util.ObjectHelper;
 public abstract class AbstractConsulProducer extends DefaultProducer {
     protected final AbstractConsulEndpoint endpoint;
     protected final ConsulConfiguration configuration;
-    private final Map<String, ConsulMessageProcessor> processors;
+    protected final Map<String, ConsulMessageProcessor> processors;
 
     protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
         super(endpoint);
 
         this.endpoint = endpoint;
-        this.configuration = configuration;this.processors = new HashMap<>();
-
-        forEachMethodAnnotation(
-            this.getClass(),
-            (final ConsulActionProcessor annotation, final Method method) ->
-                processors.put(
-                    annotation.value(),
-                    message -> method.invoke(AbstractConsulProducer.this, message)
-                )
-        );
+        this.configuration = configuration;
+        this.processors = new HashMap<>();
     }
 
     @Override
@@ -85,6 +77,7 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     protected String getKey(Message message) throws Exception {
         return message.getHeader(
             ConsulConstants.CONSUL_KEY,
+            configuration.getKey(),
             String.class);
     }
 
@@ -92,6 +85,7 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
         return ObjectHelper.notNull(
             message.getHeader(
                 ConsulConstants.CONSUL_KEY,
+                configuration.getKey(),
                 String.class),
             ConsulConstants.CONSUL_KEY
         );
@@ -137,10 +131,10 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     //
     // *************************************************************************
 
-    private static void forEachMethodAnnotation(
-        Class<?> type, BiConsumer<ConsulActionProcessor, Method> consumer) {
+    protected static void forEachMethodAnnotation(
+        Object target, BiConsumer<ConsulActionProcessor, Method> consumer) {
 
-        for (Method method : type.getDeclaredMethods()) {
+        for (Method method : target.getClass().getDeclaredMethods()) {
             if (method.isAnnotationPresent(ConsulActionProcessor.class)) {
                 consumer.accept(method.getAnnotation(ConsulActionProcessor.class), method);
             }

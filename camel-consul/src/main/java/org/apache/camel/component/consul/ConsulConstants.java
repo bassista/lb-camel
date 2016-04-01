@@ -24,6 +24,9 @@ public interface ConsulConstants {
     String CONSUL_VALUE = "CamelConsulValue";
     String CONSUL_VALUES = "CamelConsulValues";
     String CONSUL_FLAGS = "CamelConsulFlags";
+    String CONSUL_CREATE_INDEX = "CamelConsulCreateIndex";
+    String CONSUL_LOCK_INDEX = "CamelConsulCreateIndex";
+    String CONSUL_MODIFY_INDEX = "CamelConsulModifyIndex";
     String CONSUL_OPTIONS = "CamelConsulOptions";
     String CONSUL_RESULT = "CamelConsulResult";
     String CONSUL_SESSION = "CamelConsulSession";

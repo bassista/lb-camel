@@ -17,6 +17,8 @@
 
 package org.apache.camel.component.consul.enpoint;
 
+import java.lang.reflect.Method;
+
 import com.orbitz.consul.EventClient;
 import com.orbitz.consul.option.EventOptions;
 import com.orbitz.consul.option.QueryOptions;
@@ -32,16 +34,29 @@ public class ConsulEventProducer extends AbstractConsulProducer {
         super(endpoint, configuration);
 
         this.client = null;
+
+        forEachMethodAnnotation(
+            this,
+            (final ConsulActionProcessor annotation, final Method method) ->
+                processors.put(
+                    annotation.value(),
+                    message -> method.invoke(this, message)
+                )
+        );
     }
 
     @Override
     protected void doStart() throws Exception {
+        super.doStart();
+
         client = endpoint.getConsul().eventClient();
     }
 
     @Override
     protected void doStop() throws Exception {
         client = null;
+
+        super.doStop();
     }
 
     // *************************************************************************

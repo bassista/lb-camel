@@ -24,8 +24,8 @@ import org.apache.camel.impl.DefaultConsumer;
  * @author lburgazzoli
  */
 public abstract class AbstractConsulConsumer extends DefaultConsumer {
-    private final AbstractConsulEndpoint endpoint;
-    private final ConsulConfiguration configuration;
+    protected final AbstractConsulEndpoint endpoint;
+    protected final ConsulConfiguration configuration;
 
     protected AbstractConsulConsumer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, Processor processor) {
         super(endpoint, processor);

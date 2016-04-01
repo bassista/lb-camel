@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
+import org.apache.camel.component.consul.enpoint.ConsulEventEndpoint;
 import org.apache.camel.component.consul.enpoint.ConsulKeyValueEndpoint;
 import org.apache.camel.impl.UriEndpointComponent;
 
@@ -46,7 +47,7 @@ public class ConsulComponent extends UriEndpointComponent {
 
     private enum ConsulApiEndpoint implements ConsulEndpointFactory {
         kv (ConsulKeyValueEndpoint::new),
-        event (ConsulKeyValueEndpoint::new)
+        event (ConsulEventEndpoint::new),
         ;
 
         private final ConsulEndpointFactory factory;
