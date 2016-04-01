@@ -14,24 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.consul;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.function.BiConsumer;
 
-public final class ConsulUtils {
-    private ConsulUtils() {
-    }
+import org.apache.camel.Endpoint;
 
-    public static <T extends Annotation> void forEachMethodAnnotation(
-            Class<?> type, Class<T> annotation, BiConsumer<T, Method> consumer) {
-
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(annotation)) {
-                consumer.accept(method.getAnnotation(annotation), method);
-            }
-        }
-    }
+@FunctionalInterface
+public interface ConsulEndpointFactory {
+    Endpoint create(String uri, ConsulComponent component, ConsulConfiguration configuration) throws Exception;
 }

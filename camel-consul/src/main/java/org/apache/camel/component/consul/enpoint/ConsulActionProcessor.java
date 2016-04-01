@@ -17,18 +17,13 @@
 
 package org.apache.camel.component.consul.enpoint;
 
-/**
- * @author lburgazzoli
- */
-public enum ConsulKVAction {
-    UNKNOWN,
-    PUT,
-    GET_VALUE,
-    GET_VALUES,
-    GET_KEYS,
-    GET_SESSIONS,
-    DELETE_KEY,
-    DELETE_KEYS,
-    LOCK,
-    UNLOCK
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ConsulActionProcessor {
+    String value();
 }

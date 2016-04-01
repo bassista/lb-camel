@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
-import org.apache.camel.component.consul.enpoint.ConsulKVEndpoint;
+import org.apache.camel.component.consul.enpoint.ConsulKeyValueEndpoint;
 import org.apache.camel.impl.UriEndpointComponent;
 
 /**
@@ -41,11 +41,23 @@ public class ConsulComponent extends UriEndpointComponent {
         ConsulConfiguration configuration = new ConsulConfiguration();
         setProperties(configuration, parameters);
 
-        switch(remaining) {
-        case "kv":
-            return new ConsulKVEndpoint(uri, this, configuration);
-        default:
-            throw new IllegalArgumentException("Unknown endpoint type: " + remaining);
+        return ConsulApiEndpoint.valueOf(remaining).create(uri, this, configuration);
+    }
+
+    private enum ConsulApiEndpoint implements ConsulEndpointFactory {
+        kv (ConsulKeyValueEndpoint::new),
+        event (ConsulKeyValueEndpoint::new)
+        ;
+
+        private final ConsulEndpointFactory factory;
+
+        ConsulApiEndpoint(ConsulEndpointFactory factory) {
+            this.factory = factory;
+        }
+
+        @Override
+        public Endpoint create(String uri, ConsulComponent component, ConsulConfiguration configuration) throws Exception {
+            return factory.create(uri, component, configuration);
         }
     }
 }

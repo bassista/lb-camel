@@ -14,19 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.consul;
 
-public interface ConsulConstants {
-    String CONSUL_ENDPOINT_KV = "kv";
+package org.apache.camel.component.consul.enpoint;
 
-    String CONSUL_ACTION = "CamelConsulAction";
-    String CONSUL_KEY = "CamelConsulKey";
-    String CONSUL_VALUE = "CamelConsulValue";
-    String CONSUL_VALUES = "CamelConsulValues";
-    String CONSUL_FLAGS = "CamelConsulFlags";
-    String CONSUL_OPTIONS = "CamelConsulOptions";
-    String CONSUL_RESULT = "CamelConsulResult";
-    String CONSUL_SESSION = "CamelConsulSession";
-    String CONSUL_OPERATION = "CamelConsulOperation";
-    String CONSUL_VALUE_AS_STRING = "CamelConsulValueAsString";
+public interface ConsulKeyValueActions {
+    String PUT = "PUT";
+    String GET_VALUE = "GET_VALUE";
+    String GET_VALUES = "GET_VALUES";
+    String GET_KEYS = "GET_KEYS";
+    String GET_SESSIONS = "GET_SESSIONS";
+    String DELETE_KEY = "DELETE_KEY";
+    String DELETE_KEYS = "DELETE_KEYS";
+    String LOCK = "LOCK";
+    String UNLOCK = "UNLOCK";
 }

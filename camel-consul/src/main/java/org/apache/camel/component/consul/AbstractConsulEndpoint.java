@@ -21,7 +21,7 @@ import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 
-@UriEndpoint(scheme = "consul", title = "Consul", syntax = "consul://endpoint", consumerClass = String.class, label = "api,cloud")
+@UriEndpoint(scheme = "consul", title = "Consul", syntax = "consul://endpoint", label = "api,cloud")
 public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
 
     @UriParam
@@ -48,7 +48,7 @@ public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
     }
 
     public synchronized Consul getConsul() throws Exception {
-        if (consul != null) {
+        if (consul == null) {
             Consul.Builder builder = Consul.builder();
 
             if (configuration.getUrl() != null) {

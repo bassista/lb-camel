@@ -66,7 +66,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-consul</Bundle-SymbolicName>
+            <Bundle-SymbolicName>org.apache.camel.component.consul.camel-consul</Bundle-SymbolicName>
             <Export-Service>org.apache.camel.spi.ComponentResolver;component=consul</Export-Service>
           </instructions>
         </configuration>

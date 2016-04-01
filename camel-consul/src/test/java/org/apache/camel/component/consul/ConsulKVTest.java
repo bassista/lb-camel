@@ -14,33 +14,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.camel.component.consul;
 
-package org.apache.camel.component.teiid;
-
+import com.google.common.base.Optional;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.consul.enpoint.ConsulKeyValueActions;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulComponentTest extends CamelTestSupport {
+public class ConsulKVTest extends ConsulTestSupport {
 
     @Test
-    public void testChronicle() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(1);       
-        
-        assertMockEndpointsSatisfied();
+    public void testConsul() throws Exception {
+        String key = generateKey();
+        String val = generateRandomString();
+
+        MockEndpoint mock = getMockEndpoint("mock:kv");
+        mock.expectedMinimumMessageCount(1);
+        mock.expectedBodiesReceived(val);
+        mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
+
+        template().sendBodyAndHeaders(
+            "direct:kv",
+            val,
+            new KVBuilder()
+                .put(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
+                .put(ConsulConstants.CONSUL_KEY, key)
+                .build()
+        );
+
+        mock.assertIsSatisfied();
+
+        Optional<String> keyVal = getConsul().keyValueClient().getValueAsString(key);
+
+        assertTrue(keyVal.isPresent());
+        assertEquals(val, keyVal.get());
     }
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("teiid://foo")
-                  .to("teiid://bar")
-                  .to("mock:result");
+                from("direct:kv")
+                    .to("consul:kv")
+                        .to("mock:kv");
             }
         };
     }

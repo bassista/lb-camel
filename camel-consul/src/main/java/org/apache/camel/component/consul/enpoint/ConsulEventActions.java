@@ -17,13 +17,7 @@
 
 package org.apache.camel.component.consul.enpoint;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ConsulKVActionProcessor {
-    ConsulKVAction value();
+public interface ConsulEventActions {
+    String FIRE = "FIRE";
+    String LIST = "LIST";
 }

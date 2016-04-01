@@ -24,14 +24,14 @@ import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.ConsulComponent;
 import org.apache.camel.component.consul.ConsulConfiguration;
 
-public class ConsulKVEndpoint extends AbstractConsulEndpoint {
-    public ConsulKVEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
+public class ConsulEventEndpoint extends AbstractConsulEndpoint {
+    public ConsulEventEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
         super(uri, component, configuration);
     }
 
     @Override
     public Producer createProducer() throws Exception {
-        return new ConsulKVProducer(this, getConfiguration());
+        return new ConsulEventProducer(this, getConfiguration());
     }
 
     @Override

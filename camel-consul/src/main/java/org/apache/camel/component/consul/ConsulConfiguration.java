@@ -53,6 +53,9 @@ public class ConsulConfiguration {
         return url;
     }
 
+    /**
+     * The Consul agent URL
+     */
     public void setUrl(String url) {
         this.url = url;
     }
@@ -61,6 +64,10 @@ public class ConsulConfiguration {
         return sslContextParameters;
     }
 
+    /**
+     * SSL configuration using an org.apache.camel.util.jsse.SSLContextParameters
+     * instance.
+     */
     public void setSslContextParameters(SSLContextParameters sslContextParameters) {
         this.sslContextParameters = sslContextParameters;
     }
@@ -69,6 +76,9 @@ public class ConsulConfiguration {
         return clientBuilder;
     }
 
+    /**
+     * The JAX-RS builder
+     */
     public void setClientBuilder(ClientBuilder clientBuilder) {
         this.clientBuilder = clientBuilder;
     }
@@ -77,6 +87,9 @@ public class ConsulConfiguration {
         return objectMapper;
     }
 
+    /**
+     * The {@link ObjectMapper} to use by the client
+     */
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -85,6 +98,9 @@ public class ConsulConfiguration {
         return action;
     }
 
+    /**
+     * The default action. Can be overridden by CamelConsulAction
+     */
     public void setAction(String action) {
         this.action = action;
     }
@@ -93,6 +109,10 @@ public class ConsulConfiguration {
         return valueAsString;
     }
 
+    /**
+     * Default to transform values retrieved from Consul i.e. on KV endpoint to
+     * string.
+     */
     public void setValueAsString(boolean valueAsString) {
         this.valueAsString = valueAsString;
     }
