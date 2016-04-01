@@ -14,17 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.camel.component.consul.enpoint;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Optional;
-import com.orbitz.consul.KeyValueClient;
-import com.orbitz.consul.async.ConsulResponseCallback;
-import com.orbitz.consul.model.ConsulResponse;
-import com.orbitz.consul.model.kv.Value;
+import com.orbitz.consul.EventClient;
+import com.orbitz.consul.async.EventResponseCallback;
+import com.orbitz.consul.model.EventResponse;
+import com.orbitz.consul.model.event.Event;
 import com.orbitz.consul.option.QueryOptions;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -34,14 +33,14 @@ import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
 import org.apache.camel.util.ObjectHelper;
 
-public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
+public class ConsulEventConsumer extends AbstractConsulConsumer {
     private final String key;
     private final AtomicReference<BigInteger> index;
 
     private Runnable watcher;
-    private KeyValueClient client;
+    private EventClient client;
 
-    protected ConsulKeyValueConsumer(ConsulKeyValueEndpoint endpoint, ConsulConfiguration configuration, Processor processor) {
+    protected ConsulEventConsumer(ConsulEventEndpoint endpoint, ConsulConfiguration configuration, Processor processor) {
         super(endpoint, configuration, processor);
 
         this.key = ObjectHelper.notNull(configuration.getKey(), ConsulConstants.CONSUL_KEY);
@@ -54,8 +53,8 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
     protected void doStart() throws Exception {
         super.doStart();
 
-        client = endpoint.getConsul().keyValueClient();
-        watcher = configuration.isRecursive() ? new RecursiveWatchHandler() : new WatchHandler();
+        client = endpoint.getConsul().eventClient();
+        watcher = new WatchHandler();
 
         watcher.run();
     }
@@ -80,20 +79,20 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
         getExceptionHandler().handleException("Error watching for key " + this.key, throwable);
     }
 
-    private void onValue(Value value) {
+    private void onEvent(Event event) {
         final Exchange exchange = endpoint.createExchange();
         final Message message = exchange.getIn();
 
-        message.setHeader(ConsulConstants.CONSUL_KEY, value.getKey());
+        message.setHeader(ConsulConstants.CONSUL_KEY, key);
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
-        message.setHeader(ConsulConstants.CONSUL_FLAGS, value.getFlags());
-        message.setHeader(ConsulConstants.CONSUL_CREATE_INDEX, value.getCreateIndex());
-        message.setHeader(ConsulConstants.CONSUL_LOCK_INDEX, value.getLockIndex());
-        message.setHeader(ConsulConstants.CONSUL_MODIFY_INDEX, value.getModifyIndex());
-        message.setHeader(ConsulConstants.CONSUL_SESSION, value.getSession().orNull());
-        message.setBody(
-            configuration.isValueAsString() ? value.getValueAsString().orNull() : value.getValue().orNull()
-        );
+        message.setHeader(ConsulConstants.CONSUL_EVENT_ID, event.getId());
+        message.setHeader(ConsulConstants.CONSUL_EVENT_NAME, event.getName());
+        message.setHeader(ConsulConstants.CONSUL_EVENT_LTIME, event.getLTime());
+        message.setHeader(ConsulConstants.CONSUL_NODE_FILTER, event.getNodeFilter());
+        message.setHeader(ConsulConstants.CONSUL_SERVICE_FILTER, event.getServiceFilter());
+        message.setHeader(ConsulConstants.CONSUL_TAG_FILTER, event.getTagFilter());
+        message.setHeader(ConsulConstants.CONSUL_VERSION, event.getVersion());
+        message.setBody(event.getPayload().orNull());
 
         try {
             getProcessor().process(exchange);
@@ -102,7 +101,7 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
         }
     }
 
-    private void onResponse(ConsulResponse<?> response) {
+    private void onResponse(EventResponse response) {
         index.set(response.getIndex());
     }
 
@@ -110,10 +109,10 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
     //
     // *************************************************************************
 
-    private class WatchHandler implements Runnable, ConsulResponseCallback<Optional<Value>> {
+    private class WatchHandler implements Runnable, EventResponseCallback {
         @Override
         public void run() {
-            client.getValue(
+            client.listEvents(
                 key,
                 QueryOptions.blockSeconds(configuration.getBlockSeconds(), index.get()).build(),
                 this
@@ -121,52 +120,18 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer {
         }
 
         @Override
-        public void onComplete(ConsulResponse<Optional<Value>> consulResponse) {
+        public void onComplete(EventResponse eventResponse) {
             if (!isRunAllowed()) {
                 return;
             }
 
-            Optional<Value> response = consulResponse.getResponse();
-            if (response.isPresent()) {
-                ConsulKeyValueConsumer.this.onValue(response.get());
-            }
-
-            onResponse(consulResponse);
-
-            run();
+            eventResponse.getEvents().forEach(ConsulEventConsumer.this::onEvent);
+            onResponse(eventResponse);
         }
 
         @Override
         public void onFailure(Throwable throwable) {
-            ConsulKeyValueConsumer.this.onFailure(throwable);
-        }
-    }
-
-    private class RecursiveWatchHandler implements Runnable, ConsulResponseCallback<List<Value>> {
-        @Override
-        public void run() {
-            client.getValues(
-                key,
-                QueryOptions.blockSeconds(configuration.getBlockSeconds(), index.get()).build(),
-                this
-            );
-        }
-
-        @Override
-        public void onComplete(ConsulResponse<List<Value>> consulResponse) {
-            if (!isRunAllowed()) {
-                return;
-            }
-
-            consulResponse.getResponse().forEach(ConsulKeyValueConsumer.this::onValue);
-            onResponse(consulResponse);
-
-            run();
-        }
-
-        @Override
-        public void onFailure(Throwable throwable) {
-            ConsulKeyValueConsumer.this.onFailure(throwable);
+            ConsulEventConsumer.this.onFailure(throwable);
         }
     }
 }

@@ -26,7 +26,7 @@ import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.spi.UriEndpoint;
 
 
-@UriEndpoint(scheme = "consul", title = "Consul KeyValue", syntax = "consul://event", consumerOnly = true, label = "api,cloud")
+@UriEndpoint(scheme = "consul", title = "Consul KeyValue", syntax = "consul://event", consumerClass = ConsulEventConsumer.class, label = "api,cloud")
 public class ConsulEventEndpoint extends AbstractConsulEndpoint {
     public ConsulEventEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
         super("event", uri, component, configuration);
@@ -39,6 +39,6 @@ public class ConsulEventEndpoint extends AbstractConsulEndpoint {
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
+        return new ConsulEventConsumer(this, getConfiguration(), processor);
     }
 }

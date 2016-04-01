@@ -14,75 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.consul;
 
-import com.google.common.base.Optional;
+import com.orbitz.consul.KeyValueClient;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.consul.enpoint.ConsulKeyValueActions;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulKVWatchTest extends ConsulTestSupport {
+public class ConsulKeyValueWatchTest extends ConsulTestSupport {
     private String key;
+    private KeyValueClient client;
 
-    @Before
+    @Override
     public void doPreSetup() {
         key = generateKey();
+        client = getConsul().keyValueClient();
     }
 
     @Test
-    public void testConsul() throws Exception {
+    public void testWatchKey() throws Exception {
         String val1 = generateRandomString();
         String val2 = generateRandomString();
 
-        MockEndpoint mock = getMockEndpoint("mock:kv");
+        MockEndpoint mock = getMockEndpoint("mock:kv-watch");
         mock.expectedMinimumMessageCount(2);
         mock.expectedBodiesReceived(val1, val2);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        MockEndpoint mockw = getMockEndpoint("mock:kv-watch");
-        mockw.expectedMinimumMessageCount(2);
-        mockw.expectedBodiesReceived(val1, val2);
-        mockw.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
-
-        template().sendBodyAndHeaders(
-            "direct:kv",
-            val1,
-            new KVBuilder()
-                .put(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
-                .put(ConsulConstants.CONSUL_KEY, key)
-                .build()
-        );
-        template().sendBodyAndHeaders(
-            "direct:kv",
-            val2,
-            new KVBuilder()
-                .put(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
-                .put(ConsulConstants.CONSUL_KEY, key)
-                .build()
-        );
+        client.putValue(key, val1);
+        client.putValue(key, val2);
 
         mock.assertIsSatisfied();
-        mockw.assertIsSatisfied();
-
-        Optional<String> keyVal = getConsul().keyValueClient().getValueAsString(key);
-
-        assertTrue(keyVal.isPresent());
-        assertEquals(val2, keyVal.get());
     }
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("direct:kv")
-                    .to("consul:kv")
-                        .to("mock:kv");
-                from("consul:kv?key=" + key)
+                fromF("consul:kv?key=%s&valueAsString=true", key)
+                    .to("log:org.apache.camel.component.consul?level=INFO&showAll=true")
                     .to("mock:kv-watch");
             }
         };

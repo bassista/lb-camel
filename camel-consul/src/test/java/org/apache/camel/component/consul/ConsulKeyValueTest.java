@@ -24,7 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulKVTest extends ConsulTestSupport {
+public class ConsulKeyValueTest extends ConsulTestSupport {
 
     @Test
     public void testConsul() throws Exception {

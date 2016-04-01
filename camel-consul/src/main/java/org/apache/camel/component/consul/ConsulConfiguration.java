@@ -57,6 +57,10 @@ public class ConsulConfiguration {
     @UriParam(label = "consumer,watch", defaultValue = "0")
     private long firstIndex = 0;
 
+    @UriParam(label = "consumer,watch", defaultValue = "false")
+    private boolean recursive = false;
+
+
     public String getUrl() {
         return url;
     }
@@ -152,9 +156,20 @@ public class ConsulConfiguration {
     }
 
     /**
-     * The first index for watch event, default 0
+     * The first index for watch for, default 0
      */
     public void setFirstIndex(long firstIndex) {
         this.firstIndex = firstIndex;
+    }
+
+    public boolean isRecursive() {
+        return recursive;
+    }
+
+    /**
+     * Recursively watch, default false
+     */
+    public void setRecursive(boolean recursive) {
+        this.recursive = recursive;
     }
 }

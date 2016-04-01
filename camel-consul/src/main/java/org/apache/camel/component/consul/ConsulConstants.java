@@ -21,6 +21,13 @@ public interface ConsulConstants {
 
     String CONSUL_ACTION = "CamelConsulAction";
     String CONSUL_KEY = "CamelConsulKey";
+    String CONSUL_EVENT_ID = "CamelConsulEventId";
+    String CONSUL_EVENT_NAME = "CamelConsulEventName";
+    String CONSUL_EVENT_LTIME = "CamelConsulEventLTime";
+    String CONSUL_NODE_FILTER = "CamelConsulNodeFilter";
+    String CONSUL_TAG_FILTER = "CamelConsulTagFilter";
+    String CONSUL_SERVICE_FILTER = "CamelConsulSessionFilter";
+    String CONSUL_VERSION = "CamelConsulVersion";
     String CONSUL_VALUE = "CamelConsulValue";
     String CONSUL_VALUES = "CamelConsulValues";
     String CONSUL_FLAGS = "CamelConsulFlags";

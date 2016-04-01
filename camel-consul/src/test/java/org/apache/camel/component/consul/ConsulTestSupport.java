@@ -26,8 +26,11 @@ import com.orbitz.consul.KeyValueClient;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsulTestSupport extends CamelTestSupport {
+    public static final Logger LOGGER = LoggerFactory.getLogger(ConsulTestSupport.class);
     public static final String KV_PREFIX = "/camel";
 
     @Rule
