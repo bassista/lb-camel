@@ -14,48 +14,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.camel.component.consul;
 
-import com.orbitz.consul.KeyValueClient;
+import java.util.List;
+
+import com.orbitz.consul.model.EventResponse;
+import com.orbitz.consul.model.event.Event;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.consul.enpoint.ConsulEventActions;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulKeyValueWatchTest extends ConsulTestSupport {
-    private String key;
-    private KeyValueClient client;
-
-    @Override
-    public void doPreSetup() {
-        key = generateKey();
-        client = getConsul().keyValueClient();
-    }
+public class ConsulEventTest extends ConsulTestSupport {
 
     @Test
-    public void testWatchKey() throws Exception {
-        String val1 = generateRandomString();
-        String val2 = generateRandomString();
+    public void testFireEvent() throws Exception {
+        String key = generateRandomString();
+        String val = generateRandomString();
 
-        MockEndpoint mock = getMockEndpoint("mock:kv-watch");
-        mock.expectedMinimumMessageCount(2);
-        mock.expectedBodiesReceived(val1, val2);
+        MockEndpoint mock = getMockEndpoint("mock:event");
+        mock.expectedMinimumMessageCount(1);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        client.putValue(key, val1);
-        client.putValue(key, val2);
+        template().sendBodyAndHeaders(
+            "direct:event",
+            val,
+            new KVBuilder()
+                .put(ConsulConstants.CONSUL_ACTION, ConsulEventActions.FIRE)
+                .put(ConsulConstants.CONSUL_KEY, key)
+                .build()
+        );
 
         mock.assertIsSatisfied();
+
+        EventResponse response = getConsul().eventClient().listEvents(key);
+        List<Event> events = response.getEvents();
+
+        assertFalse(events.isEmpty());
+        assertTrue(events.get(0).getPayload().isPresent());
+        assertEquals(val, events.get(0).getPayload().get());
     }
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                fromF("consul:kv?key=%s&valueAsString=true", key)
-                    .to("log:org.apache.camel.component.consul?level=INFO&showAll=true")
-                        .to("mock:kv-watch");
+                from("direct:event")
+                    .to("consul:event")
+                        .to("mock:event");
             }
         };
     }

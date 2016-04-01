@@ -27,7 +27,7 @@ import org.junit.Test;
 public class ConsulKeyValueTest extends ConsulTestSupport {
 
     @Test
-    public void testConsul() throws Exception {
+    public void testKeyPut() throws Exception {
         String key = generateKey();
         String val = generateRandomString();
 

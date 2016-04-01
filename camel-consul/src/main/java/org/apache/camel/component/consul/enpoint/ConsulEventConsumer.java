@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.consul.enpoint;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.orbitz.consul.EventClient;
@@ -32,8 +32,12 @@ import org.apache.camel.component.consul.AbstractConsulConsumer;
 import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
 import org.apache.camel.util.ObjectHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsulEventConsumer extends AbstractConsulConsumer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulEventConsumer.class);
+
     private final String key;
     private final AtomicReference<BigInteger> index;
 
@@ -72,11 +76,9 @@ public class ConsulEventConsumer extends AbstractConsulConsumer {
     // *************************************************************************
 
     private void onFailure(Throwable throwable) {
-        if (!isRunAllowed()) {
-            return;
+        if (isRunAllowed()) {
+            getExceptionHandler().handleException("Error watching for event " + this.key, throwable);
         }
-
-        getExceptionHandler().handleException("Error watching for key " + this.key, throwable);
     }
 
     private void onEvent(Event event) {
@@ -121,17 +123,50 @@ public class ConsulEventConsumer extends AbstractConsulConsumer {
 
         @Override
         public void onComplete(EventResponse eventResponse) {
-            if (!isRunAllowed()) {
-                return;
-            }
+            if (isRunAllowed()) {
+                List<Event> events = filterEvents(eventResponse.getEvents(), index.get());
+                events.forEach(ConsulEventConsumer.this::onEvent);
 
-            eventResponse.getEvents().forEach(ConsulEventConsumer.this::onEvent);
-            onResponse(eventResponse);
+                onResponse(eventResponse);
+
+                run();
+            }
         }
 
         @Override
         public void onFailure(Throwable throwable) {
             ConsulEventConsumer.this.onFailure(throwable);
+        }
+
+        /**
+         * from spring-cloud-consul (https://github.com/spring-cloud/spring-cloud-consul):
+         *     spring-cloud-consul-bus/src/main/java/org/springframework/cloud/consul/bus/EventService.java
+         */
+        private List<Event> filterEvents(List<Event> toFilter, BigInteger lastIndex) {
+            List<Event> events = toFilter;
+            if (lastIndex != null) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    BigInteger eventIndex = getEventIndexFromId(event);
+                    if (eventIndex.equals(lastIndex)) {
+                        events = events.subList(i + 1, events.size());
+                        break;
+                    }
+                }
+            }
+            return events;
+        }
+
+        // TODO: To be refactored
+        private BigInteger getEventIndexFromId(Event event) {
+            String eventId = event.getId();
+            String lower = eventId.substring(0, 8) + eventId.substring(9, 13) + eventId.substring(14, 18);
+            String upper = eventId.substring(19, 23) + eventId.substring(24, 36);
+
+            BigInteger lowVal = new BigInteger(lower, 16);
+            BigInteger highVal = new BigInteger(upper, 16);
+
+            return lowVal.xor(highVal);
         }
     }
 }

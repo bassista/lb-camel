@@ -16,35 +16,35 @@
  */
 package org.apache.camel.component.consul;
 
-import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.EventClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulKeyValueWatchTest extends ConsulTestSupport {
+public class ConsulEventWatchTest extends ConsulTestSupport {
     private String key;
-    private KeyValueClient client;
+    private EventClient client;
 
     @Override
     public void doPreSetup() {
-        key = generateKey();
-        client = getConsul().keyValueClient();
+        key = generateRandomString();
+        client = getConsul().eventClient();
     }
 
     @Test
-    public void testWatchKey() throws Exception {
+    public void testWatchEvent() throws Exception {
         String val1 = generateRandomString();
         String val2 = generateRandomString();
 
-        MockEndpoint mock = getMockEndpoint("mock:kv-watch");
+        MockEndpoint mock = getMockEndpoint("mock:event-watch");
         mock.expectedMinimumMessageCount(2);
         mock.expectedBodiesReceived(val1, val2);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        client.putValue(key, val1);
-        client.putValue(key, val2);
+        client.fireEvent(key, val1);
+        client.fireEvent(key, val2);
 
         mock.assertIsSatisfied();
     }
@@ -53,9 +53,9 @@ public class ConsulKeyValueWatchTest extends ConsulTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                fromF("consul:kv?key=%s&valueAsString=true", key)
+                fromF("consul:event?key=%s", key)
                     .to("log:org.apache.camel.component.consul?level=INFO&showAll=true")
-                        .to("mock:kv-watch");
+                        .to("mock:event-watch");
             }
         };
     }
