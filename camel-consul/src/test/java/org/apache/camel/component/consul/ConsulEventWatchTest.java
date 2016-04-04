@@ -37,14 +37,16 @@ public class ConsulEventWatchTest extends ConsulTestSupport {
     public void testWatchEvent() throws Exception {
         String val1 = generateRandomString();
         String val2 = generateRandomString();
+        String val3 = generateRandomString();
 
         MockEndpoint mock = getMockEndpoint("mock:event-watch");
-        mock.expectedMinimumMessageCount(2);
-        mock.expectedBodiesReceived(val1, val2);
+        mock.expectedMessageCount(3);
+        mock.expectedBodiesReceived(val1, val2, val3);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
         client.fireEvent(key, val1);
         client.fireEvent(key, val2);
+        client.fireEvent(key, val3);
 
         mock.assertIsSatisfied();
     }

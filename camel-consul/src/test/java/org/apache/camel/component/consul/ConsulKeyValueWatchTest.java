@@ -16,6 +16,9 @@
  */
 package org.apache.camel.component.consul;
 
+import java.util.Arrays;
+import java.util.Random;
+
 import com.orbitz.consul.KeyValueClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -26,25 +29,30 @@ import org.junit.Test;
 public class ConsulKeyValueWatchTest extends ConsulTestSupport {
     private String key;
     private KeyValueClient client;
+    private Random random;
 
     @Override
     public void doPreSetup() {
         key = generateKey();
         client = getConsul().keyValueClient();
+        random = new Random();
     }
 
     @Test
     public void testWatchKey() throws Exception {
-        String val1 = generateRandomString();
-        String val2 = generateRandomString();
+        String[] vals = new String[3];
+        Arrays.setAll(vals, i -> generateRandomString());
+
 
         MockEndpoint mock = getMockEndpoint("mock:kv-watch");
-        mock.expectedMinimumMessageCount(2);
-        mock.expectedBodiesReceived(val1, val2);
+        mock.expectedMessageCount(3);
+        mock.expectedBodiesReceived(vals);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        client.putValue(key, val1);
-        client.putValue(key, val2);
+        for (String val : vals) {
+            client.putValue(key, val);
+            Thread.sleep(250 + random.nextInt(250));
+        }
 
         mock.assertIsSatisfied();
     }
