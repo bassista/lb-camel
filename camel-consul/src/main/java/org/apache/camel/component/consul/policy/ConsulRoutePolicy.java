@@ -16,13 +16,14 @@
  */
 package org.apache.camel.component.consul.policy;
 
-import java.util.Objects;
+import java.math.BigInteger;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,13 +31,22 @@ import com.google.common.base.Optional;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.SessionClient;
+import com.orbitz.consul.async.ConsulResponseCallback;
+import com.orbitz.consul.model.ConsulResponse;
+import com.orbitz.consul.model.kv.Value;
 import com.orbitz.consul.model.session.ImmutableSession;
+import com.orbitz.consul.option.QueryOptions;
 import org.apache.camel.Exchange;
 import org.apache.camel.NonManagedService;
 import org.apache.camel.Route;
 import org.apache.camel.support.RoutePolicySupport;
+import org.apache.camel.util.ObjectHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulRoutePolicy.class);
+
     private final Consul consul;
     private final SessionClient sessionClient;
     private final KeyValueClient keyValueClient;
@@ -44,11 +54,12 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
     private final AtomicBoolean shouldProcessExchanges ;
     private final Set<Route> suspendedRoutes;
     private final Lock lock;
+    private final AtomicReference<BigInteger> index;
 
     private String serviceName;
     private String servicePath;
-    private long ttl;
-    private ScheduledExecutorService executorService;
+    private int ttl;
+    private ExecutorService executorService;
     private boolean shouldStopConsumer;
 
     private String sessionId;
@@ -61,6 +72,7 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         this.leader = new AtomicBoolean(false);
         this.shouldProcessExchanges = new AtomicBoolean();
         this.lock = new ReentrantLock();
+        this.index = new AtomicReference<>(BigInteger.valueOf(0));
 
         this.serviceName = null;
         this.servicePath = null;
@@ -102,10 +114,10 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         }
 
         if (executorService == null) {
-            executorService = Executors.newScheduledThreadPool(1);
+            executorService = Executors.newSingleThreadExecutor();
         }
 
-        executorService.scheduleAtFixedRate(this::poll, 0, ttl / 3, TimeUnit.SECONDS);
+        executorService.submit(new Watcher());
     }
 
     @Override
@@ -126,24 +138,6 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
     // *************************************************************************
     //
     // *************************************************************************
-
-    private void poll() {
-        if (leader.get()) {
-            Optional<String> sid = keyValueClient.getSession(servicePath);
-            if (sid.isPresent() && Objects.equals(sessionId, sid.get())) {
-                sessionClient.renewSession(sessionId);
-            } else {
-                leader.set(false);
-            }
-        }
-
-        if (!leader.get()){
-            if (keyValueClient.acquireLock(servicePath, sessionId)) {
-                leader.set(true);
-                startAllStoppedConsumers();
-            }
-        }
-    }
 
     private void startConsumer(Route route) {
         try {
@@ -211,19 +205,19 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         this.servicePath = String.format("/service/%s/leader", serviceName);
     }
 
-    public long getTtl() {
+    public int getTtl() {
         return ttl;
     }
 
-    public void setTtl(long ttl) {
+    public void setTtl(int ttl) {
         this.ttl = ttl > 10 ? ttl : 10;
     }
 
-    public ScheduledExecutorService getExecutorService() {
+    public ExecutorService getExecutorService() {
         return executorService;
     }
 
-    public void setExecutorService(ScheduledExecutorService executorService) {
+    public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
@@ -233,5 +227,56 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
 
     public void setShouldStopConsumer(boolean shouldStopConsumer) {
         this.shouldStopConsumer = shouldStopConsumer;
+    }
+
+    // *************************************************************************
+    // Watch
+    // *************************************************************************
+
+    private class Watcher implements Runnable, ConsulResponseCallback<Optional<Value>> {
+
+        @Override
+        public void onComplete(ConsulResponse<Optional<Value>> consulResponse) {
+            if (isRunAllowed()) {
+                Value response = consulResponse.getResponse().orNull();
+                if (response != null) {
+                    String sid = response.getSession().orNull();
+                    if (ObjectHelper.isEmpty(sid)) {
+                        // If the key is not held by any session, try acquire a
+                        // lock (become leader)
+                        if (keyValueClient.acquireLock(servicePath, sessionId)) {
+                            leader.set(true);
+                            startAllStoppedConsumers();
+                        }
+                    } else if (ObjectHelper.equal(sessionId, sid, false)) {
+                        sessionClient.renewSession(sessionId);
+                    }
+                } else if (leader.get()) {
+                    sessionClient.renewSession(sessionId);
+                }
+
+                index.set(consulResponse.getIndex());
+                run();
+            }
+        }
+
+        @Override
+        public void onFailure(Throwable throwable) {
+            handleException(throwable);
+        }
+
+        @Override
+        public void run() {
+            if (isRunAllowed()) {
+                if (!leader.get()) {
+                    leader.set(keyValueClient.acquireLock(servicePath, sessionId));
+                }
+
+                keyValueClient.getValue(
+                    servicePath,
+                    QueryOptions.blockSeconds(ttl / 3, index.get()).build(),
+                    this);
+            }
+        }
     }
 }
