@@ -17,7 +17,7 @@
 
 package org.apache.camel.component.consul.enpoint;
 
-import java.lang.reflect.Method;
+import java.util.Map;
 
 import com.orbitz.consul.EventClient;
 import com.orbitz.consul.option.EventOptions;
@@ -26,6 +26,7 @@ import org.apache.camel.Message;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
+import org.apache.camel.component.consul.MessageProcessor;
 
 public class ConsulEventProducer extends AbstractConsulProducer {
     private EventClient client;
@@ -34,22 +35,13 @@ public class ConsulEventProducer extends AbstractConsulProducer {
         super(endpoint, configuration);
 
         this.client = null;
-
-        forEachMethodAnnotation(
-            this,
-            (final ConsulActionProcessor annotation, final Method method) ->
-                processors.put(
-                    annotation.value(),
-                    message -> method.invoke(this, message)
-                )
-        );
     }
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
 
-        client = endpoint.getConsul().eventClient();
+        client = getConsul().eventClient();
     }
 
     @Override
@@ -59,11 +51,16 @@ public class ConsulEventProducer extends AbstractConsulProducer {
         super.doStop();
     }
 
+    @Override
+    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
+        processors.put(ConsulEventActions.FIRE, this::fire);
+        processors.put(ConsulEventActions.LIST, this::list);
+    }
+
     // *************************************************************************
     //
     // *************************************************************************
 
-    @ConsulActionProcessor(ConsulEventActions.FIRE)
     private void fire(Message message) throws Exception {
         setBodyAndResult(
             message,
@@ -74,8 +71,6 @@ public class ConsulEventProducer extends AbstractConsulProducer {
             )
         );
     }
-
-    @ConsulActionProcessor(ConsulEventActions.LIST)
     private void list(Message message) throws Exception {
         setBodyAndResult(
             message,

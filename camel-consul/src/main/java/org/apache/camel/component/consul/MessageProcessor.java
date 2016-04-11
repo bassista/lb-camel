@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.consul.enpoint;
+package org.apache.camel.component.consul;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ConsulActionProcessor {
-    String value();
+@FunctionalInterface
+public interface MessageProcessor {
+    void process(Message message) throws Exception;
+
+    default void process(Exchange exchange) throws Exception {
+        process(exchange.getIn());
+    }
 }

@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.consul.enpoint;
 
-import java.lang.reflect.Method;
+import java.util.Map;
 
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.option.PutOptions;
@@ -26,6 +26,7 @@ import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
+import org.apache.camel.component.consul.MessageProcessor;
 
 public class ConsulKeyValueProducer extends AbstractConsulProducer {
     private KeyValueClient client;
@@ -34,22 +35,13 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         super(endpoint, configuration);
 
         this.client = null;
-
-        forEachMethodAnnotation(
-            this,
-            (final ConsulActionProcessor annotation, final Method method) ->
-                processors.put(
-                    annotation.value(),
-                    message -> method.invoke(this, message)
-                )
-        );
     }
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
 
-        client = endpoint.getConsul().keyValueClient();
+        client = getConsul().keyValueClient();
     }
 
     @Override
@@ -58,11 +50,23 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         super.doStop();
     }
 
+    @Override
+    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
+        processors.put(ConsulKeyValueActions.PUT, this::put);
+        processors.put(ConsulKeyValueActions.GET_VALUE, this::getValue);
+        processors.put(ConsulKeyValueActions.GET_VALUES, this::getValues);
+        processors.put(ConsulKeyValueActions.GET_KEYS, this::getKeys);
+        processors.put(ConsulKeyValueActions.GET_SESSIONS, this::getSessions);
+        processors.put(ConsulKeyValueActions.DELETE_KEY, this::deleteKey);
+        processors.put(ConsulKeyValueActions.DELETE_KEYS, this::deleteKeys);
+        processors.put(ConsulKeyValueActions.LOCK, this::lock);
+        processors.put(ConsulKeyValueActions.UNLOCK, this::unlock);
+    }
+
     // *************************************************************************
     //
     // *************************************************************************
 
-    @ConsulActionProcessor(ConsulKeyValueActions.PUT)
     private void put(Message message) throws Exception {
         message.setHeader(
             ConsulConstants.CONSUL_RESULT,
@@ -75,7 +79,6 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         );
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.GET_VALUE)
     private void getValue(Message message) throws Exception {
         Object result;
 
@@ -93,7 +96,6 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         setBodyAndResult(message, result);
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.GET_VALUES)
     private void getValues(Message message) throws Exception {
         Object result;
 
@@ -111,29 +113,24 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         setBodyAndResult(message, result);
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.GET_KEYS)
     private void getKeys(Message message) throws Exception {
         setBodyAndResult(message,client.getKeys(getMandatoryKey(message)));
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.GET_SESSIONS)
     private void getSessions(Message message) throws Exception {
         setBodyAndResult(message, client.getSession(getMandatoryKey(message)));
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.DELETE_KEY)
     private void deleteKey(Message message) throws Exception {
         client.deleteKey(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.DELETE_KEYS)
     private void deleteKeys(Message message) throws Exception {
         client.deleteKeys(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.LOCK)
     private void lock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             client.acquireLock(
@@ -144,7 +141,6 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         );
     }
 
-    @ConsulActionProcessor(ConsulKeyValueActions.UNLOCK)
     private void unlock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             client.releaseLock(

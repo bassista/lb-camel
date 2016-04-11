@@ -16,22 +16,20 @@
  */
 package org.apache.camel.component.consul;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
+import com.orbitz.consul.Consul;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.component.consul.enpoint.ConsulActionProcessor;
 import org.apache.camel.impl.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
 
 
 public abstract class AbstractConsulProducer extends DefaultProducer {
-    protected final AbstractConsulEndpoint endpoint;
-    protected final ConsulConfiguration configuration;
-    protected final Map<String, ConsulMessageProcessor> processors;
+    private final AbstractConsulEndpoint endpoint;
+    private final ConsulConfiguration configuration;
+    private Map<String, MessageProcessor> processors;
 
     protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
         super(endpoint);
@@ -43,19 +41,28 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        ConsulMessageProcessor processor = processors.getOrDefault(
-            ObjectHelper.notNull(
-                getAction(exchange.getIn()),
-                ConsulConstants.CONSUL_ACTION),
-            this::onError
-        );
+        final Message in = exchange.getIn();
+        final String action = getMandatoryAction(in);
 
-        processor.process(exchange.getIn());
+        processors.getOrDefault(action, this::onError).process(in);
     }
 
     // *************************************************************************
     //
     // *************************************************************************
+
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+
+        if (processors.isEmpty()) {
+            bindActionProcessors(processors);
+        }
+    }
+
+    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
+    }
 
     protected void onError(Message message) throws Exception {
         throw new IllegalStateException(
@@ -67,8 +74,24 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     //
     // *************************************************************************
 
+    protected Consul getConsul() throws Exception {
+        return endpoint.getConsul();
+    }
+
+    protected ConsulConfiguration getConfiguration() {
+        return getConfiguration();
+    }
+
     protected String getAction(Message message) throws Exception {
         return message.getHeader(
+            ConsulConstants.CONSUL_ACTION,
+            configuration.getAction(),
+            String.class);
+    }
+
+    protected String getMandatoryAction(Message message) throws Exception {
+        return getMandatoryHeader(
+            message,
             ConsulConstants.CONSUL_ACTION,
             configuration.getAction(),
             String.class);
@@ -82,13 +105,24 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     }
 
     protected String getMandatoryKey(Message message) throws Exception {
+        return getMandatoryHeader(
+            message,
+            ConsulConstants.CONSUL_KEY,
+            configuration.getKey(),
+            String.class);
+    }
+
+    protected <T> T getMandatoryHeader(Message message, String header, Class<T> type) throws Exception {
         return ObjectHelper.notNull(
-            message.getHeader(
-                ConsulConstants.CONSUL_KEY,
-                configuration.getKey(),
-                String.class),
-            ConsulConstants.CONSUL_KEY
+            message.getHeader(header, type),
+            header
         );
+    }
+
+    protected <T> T getMandatoryHeader(Message message, String header, T defaultValue, Class<T> type) throws Exception {
+        return ObjectHelper.notNull(
+            message.getHeader(header, defaultValue, type),
+            header);
     }
 
     protected <T> T getOption(Message message, T defaultValue, Class<T> type) throws Exception {
@@ -111,13 +145,6 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
         return  body;
     }
 
-    protected <T> T getMandatoryHeader(Message message, String header, Class<T> type) throws Exception {
-        return ObjectHelper.notNull(
-            message.getHeader(header, type),
-            header
-        );
-    }
-
     protected void setBodyAndResult(Message message, Object body) throws Exception {
         setBodyAndResult(message, body, body != null);
     }
@@ -125,19 +152,5 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     protected void setBodyAndResult(Message message, Object body, boolean result) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT, result);
         message.setBody(body);
-    }
-
-    // *************************************************************************
-    //
-    // *************************************************************************
-
-    protected static void forEachMethodAnnotation(
-        Object target, BiConsumer<ConsulActionProcessor, Method> consumer) {
-
-        for (Method method : target.getClass().getDeclaredMethods()) {
-            if (method.isAnnotationPresent(ConsulActionProcessor.class)) {
-                consumer.accept(method.getAnnotation(ConsulActionProcessor.class), method);
-            }
-        }
     }
 }

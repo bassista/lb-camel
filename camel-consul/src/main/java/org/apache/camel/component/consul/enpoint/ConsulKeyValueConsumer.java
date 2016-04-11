@@ -45,16 +45,20 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValueClien
 
     @Override
     protected Runnable createWatcher(KeyValueClient client) throws Exception {
-        return configuration.isRecursive() ? new RecursiveWatchHandler(client) : new WatchHandler(client);
+        return configuration.isRecursive() ? new RecursivePathWatcher(client) : new PathWatcher(client);
     }
 
     // *************************************************************************
-    // Handlers
+    // Watch
     // *************************************************************************
 
-    private abstract class KeyValueWatcher<T> extends AbstractWatcher implements ConsulResponseCallback<T> {
-        public KeyValueWatcher(KeyValueClient client) {
+    private abstract class AbstractPathWatcher<T> extends AbstractWatcher implements ConsulResponseCallback<T> {
+        protected AbstractPathWatcher(KeyValueClient client) {
             super(client);
+        }
+
+        protected QueryOptions queryOptions() {
+            return QueryOptions.blockSeconds(configuration.getBlockSeconds(), index.get()).build();
         }
 
         @Override
@@ -82,9 +86,7 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValueClien
             message.setHeader(ConsulConstants.CONSUL_LOCK_INDEX, value.getLockIndex());
             message.setHeader(ConsulConstants.CONSUL_MODIFY_INDEX, value.getModifyIndex());
             message.setHeader(ConsulConstants.CONSUL_SESSION, value.getSession().orNull());
-            message.setBody(
-                configuration.isValueAsString() ? value.getValueAsString().orNull() : value.getValue().orNull()
-            );
+            message.setBody(configuration.isValueAsString() ? value.getValueAsString().orNull() : value.getValue().orNull());
 
             try {
                 getProcessor().process(exchange);
@@ -96,18 +98,14 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValueClien
         protected abstract void onResponse(T consulResponse);
     }
 
-    private class WatchHandler extends KeyValueWatcher<Optional<Value>> {
-        public WatchHandler(KeyValueClient client) {
+    private class PathWatcher extends AbstractPathWatcher<Optional<Value>> {
+        public PathWatcher(KeyValueClient client) {
             super(client);
         }
 
         @Override
         public void watch() {
-            client.getValue(
-                key,
-                QueryOptions.blockSeconds(configuration.getBlockSeconds(), index.get()).build(),
-                this
-            );
+            client.getValue(key, queryOptions(), this);
         }
 
         @Override
@@ -118,18 +116,14 @@ public class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValueClien
         }
     }
 
-    private class RecursiveWatchHandler extends KeyValueWatcher<List<Value>> {
-        public RecursiveWatchHandler(KeyValueClient client) {
+    private class RecursivePathWatcher extends AbstractPathWatcher<List<Value>> {
+        public RecursivePathWatcher(KeyValueClient client) {
             super(client);
         }
 
         @Override
         public void watch() {
-            client.getValues(
-                key,
-                QueryOptions.blockSeconds(configuration.getBlockSeconds(), index.get()).build(),
-                this
-            );
+            client.getValues(key, queryOptions(), this);
         }
 
         @Override

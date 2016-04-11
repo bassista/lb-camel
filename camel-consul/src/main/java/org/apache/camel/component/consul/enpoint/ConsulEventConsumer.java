@@ -52,7 +52,7 @@ public class ConsulEventConsumer extends AbstractConsulConsumer<EventClient> {
     }
 
     // *************************************************************************
-    // Handlers
+    // Watch
     // *************************************************************************
 
     private class EventWatcher extends AbstractWatcher implements EventResponseCallback {
