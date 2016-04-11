@@ -40,7 +40,7 @@ fi
 #
 ################################################################################
 
-URL="https://releases.hashicorp.com/consul/${1}/consul_${1}_linux_amd64.zip"
+URL="https://releases.hashicorp.com/consul/consul_${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip"
 TMP="/tmp/consul.zip"
 
 if [ -d $CONSUL_PATH ]; then
