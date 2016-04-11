@@ -20,10 +20,8 @@ import com.google.common.base.Optional;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.consul.enpoint.ConsulKeyValueActions;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class ConsulKeyValueTest extends ConsulTestSupport {
 
     @Test

@@ -22,10 +22,8 @@ import java.util.Random;
 import com.orbitz.consul.KeyValueClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class ConsulKeyValueWatchTest extends ConsulTestSupport {
     private String key;
     private KeyValueClient client;

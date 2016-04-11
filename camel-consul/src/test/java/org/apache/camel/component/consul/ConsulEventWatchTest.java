@@ -19,10 +19,8 @@ package org.apache.camel.component.consul;
 import com.orbitz.consul.EventClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class ConsulEventWatchTest extends ConsulTestSupport {
     private String key;
     private EventClient client;
