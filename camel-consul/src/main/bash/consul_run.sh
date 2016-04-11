@@ -44,6 +44,7 @@ else
     mkdir -p ${CONSUL_PATH}/runtime/data
     mkdir -p ${CONSUL_PATH}/runtime/config
     mkdir -p ${CONSUL_PATH}/runtime/ui
+    mkdir -p ${CONSUL_PATH}/runtime/log
 
     ${CONSUL_PATH}/consul \
         agent \
@@ -53,5 +54,5 @@ else
         -data-dir ${CONSUL_PATH}/runtime/data \
         -config-dir ${CONSUL_PATH}/runtime/config \
         -ui-dir ${CONSUL_PATH}/runtime/ui \
-        -log-level trace
+        -log-level trace 2>$1 > ${CONSUL_PATH}/runtime/log/consul.log &
 fi

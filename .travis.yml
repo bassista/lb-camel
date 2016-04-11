@@ -6,7 +6,7 @@ addons:
 language:
   - java
 before_install:
-    - ./camel-consul/src/main/bash/consul_install.sh -p ./consul-dist
+  - ./camel-consul/src/main/bash/consul_install.sh -p ./consul-dist
 script:
   - ./camel-consul/src/main/bash/consul_run.sh -p ./consul-dist
   - mvn clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
