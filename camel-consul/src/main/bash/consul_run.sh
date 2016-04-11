@@ -54,5 +54,5 @@ else
         -data-dir ${CONSUL_PATH}/runtime/data \
         -config-dir ${CONSUL_PATH}/runtime/config \
         -ui-dir ${CONSUL_PATH}/runtime/ui \
-        -log-level trace 2>$1 > ${CONSUL_PATH}/runtime/log/consul.log &
+        -log-level trace 2>&1 > ${CONSUL_PATH}/runtime/log/consul.log &
 fi
