@@ -64,6 +64,10 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
 
     private String sessionId;
 
+    public ConsulRoutePolicy() {
+        this(Consul.builder().build());
+    }
+
     public ConsulRoutePolicy(Consul consul) {
         this.consul = consul;
         this.sessionClient = consul.sessionClient();
@@ -85,6 +89,8 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
 
     @Override
     public void onExchangeBegin(Route route, Exchange exchange) {
+        startLeaderElector();
+
         if (leader.get()) {
             if (shouldStopConsumer) {
                 startConsumer(route);
@@ -94,16 +100,17 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                 stopConsumer(route);
             }
 
-            exchange.setException( new IllegalStateException(
+            exchange.setException(new IllegalStateException(
                 "Consul based route policy prohibits processing exchanges, stopping route and failing the exchange")
             );
         }
     }
 
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
+    public void onExchangeDone(Route route, Exchange exchange) {
+        //stopLeaderElector();
+    }
 
+    protected synchronized void startLeaderElector() {
         if (sessionId == null) {
             sessionId = sessionClient.createSession(
                 ImmutableSession.builder()
@@ -113,28 +120,35 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                 ).getId();
 
             LOGGER.info("Session id for {} is {}", serviceName, sessionId);
-        }
 
-        if (executorService == null) {
-            executorService = Executors.newSingleThreadExecutor();
-        }
+            if (executorService == null) {
+                executorService = Executors.newSingleThreadExecutor();
+            }
 
-        executorService.submit(new Watcher());
+            if (keyValueClient.acquireLock(servicePath, sessionId)) {
+                LOGGER.info("IsLeader = {}, {}", serviceName, sessionId);
+                leader.set(true);
+            }
+
+            executorService.submit(new Watcher());
+        }
+    }
+
+    protected void stopLeaderElection() throws Exception {
+        if (sessionId != null) {
+            sessionClient.destroySession(sessionId);
+            sessionId = null;
+
+            if (executorService != null) {
+                executorService.shutdown();
+                executorService.awaitTermination(ttl / 3, TimeUnit.SECONDS);
+            }
+        }
     }
 
     @Override
     protected void doStop() throws Exception {
-        if (sessionId != null) {
-            sessionClient.destroySession(sessionId);
-            sessionId = null;
-        }
-
-        if (executorService != null) {
-            executorService.shutdown();
-            executorService.awaitTermination(ttl / 3, TimeUnit.SECONDS);
-        }
-
-        super.doStop();
+        stopLeaderElection();
     }
 
     // *************************************************************************
@@ -247,22 +261,13 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                         // If the key is not held by any session, try acquire a
                         // lock (become leader)
                         if (keyValueClient.acquireLock(servicePath, sessionId)) {
-                            LOGGER.info("I'm the leader now :-)");
                             leader.set(true);
                             startAllStoppedConsumers();
                         }
-                    } else {
-                        if (ObjectHelper.equal(sessionId, sid, false)) {
-                            LOGGER.info("I'm the leader, refresh session");
-                            sessionClient.renewSession(sessionId);
-                        } else {
-                            LOGGER.info("I'm no more the leader, :-(");
-                            leader.set(false);
-                        }
+                    } else if (sessionId.equals(sid) && leader.get()) {
+                        // Looks like I've lost leadership
+                        leader.set(false);
                     }
-                } else if (leader.get()) {
-                    LOGGER.info("I'm the leader, refresh session");
-                    sessionClient.renewSession(sessionId);
                 }
 
                 index.set(consulResponse.getIndex());
@@ -278,10 +283,8 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         @Override
         public void run() {
             if (isRunAllowed()) {
-                if (!leader.get() && keyValueClient.acquireLock(servicePath, sessionId)) {
-                    LOGGER.info("I'm the leader now :-)");
-                    leader.set(true);
-                }
+                // Refresh session
+                sessionClient.renewSession(sessionId);
 
                 keyValueClient.getValue(
                     servicePath,

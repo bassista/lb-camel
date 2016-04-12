@@ -14,26 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.consul.policy;
 
 
-import com.orbitz.consul.Consul;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.consul.ConsulTestSupport;
 import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore
-public class ConsulLeaderElectionTest {
+public class ConsulRoutePolicyTest1 extends ConsulTestSupport {
+
     @Test
-    public void testLeaderElection() throws Exception {
-        Consul consul = Consul.builder().build();
-        ConsulRoutePolicy policy = new ConsulRoutePolicy(consul);
-        policy.setServiceName("myservice");
-
-        policy.start();
-
+    public void testRoutePolicy() throws Exception {
         while(true) {
             Thread.sleep(1000);
         }
+    }
+
+    @Override
+    protected RouteBuilder createRouteBuilder() throws Exception {
+        return new RouteBuilder() {
+            public void configure() {
+                ConsulRoutePolicy policy = new ConsulRoutePolicy();
+                policy.setServiceName("camel-consul-service");
+
+                from("timer://consul-timer?fixedRate=true&period=1000")
+                    .setHeader("ConsulServiceID", constant("SERVICE-1"))
+                    .routePolicy(policy)
+                    .to("log:org.apache.camel.component.consul?level=INFO&showAll=true");
+            }
+        };
     }
 }
