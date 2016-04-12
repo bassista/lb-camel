@@ -38,10 +38,12 @@ public class ConsulRoutePolicyTest2 extends ConsulTestSupport {
             public void configure() {
                 ConsulRoutePolicy policy = new ConsulRoutePolicy();
                 policy.setServiceName("camel-consul-service");
+                policy.setTtl(18);
 
                 from("timer://consul-timer?fixedRate=true&period=1000")
-                    .setHeader("ConsulServiceID", constant("SERVICE-2"))
+                    .routeId("SERVICE-2")
                     .routePolicy(policy)
+                    .setHeader("ConsulServiceID", constant("SERVICE-2"))
                     .to("log:org.apache.camel.component.consul?level=INFO&showAll=true");
             }
         };

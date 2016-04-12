@@ -17,15 +17,13 @@
 package org.apache.camel.component.consul.policy;
 
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Optional;
 import com.orbitz.consul.Consul;
@@ -47,18 +45,18 @@ import org.slf4j.LoggerFactory;
 public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulRoutePolicy.class);
 
+    private final Object lock;
     private final Consul consul;
     private final SessionClient sessionClient;
     private final KeyValueClient keyValueClient;
     private final AtomicBoolean leader;
-    private final AtomicBoolean shouldProcessExchanges ;
     private final Set<Route> suspendedRoutes;
-    private final Lock lock;
     private final AtomicReference<BigInteger> index;
 
     private String serviceName;
     private String servicePath;
     private int ttl;
+    private int lockDelay;
     private ExecutorService executorService;
     private boolean shouldStopConsumer;
 
@@ -72,25 +70,21 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         this.consul = consul;
         this.sessionClient = consul.sessionClient();
         this.keyValueClient = consul.keyValueClient();
-        this.suspendedRoutes =  new CopyOnWriteArraySet<>();
+        this.suspendedRoutes =  new HashSet<>();
         this.leader = new AtomicBoolean(false);
-        this.shouldProcessExchanges = new AtomicBoolean();
-        this.lock = new ReentrantLock();
+        this.lock = new Object();
         this.index = new AtomicReference<>(BigInteger.valueOf(0));
-
         this.serviceName = null;
         this.servicePath = null;
         this.ttl = 60;
+        this.lockDelay = 10;
         this.executorService = null;
         this.shouldStopConsumer = true;
-
         this.sessionId = null;
     }
 
     @Override
-    public void onExchangeBegin(Route route, Exchange exchange) {
-        startLeaderElector();
-
+    public void onExchangeBegin(Route route, Exchange exchange)  {
         if (leader.get()) {
             if (shouldStopConsumer) {
                 startConsumer(route);
@@ -106,35 +100,48 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         }
     }
 
-    public void onExchangeDone(Route route, Exchange exchange) {
-        //stopLeaderElector();
+    @Override
+    public void onStop(Route route) {
+        synchronized (lock) {
+            suspendedRoutes.remove(route);
+        }
     }
 
-    protected synchronized void startLeaderElector() {
+    @Override
+    public synchronized void onSuspend(Route route) {
+        synchronized (lock) {
+            suspendedRoutes.remove(route);
+        }
+    }
+
+    @Override
+    protected void doStart() throws Exception {
         if (sessionId == null) {
             sessionId = sessionClient.createSession(
                 ImmutableSession.builder()
                     .name(serviceName)
                     .ttl(ttl + "s")
+                    .lockDelay(lockDelay + "s")
                     .build()
                 ).getId();
 
-            LOGGER.info("Session id for {} is {}", serviceName, sessionId);
-
+            LOGGER.info("SessionID = {}", sessionId);
             if (executorService == null) {
                 executorService = Executors.newSingleThreadExecutor();
             }
 
-            if (keyValueClient.acquireLock(servicePath, sessionId)) {
-                LOGGER.info("IsLeader = {}, {}", serviceName, sessionId);
-                leader.set(true);
-            }
+            setLeader(keyValueClient.acquireLock(servicePath, sessionId));
 
             executorService.submit(new Watcher());
         }
+
+        super.doStart();
     }
 
-    protected void stopLeaderElection() throws Exception {
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+
         if (sessionId != null) {
             sessionClient.destroySession(sessionId);
             sessionId = null;
@@ -146,61 +153,60 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         }
     }
 
-    @Override
-    protected void doStop() throws Exception {
-        stopLeaderElection();
-    }
-
     // *************************************************************************
     //
     // *************************************************************************
 
-    private void startConsumer(Route route) {
-        try {
-            lock.lock();
-            if (suspendedRoutes.contains(route)) {
-                startConsumer(route.getConsumer());
-                suspendedRoutes.remove(route);
+    protected void setLeader(boolean isLeader) {
+        if (isLeader && leader.compareAndSet(false, isLeader)) {
+            LOGGER.info("Leadership taken ({}, {})", serviceName, sessionId);
+            startAllStoppedConsumers();
+        } else {
+            if(!leader.getAndSet(isLeader) && isLeader) {
+                LOGGER.info("Leadership lost ({}, {})", serviceName, sessionId);
             }
-        } catch (Exception e) {
-            handleException(e);
-        } finally {
-            lock.unlock();
+        }
+    }
+
+    private void startConsumer(Route route) {
+        synchronized (lock) {
+            try {
+                if (suspendedRoutes.contains(route)) {
+                    startConsumer(route.getConsumer());
+                    suspendedRoutes.remove(route);
+                }
+            } catch (Exception e) {
+                handleException(e);
+            }
         }
     }
 
     private void stopConsumer(Route route) {
-        try {
-            lock.lock();
-            // check that we should still suspend once the lock is acquired
-            if (!suspendedRoutes.contains(route) && !shouldProcessExchanges.get()) {
-                stopConsumer(route.getConsumer());
-                suspendedRoutes.add(route);
+        synchronized (lock) {
+            try {
+                if (!suspendedRoutes.contains(route)) {
+                    LOGGER.info("Stopping consumer for {}", route.getId());
+                    stopConsumer(route.getConsumer());
+                    suspendedRoutes.add(route);
+                }
+            } catch (Exception e) {
+                handleException(e);
             }
-        } catch (Exception e) {
-            handleException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
     private void startAllStoppedConsumers() {
-        try {
-            lock.lock();
-            if (!suspendedRoutes.isEmpty()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("{} have been stopped previously by policy, restarting.", suspendedRoutes.size());
+        synchronized (lock) {
+            try {
+                for (Route route : suspendedRoutes) {
+                    LOGGER.info("Starting consumer for {}", route.getId());
+                    startConsumer(route.getConsumer());
                 }
-                for (Route suspended : suspendedRoutes) {
-                    startConsumer(suspended.getConsumer());
-                }
-                suspendedRoutes.clear();
-            }
 
-        } catch (Exception e) {
-            handleException(e);
-        } finally {
-            lock.unlock();
+                suspendedRoutes.clear();
+            } catch (Exception e) {
+                handleException(e);
+            }
         }
     }
 
@@ -227,6 +233,14 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
 
     public void setTtl(int ttl) {
         this.ttl = ttl > 10 ? ttl : 10;
+    }
+
+    public int getLockDelay() {
+        return lockDelay;
+    }
+
+    public void setLockDelay(int lockDelay) {
+        this.lockDelay = lockDelay > 10 ? lockDelay : 10;
     }
 
     public ExecutorService getExecutorService() {
@@ -260,13 +274,11 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                     if (ObjectHelper.isEmpty(sid)) {
                         // If the key is not held by any session, try acquire a
                         // lock (become leader)
-                        if (keyValueClient.acquireLock(servicePath, sessionId)) {
-                            leader.set(true);
-                            startAllStoppedConsumers();
-                        }
-                    } else if (sessionId.equals(sid) && leader.get()) {
+                        LOGGER.info("Try to take leadership");
+                        setLeader(keyValueClient.acquireLock(servicePath, sessionId));
+                    } else if (!sessionId.equals(sid) && leader.get()) {
                         // Looks like I've lost leadership
-                        leader.set(false);
+                        setLeader(false);
                     }
                 }
 
