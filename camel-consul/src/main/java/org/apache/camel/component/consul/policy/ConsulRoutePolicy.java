@@ -107,10 +107,12 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         if (sessionId == null) {
             sessionId = sessionClient.createSession(
                 ImmutableSession.builder()
-                    .name(this.serviceName)
-                    .ttl(this.ttl + "s")
+                    .name(serviceName)
+                    .ttl(ttl + "s")
                     .build()
                 ).getId();
+
+            LOGGER.info("Session id for {} is {}", serviceName, sessionId);
         }
 
         if (executorService == null) {
@@ -245,13 +247,21 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                         // If the key is not held by any session, try acquire a
                         // lock (become leader)
                         if (keyValueClient.acquireLock(servicePath, sessionId)) {
+                            LOGGER.info("I'm the leader now :-)");
                             leader.set(true);
                             startAllStoppedConsumers();
                         }
-                    } else if (ObjectHelper.equal(sessionId, sid, false)) {
-                        sessionClient.renewSession(sessionId);
+                    } else {
+                        if (ObjectHelper.equal(sessionId, sid, false)) {
+                            LOGGER.info("I'm the leader, refresh session");
+                            sessionClient.renewSession(sessionId);
+                        } else {
+                            LOGGER.info("I'm no more the leader, :-(");
+                            leader.set(false);
+                        }
                     }
                 } else if (leader.get()) {
+                    LOGGER.info("I'm the leader, refresh session");
                     sessionClient.renewSession(sessionId);
                 }
 
@@ -268,8 +278,9 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         @Override
         public void run() {
             if (isRunAllowed()) {
-                if (!leader.get()) {
-                    leader.set(keyValueClient.acquireLock(servicePath, sessionId));
+                if (!leader.get() && keyValueClient.acquireLock(servicePath, sessionId)) {
+                    LOGGER.info("I'm the leader now :-)");
+                    leader.set(true);
                 }
 
                 keyValueClient.getValue(

@@ -20,18 +20,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>lb-camel</artifactId>
+    <artifactId>camel-samples</artifactId>
     <groupId>com.github.lburgazzoli</groupId>
     <version>2.17.0</version>
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.apache.camel.component.ehcache</groupId>
-  <artifactId>camel-ehcache</artifactId>
-  <packaging>bundle</packaging>
+  <groupId>com.github.lburgazzoli</groupId>
+  <artifactId>camel-samples-infinispan</artifactId>
+  <version>2.17.0</version>
+  <packaging>jar</packaging>
 
-  <name>Camel Ehcache Component</name>
-  <description>Camel Ehcache support</description>
+  <name>Camel Samples infinispan</name>
+  <description>Camel Samples infinispan</description>
 
   <url>http://camel.apache.org</url>
 
@@ -42,38 +43,43 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>${ehcache-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-test-spring</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-infinispan</artifactId>
+      <version>${version.camel}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-core</artifactId>
+      <version>${infinispan-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-client-hotrod</artifactId>
+      <version>${infinispan-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-spring4-remote</artifactId>
+      <version>${infinispan-version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <defaultGoal>install</defaultGoal>
-
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.ehcache.camel-ehcache</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=ehcache</Export-Service>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
 
 </project>

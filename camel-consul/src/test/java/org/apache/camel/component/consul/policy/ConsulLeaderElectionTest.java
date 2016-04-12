@@ -14,29 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.lburgazzoli.camel.samples.infinispan;
 
-import java.util.UUID;
+package org.apache.camel.component.consul.policy;
 
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+
+import com.orbitz.consul.Consul;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 @Ignore
-@ContextConfiguration
-public class RemoteTest extends AbstractJUnit4SpringContextTests {
-    @Produce(uri = "direct:start")
-    private ProducerTemplate template;
-
-
+public class ConsulLeaderElectionTest {
     @Test
-    public void test() throws Exception {
-        String messageId = UUID.randomUUID().toString();
+    public void testLeaderElection() throws Exception {
+        Consul consul = Consul.builder().build();
+        ConsulRoutePolicy policy = new ConsulRoutePolicy(consul);
+        policy.setServiceName("myservice");
 
-        template.sendBodyAndHeader("direct:start", "message-1", "MessageID", messageId);
-        template.sendBodyAndHeader("direct:start", "message-2", "MessageID", messageId);
+        policy.start();
+
+        while(true) {
+            Thread.sleep(1000);
+        }
     }
 }

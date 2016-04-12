@@ -23,16 +23,22 @@
      http://camel.apache.org/schema/spring
      http://camel.apache.org/schema/spring/camel-spring.xsd">
 
+  <bean id="cacheManagerFactory" class="org.infinispan.spring.provider.SpringRemoteCacheManagerFactoryBean">
+    <property
+        name="configurationProperties">
+      <props>
+        <prop key="infinispan.client.hotrod.server_list">127.0.0.1:11222</prop>
+        <prop key="infinispan.client.hotrod.force_return_values">true</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="cacheManager" factory-bean="cacheManagerFactory" factory-method="getNativeCacheManager" init-method="start" destroy-method="stop">
+  </bean>
+
   <bean id="infinispanRepo" class="org.apache.camel.component.infinispan.processor.idempotent.InfinispanIdempotentRepository"
         factory-method="infinispanIdempotentRepository">
-    <constructor-arg>
-      <bean class="com.github.lburgazzoli.camel.samples.infinispan.RemoteCacheManagerFactory"
-            factory-method="create"
-            init-method="start"
-            destroy-method="stop">
-        <constructor-arg value="localhost"/>
-      </bean>
-    </constructor-arg>
+    <constructor-arg ref="cacheManager"/>
     <constructor-arg value="idempotent"/>
   </bean>
 
