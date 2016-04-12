@@ -18,34 +18,28 @@ package org.apache.camel.component.consul.policy;
 
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.consul.ConsulTestSupport;
+import org.apache.camel.main.Main;
 import org.junit.Ignore;
-import org.junit.Test;
 
 @Ignore
-public class ConsulRoutePolicyTest1 extends ConsulTestSupport {
+public class ConsulRoutePolicyMain {
 
-    @Test
-    public void testRoutePolicy() throws Exception {
-        while(true) {
-            Thread.sleep(1000);
-        }
-    }
-
-    @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
-        return new RouteBuilder() {
+    public static void main(final String[] args) throws Exception {
+        Main main = new Main();
+        main.addRouteBuilder(new RouteBuilder() {
             public void configure() {
                 ConsulRoutePolicy policy = new ConsulRoutePolicy();
                 policy.setServiceName("camel-consul-service");
                 policy.setTtl(18);
 
-                from("timer://consul-timer?fixedRate=true&period=1000")
-                    .routeId("SERVICE-1")
+                fromF("file:///tmp/camel?delete=true")
+                    .routeId(args[0])
                     .routePolicy(policy)
-                    .setHeader("ConsulServiceID", constant("SERVICE-1"))
+                    .setHeader("ConsulServiceID", constant(args[0]))
                     .to("log:org.apache.camel.component.consul?level=INFO&showAll=true");
             }
-        };
+        });
+
+        main.run();
     }
 }

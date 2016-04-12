@@ -125,7 +125,7 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                     .build()
                 ).getId();
 
-            LOGGER.info("SessionID = {}", sessionId);
+            LOGGER.debug("SessionID = {}", sessionId);
             if (executorService == null) {
                 executorService = Executors.newSingleThreadExecutor();
             }
@@ -159,11 +159,11 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
 
     protected void setLeader(boolean isLeader) {
         if (isLeader && leader.compareAndSet(false, isLeader)) {
-            LOGGER.info("Leadership taken ({}, {})", serviceName, sessionId);
+            LOGGER.debug("Leadership taken ({}, {})", serviceName, sessionId);
             startAllStoppedConsumers();
         } else {
             if(!leader.getAndSet(isLeader) && isLeader) {
-                LOGGER.info("Leadership lost ({}, {})", serviceName, sessionId);
+                LOGGER.debug("Leadership lost ({}, {})", serviceName, sessionId);
             }
         }
     }
@@ -185,7 +185,7 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         synchronized (lock) {
             try {
                 if (!suspendedRoutes.contains(route)) {
-                    LOGGER.info("Stopping consumer for {}", route.getId());
+                    LOGGER.debug("Stopping consumer for {} ({})", route.getId(), route.getConsumer());
                     stopConsumer(route.getConsumer());
                     suspendedRoutes.add(route);
                 }
@@ -199,7 +199,7 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
         synchronized (lock) {
             try {
                 for (Route route : suspendedRoutes) {
-                    LOGGER.info("Starting consumer for {}", route.getId());
+                    LOGGER.debug("Starting consumer for {} ({})", route.getId(), route.getConsumer());
                     startConsumer(route.getConsumer());
                 }
 
@@ -274,7 +274,7 @@ public class ConsulRoutePolicy extends RoutePolicySupport implements NonManagedS
                     if (ObjectHelper.isEmpty(sid)) {
                         // If the key is not held by any session, try acquire a
                         // lock (become leader)
-                        LOGGER.info("Try to take leadership");
+                        LOGGER.debug("Try to take leadership ...");
                         setLeader(keyValueClient.acquireLock(servicePath, sessionId));
                     } else if (!sessionId.equals(sid) && leader.get()) {
                         // Looks like I've lost leadership
