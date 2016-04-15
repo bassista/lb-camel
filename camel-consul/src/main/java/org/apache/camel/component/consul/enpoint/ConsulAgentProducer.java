@@ -16,13 +16,10 @@
  */
 package org.apache.camel.component.consul.enpoint;
 
-import java.util.Map;
-
 import com.orbitz.consul.AgentClient;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
-import org.apache.camel.component.consul.MessageProcessor;
 
 public class ConsulAgentProducer extends AbstractConsulProducer<AgentClient> {
     ConsulAgentProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
@@ -30,11 +27,11 @@ public class ConsulAgentProducer extends AbstractConsulProducer<AgentClient> {
     }
 
     @Override
-    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
-        processors.put(ConsulAgentActions.CHECKS, wrap(c -> c.getChecks()));
-        processors.put(ConsulAgentActions.SERVICES, wrap(c -> c.getServices()));
-        processors.put(ConsulAgentActions.MEMBERS, wrap(c -> c.getMembers()));
-        processors.put(ConsulAgentActions.AGENT, wrap(c -> c.getAgent()));
+    protected void bindActionProcessors() {
+        bind(ConsulAgentActions.CHECKS, wrap(c -> c.getChecks()));
+        bind(ConsulAgentActions.SERVICES, wrap(c -> c.getServices()));
+        bind(ConsulAgentActions.MEMBERS, wrap(c -> c.getMembers()));
+        bind(ConsulAgentActions.AGENT, wrap(c -> c.getAgent()));
     }
 
     // *************************************************************************

@@ -17,8 +17,6 @@
 
 package org.apache.camel.component.consul.enpoint;
 
-import java.util.Map;
-
 import com.orbitz.consul.EventClient;
 import com.orbitz.consul.option.EventOptions;
 import com.orbitz.consul.option.QueryOptions;
@@ -26,7 +24,6 @@ import org.apache.camel.Message;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
-import org.apache.camel.component.consul.MessageProcessor;
 
 public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
     ConsulEventProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
@@ -34,9 +31,9 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
     }
 
     @Override
-    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
-        processors.put(ConsulEventActions.FIRE, this::fire);
-        processors.put(ConsulEventActions.LIST, this::list);
+    protected void bindActionProcessors() {
+        bind(ConsulEventActions.FIRE, this::fire);
+        bind(ConsulEventActions.LIST, this::list);
     }
 
     // *************************************************************************

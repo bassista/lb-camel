@@ -16,8 +16,6 @@
  */
 package org.apache.camel.component.consul.enpoint;
 
-import java.util.Map;
-
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.option.PutOptions;
 import com.orbitz.consul.option.QueryOptions;
@@ -26,7 +24,6 @@ import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
-import org.apache.camel.component.consul.MessageProcessor;
 
 public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClient> {
 
@@ -35,16 +32,16 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @Override
-    protected void bindActionProcessors(Map<String, MessageProcessor> processors) {
-        processors.put(ConsulKeyValueActions.PUT, this::put);
-        processors.put(ConsulKeyValueActions.GET_VALUE, this::getValue);
-        processors.put(ConsulKeyValueActions.GET_VALUES, this::getValues);
-        processors.put(ConsulKeyValueActions.GET_KEYS, this::getKeys);
-        processors.put(ConsulKeyValueActions.GET_SESSIONS, this::getSessions);
-        processors.put(ConsulKeyValueActions.DELETE_KEY, this::deleteKey);
-        processors.put(ConsulKeyValueActions.DELETE_KEYS, this::deleteKeys);
-        processors.put(ConsulKeyValueActions.LOCK, this::lock);
-        processors.put(ConsulKeyValueActions.UNLOCK, this::unlock);
+    protected void bindActionProcessors() {
+        bind(ConsulKeyValueActions.PUT, this::put);
+        bind(ConsulKeyValueActions.GET_VALUE, this::getValue);
+        bind(ConsulKeyValueActions.GET_VALUES, this::getValues);
+        bind(ConsulKeyValueActions.GET_KEYS, this::getKeys);
+        bind(ConsulKeyValueActions.GET_SESSIONS, this::getSessions);
+        bind(ConsulKeyValueActions.DELETE_KEY, this::deleteKey);
+        bind(ConsulKeyValueActions.DELETE_KEYS, this::deleteKeys);
+        bind(ConsulKeyValueActions.LOCK, this::lock);
+        bind(ConsulKeyValueActions.UNLOCK, this::unlock);
     }
 
     // *************************************************************************
