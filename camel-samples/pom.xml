@@ -26,9 +26,7 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>com.github.lburgazzoli</groupId>
   <artifactId>camel-samples</artifactId>
-  <version>2.17.0</version>
   <packaging>pom</packaging>
 
   <name>Camel Samples</name>

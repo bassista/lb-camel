@@ -26,7 +26,6 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.apache.camel.component.ehcache</groupId>
   <artifactId>camel-ehcache</artifactId>
   <packaging>bundle</packaging>
 

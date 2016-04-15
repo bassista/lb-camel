@@ -26,9 +26,7 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>com.github.lburgazzoli</groupId>
   <artifactId>camel-samples-infinispan</artifactId>
-  <version>2.17.0</version>
   <packaging>jar</packaging>
 
   <name>Camel Samples infinispan</name>
@@ -45,7 +43,6 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-spring</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>

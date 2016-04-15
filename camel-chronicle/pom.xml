@@ -26,7 +26,6 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.apache.camel.component.chronicle</groupId>
   <artifactId>camel-chronicle</artifactId>
   <packaging>bundle</packaging>
 
@@ -68,7 +67,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.teiid.camel-chronicle</Bundle-SymbolicName>
+            <Bundle-SymbolicName>org.apache.camel.component.chronicle.camel-chronicle</Bundle-SymbolicName>
             <Export-Service>org.apache.camel.spi.ComponentResolver;component=chronicle</Export-Service>
           </instructions>
         </configuration>

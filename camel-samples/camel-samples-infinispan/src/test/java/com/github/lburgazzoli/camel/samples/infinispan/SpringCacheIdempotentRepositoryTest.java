@@ -14,33 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+package com.github.lburgazzoli.camel.samples.infinispan;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.Ignore;
+import java.util.UUID;
+
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-@Ignore
-public class TeiidComponentTest extends CamelTestSupport {
+//@Ignore
+@ContextConfiguration
+public class SpringCacheIdempotentRepositoryTest extends AbstractJUnit4SpringContextTests {
+
+    @Produce(uri = "direct:start")
+    private ProducerTemplate template;
+
 
     @Test
-    public void testChronicle() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(1);       
-        
-        assertMockEndpointsSatisfied();
-    }
+    public void test() throws Exception {
+        String messageId = UUID.randomUUID().toString();
 
-    @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
-        return new RouteBuilder() {
-            public void configure() {
-                from("teiid://foo")
-                  .to("teiid://bar")
-                  .to("mock:result");
-            }
-        };
+        template.sendBodyAndHeader("direct:start", "message-1", "MessageID", messageId);
+        template.sendBodyAndHeader("direct:start", "message-2", "MessageID", messageId);
     }
 }
