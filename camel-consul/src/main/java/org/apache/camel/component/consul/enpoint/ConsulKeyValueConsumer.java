@@ -19,7 +19,6 @@ package org.apache.camel.component.consul.enpoint;
 import java.util.List;
 
 import com.google.common.base.Optional;
-import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.async.ConsulResponseCallback;
 import com.orbitz.consul.model.ConsulResponse;
@@ -35,12 +34,7 @@ import org.apache.camel.component.consul.ConsulConstants;
 public class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValueClient> {
 
     protected ConsulKeyValueConsumer(ConsulKeyValueEndpoint endpoint, ConsulConfiguration configuration, Processor processor) {
-        super(endpoint, configuration, processor);
-    }
-
-    @Override
-    protected KeyValueClient createClient(Consul consul) throws Exception {
-        return consul.keyValueClient();
+        super(endpoint, configuration, processor, c -> c.keyValueClient());
     }
 
     @Override

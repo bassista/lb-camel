@@ -28,26 +28,10 @@ import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
 import org.apache.camel.component.consul.MessageProcessor;
 
-public class ConsulKeyValueProducer extends AbstractConsulProducer {
-    private KeyValueClient client;
+public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClient> {
 
     ConsulKeyValueProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
-        super(endpoint, configuration);
-
-        this.client = null;
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        client = getConsul().keyValueClient();
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        client = null;
-        super.doStop();
+        super(endpoint, configuration, c -> c.keyValueClient());
     }
 
     @Override
@@ -70,7 +54,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
     private void put(Message message) throws Exception {
         message.setHeader(
             ConsulConstants.CONSUL_RESULT,
-            client.putValue(
+            getClient().putValue(
                 getMandatoryKey(message),
                 message.getBody(String.class),
                 message.getHeader(ConsulConstants.CONSUL_FLAGS, 0L, Long.class),
@@ -83,11 +67,11 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         Object result;
 
         if (isValueAsString(message)) {
-            result = client.getValueAsString(
+            result = getClient().getValueAsString(
                 getMandatoryKey(message)
             ).orNull();
         } else {
-            result = client.getValue(
+            result = getClient().getValue(
                 getMandatoryKey(message),
                 getOption(message, QueryOptions.BLANK, QueryOptions.class)
             ).orNull();
@@ -100,11 +84,11 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
         Object result;
 
         if (isValueAsString(message)) {
-            result = client.getValuesAsString(
+            result = getClient().getValuesAsString(
                 getMandatoryKey(message)
             );
         } else {
-            result = client.getValues(
+            result = getClient().getValues(
                 getMandatoryKey(message),
                 getOption(message, QueryOptions.BLANK, QueryOptions.class)
             );
@@ -114,26 +98,26 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
     }
 
     private void getKeys(Message message) throws Exception {
-        setBodyAndResult(message,client.getKeys(getMandatoryKey(message)));
+        setBodyAndResult(message,getClient().getKeys(getMandatoryKey(message)));
     }
 
     private void getSessions(Message message) throws Exception {
-        setBodyAndResult(message, client.getSession(getMandatoryKey(message)));
+        setBodyAndResult(message, getClient().getSession(getMandatoryKey(message)));
     }
 
     private void deleteKey(Message message) throws Exception {
-        client.deleteKey(getMandatoryKey(message));
+        getClient().deleteKey(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
     private void deleteKeys(Message message) throws Exception {
-        client.deleteKeys(getMandatoryKey(message));
+        getClient().deleteKeys(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
     private void lock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
-            client.acquireLock(
+            getClient().acquireLock(
                 getMandatoryKey(message),
                 getBody(message, null, String.class),
                 message.getHeader(ConsulConstants.CONSUL_SESSION, "", String.class)
@@ -143,7 +127,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer {
 
     private void unlock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
-            client.releaseLock(
+            getClient().releaseLock(
                 getMandatoryKey(message),
                 getMandatoryHeader(message, ConsulConstants.CONSUL_SESSION, String.class)
             )

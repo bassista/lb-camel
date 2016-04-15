@@ -19,7 +19,6 @@ package org.apache.camel.component.consul.enpoint;
 import java.math.BigInteger;
 import java.util.List;
 
-import com.orbitz.consul.Consul;
 import com.orbitz.consul.EventClient;
 import com.orbitz.consul.async.EventResponseCallback;
 import com.orbitz.consul.model.EventResponse;
@@ -31,19 +30,10 @@ import org.apache.camel.Processor;
 import org.apache.camel.component.consul.AbstractConsulConsumer;
 import org.apache.camel.component.consul.ConsulConfiguration;
 import org.apache.camel.component.consul.ConsulConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ConsulEventConsumer extends AbstractConsulConsumer<EventClient> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulEventConsumer.class);
-
     protected ConsulEventConsumer(ConsulEventEndpoint endpoint, ConsulConfiguration configuration, Processor processor) {
-        super(endpoint, configuration, processor);
-    }
-
-    @Override
-    protected EventClient createClient(Consul consul) throws Exception {
-        return consul.eventClient();
+        super(endpoint, configuration, processor, c -> c.eventClient());
     }
 
     @Override

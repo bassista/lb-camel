@@ -18,6 +18,7 @@ package org.apache.camel.component.consul;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.orbitz.consul.Consul;
 import org.apache.camel.Exchange;
@@ -26,17 +27,21 @@ import org.apache.camel.impl.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
 
 
-public abstract class AbstractConsulProducer extends DefaultProducer {
+public abstract class AbstractConsulProducer<C> extends DefaultProducer {
     private final AbstractConsulEndpoint endpoint;
     private final ConsulConfiguration configuration;
     private Map<String, MessageProcessor> processors;
+    private final Function<Consul, C> clientSupplier;
+    private C client;
 
-    protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
+    protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, Function<Consul, C> clientSupplier) {
         super(endpoint);
 
         this.endpoint = endpoint;
         this.configuration = configuration;
+        this.clientSupplier = clientSupplier;
         this.processors = new HashMap<>();
+        this.client = null;
     }
 
     @Override
@@ -76,6 +81,14 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
 
     protected Consul getConsul() throws Exception {
         return endpoint.getConsul();
+    }
+
+    protected C getClient() throws Exception {
+        if (client == null) {
+            client = clientSupplier.apply(getConsul());
+        }
+
+        return client;
     }
 
     protected ConsulConfiguration getConfiguration() {
@@ -152,5 +165,9 @@ public abstract class AbstractConsulProducer extends DefaultProducer {
     protected void setBodyAndResult(Message message, Object body, boolean result) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT, result);
         message.setBody(body);
+    }
+
+    protected MessageProcessor wrap(Function<C, Object> supplier) {
+        return message -> setBodyAndResult(message, supplier.apply(getClient()));
     }
 }

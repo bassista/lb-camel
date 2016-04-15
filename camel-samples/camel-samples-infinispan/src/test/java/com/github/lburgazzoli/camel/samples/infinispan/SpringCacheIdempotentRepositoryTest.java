@@ -20,11 +20,12 @@ import java.util.UUID;
 
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-//@Ignore
+@Ignore
 @ContextConfiguration
 public class SpringCacheIdempotentRepositoryTest extends AbstractJUnit4SpringContextTests {
 
