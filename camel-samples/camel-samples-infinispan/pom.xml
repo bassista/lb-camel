@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <name>Camel Samples infinispan</name>
-  <description>Camel Samples infinispan</description>
+  <description>Camel Samples Infinispan</description>
 
   <url>http://camel.apache.org</url>
 
