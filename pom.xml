@@ -61,6 +61,7 @@
         <ehcache-version>3.0.0</ehcache-version>
         <infinispan-version>8.2.1.Final</infinispan-version>
         <log4j2-version>2.5</log4j2-version>
+        <spring-boot-version>1.3.3.RELEASE</spring-boot-version>
     </properties>
 
     <!-- ******************************************************************* -->
@@ -90,6 +91,18 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-spring</artifactId>
+                <version>${version.camel}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-spring-boot-starter</artifactId>
+                <version>${version.camel}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-stream</artifactId>
                 <version>${version.camel}</version>
             </dependency>
 
@@ -292,6 +305,11 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${version.maven.build.helper.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
