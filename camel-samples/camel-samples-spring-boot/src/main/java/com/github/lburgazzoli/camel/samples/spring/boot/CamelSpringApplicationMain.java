@@ -18,12 +18,18 @@
 package com.github.lburgazzoli.camel.samples.spring.boot;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.boot.SpringApplication;
+import org.apache.camel.spring.boot.CamelSpringBootApplicationController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class CamelSpringApplicationMain {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CamelSpringApplicationMain.class);
 
     @Bean
     public RouteBuilder builder() {
@@ -31,12 +37,22 @@ public class CamelSpringApplicationMain {
             @Override
             public void configure() throws Exception {
                 from("timer:hello?period={{timer.period}}")
-                    .to("log:com.github.lburgazzoli.camel.samples.infinispan.boot?level=INFO");
+                    .to("log:com.github.lburgazzoli.camel.samples.spring.boot?level=INFO");
             }
         };
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(CamelSpringApplicationMain.class, args);
+        ConfigurableApplicationContext ctx =
+            new SpringApplicationBuilder(CamelSpringApplicationMain.class)
+                .listeners(CamelSpringApplicationMain::onEvent)
+                .run(args);
+
+        // If Camel's ApplicationControlled is not configured, run it manually
+        //ctx.getBean(CamelSpringBootApplicationController.class).run();
+    }
+
+    public static void onEvent(ApplicationEvent event) {
+        LOGGER.info("ApplicationEvent: {}", event);
     }
 }

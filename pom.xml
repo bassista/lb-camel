@@ -43,6 +43,7 @@
 
         <!-- deps -->
         <version.slf4j>1.7.21</version.slf4j>
+        <!--<version.camel>2.18-SNAPSHOT</version.camel>-->
         <version.camel>2.17.0</version.camel>
         <version.log4j>1.2.17</version.log4j>
         <version.common.lang3>3.4</version.common.lang3>
