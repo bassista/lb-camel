@@ -29,7 +29,7 @@
   <artifactId>camel-samples-infinispan</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camel Samples infinispan</name>
+  <name>Camel Samples Infinispan</name>
   <description>Camel Samples Infinispan</description>
 
   <url>http://camel.apache.org</url>
