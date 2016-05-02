@@ -45,6 +45,13 @@
       <artifactId>consul-client</artifactId>
       <version>${consul-version}</version>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>org.apache.servicemix.bundles</groupId>
+      <artifactId>org.apache.servicemix.bundles.orbitz-consul-client</artifactId>
+      <version>${consul-bundle-version}</version>
+    </dependency>
+    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
