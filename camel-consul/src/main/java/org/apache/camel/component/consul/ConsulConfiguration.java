@@ -16,10 +16,7 @@
  */
 package org.apache.camel.component.consul;
 
-
-import javax.ws.rs.client.ClientBuilder;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orbitz.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
@@ -33,10 +30,6 @@ public class ConsulConfiguration {
     @UriParam
     @Metadata(label = "security")
     private SSLContextParameters sslContextParameters;
-
-    @UriParam
-    @Metadata(label = "advanced")
-    private ClientBuilder clientBuilder;
 
     @UriParam
     @Metadata(label = "advanced")
@@ -82,17 +75,6 @@ public class ConsulConfiguration {
      */
     public void setSslContextParameters(SSLContextParameters sslContextParameters) {
         this.sslContextParameters = sslContextParameters;
-    }
-
-    public ClientBuilder getClientBuilder() {
-        return clientBuilder;
-    }
-
-    /**
-     * The JAX-RS builder
-     */
-    public void setClientBuilder(ClientBuilder clientBuilder) {
-        this.clientBuilder = clientBuilder;
     }
 
     public ObjectMapper getObjectMapper() {

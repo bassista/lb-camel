@@ -70,10 +70,6 @@ public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
                 builder.withSslContext(configuration.getSslContextParameters().createSSLContext());
             }
 
-            if (configuration.getClientBuilder() != null) {
-                builder.withClientBuilder(configuration.getClientBuilder());
-            }
-
             if (configuration.getObjectMapper() != null) {
                 builder.withObjectMapper(configuration.getObjectMapper());
             }
