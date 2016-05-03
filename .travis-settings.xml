@@ -16,9 +16,15 @@
   ~ limitations under the License.
   -->
 <settings>
+
+  <!-- ********************************************************************* -->
+  <!-- PROFILES                                                              -->
+  <!-- ********************************************************************* -->
+
   <profiles>
+
     <profile>
-      <id>spring</id>
+      <id>repository-jboss</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -37,6 +43,15 @@
             <updatePolicy>never</updatePolicy>
           </snapshots>
         </repository>
+      </repositories>
+    </profile>
+
+    <profile>
+      <id>repository-jcenter</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
         <repository>
           <snapshots>
             <enabled>false</enabled>
@@ -47,6 +62,7 @@
         </repository>
       </repositories>
     </profile>
+
   </profiles>
 
 </settings>
