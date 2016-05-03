@@ -16,6 +16,8 @@
  */
 package org.apache.camel.component.consul;
 
+import java.util.List;
+
 import com.orbitz.consul.EventClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -33,18 +35,14 @@ public class ConsulEventWatchTest extends ConsulTestSupport {
 
     @Test
     public void testWatchEvent() throws Exception {
-        String val1 = generateRandomString();
-        String val2 = generateRandomString();
-        String val3 = generateRandomString();
+        List<String> values = generateRandomListOfStrings(3);
 
         MockEndpoint mock = getMockEndpoint("mock:event-watch");
-        mock.expectedMessageCount(3);
-        mock.expectedBodiesReceived("\"" + val1 + "\"", "\"" + val2 + "\"", "\"" + val3 + "\"");
+        mock.expectedMessageCount(values.size());
+        mock.expectedBodiesReceived(values);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        client.fireEvent(key, val1);
-        client.fireEvent(key, val2);
-        client.fireEvent(key, val3);
+        values.forEach(v -> client.fireEvent(key, v));
 
         mock.assertIsSatisfied();
     }

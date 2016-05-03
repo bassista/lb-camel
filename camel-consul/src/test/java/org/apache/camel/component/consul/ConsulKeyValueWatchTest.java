@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.consul;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import com.orbitz.consul.KeyValueClient;
@@ -38,16 +38,14 @@ public class ConsulKeyValueWatchTest extends ConsulTestSupport {
 
     @Test
     public void testWatchKey() throws Exception {
-        String[] vals = new String[3];
-        Arrays.setAll(vals, i -> generateRandomString());
-
+        List<String> values = generateRandomListOfStrings(3);
 
         MockEndpoint mock = getMockEndpoint("mock:kv-watch");
-        mock.expectedMessageCount(3);
-        mock.expectedBodiesReceived(vals);
+        mock.expectedMessageCount(values.size());
+        mock.expectedBodiesReceived(values);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        for (String val : vals) {
+        for (String val : values) {
             client.putValue(key, val);
             Thread.sleep(250 + random.nextInt(250));
         }

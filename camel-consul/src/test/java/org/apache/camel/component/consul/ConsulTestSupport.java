@@ -16,8 +16,10 @@
  */
 package org.apache.camel.component.consul;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class ConsulTestSupport extends CamelTestSupport {
     public static final Logger LOGGER = LoggerFactory.getLogger(ConsulTestSupport.class);
-    public static final String KV_PREFIX = "camel";
+    public static final String KV_PREFIX = "/camel";
 
     @Rule
     public final TestName testName = new TestName();
@@ -46,6 +48,17 @@ public class ConsulTestSupport extends CamelTestSupport {
 
     protected String generateRandomString() {
         return UUID.randomUUID().toString();
+    }
+
+    protected String[] generateRandomArrayOfStrings(int size) {
+        String[] array = new String[3];
+        Arrays.setAll(array, i -> generateRandomString());
+
+        return array;
+    }
+
+    protected List<String> generateRandomListOfStrings(int size) {
+        return Arrays.asList(generateRandomArrayOfStrings(size));
     }
 
     protected String generateKey() {
