@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.consul;
 
-import com.orbitz.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;

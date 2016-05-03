@@ -14,32 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.consul.policy;
+package org.apache.camel.component.consul.examples;
 
+import java.util.UUID;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.main.Main;
-import org.junit.Ignore;
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Ignore
-public class ConsulRoutePolicyMain {
+public class ConsulKeyValueMain {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulKeyValueMain.class);
 
     public static void main(final String[] args) throws Exception {
-        Main main = new Main();
-        main.addRouteBuilder(new RouteBuilder() {
-            public void configure() {
-                ConsulRoutePolicy policy = new ConsulRoutePolicy();
-                policy.setServiceName("camel-consul-service");
-                policy.setTtl(18);
+        String key = "camel/consulKeyValueMain/" + UUID.randomUUID().toString();
+        Consul consul = Consul.builder().build();
+        KeyValueClient client = consul.keyValueClient();
 
-                fromF("file:///tmp/camel?delete=true")
-                    .routeId(args[0])
-                    .routePolicy(policy)
-                    .setHeader("ConsulServiceID", constant(args[0]))
-                    .to("log:org.apache.camel.component.consul?level=INFO&showAll=true");
-            }
-        });
-
-        main.run();
+        boolean result = client.putValue(key, UUID.randomUUID().toString());
+        LOGGER.info("Result {}", result);
     }
 }

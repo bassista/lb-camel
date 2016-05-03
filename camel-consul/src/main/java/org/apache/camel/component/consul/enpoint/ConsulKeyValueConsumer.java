@@ -18,7 +18,7 @@ package org.apache.camel.component.consul.enpoint;
 
 import java.util.List;
 
-import com.orbitz.google.common.base.Optional;
+import com.google.common.base.Optional;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.async.ConsulResponseCallback;
 import com.orbitz.consul.model.ConsulResponse;

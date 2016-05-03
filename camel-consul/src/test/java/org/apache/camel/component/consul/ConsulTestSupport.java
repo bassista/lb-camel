@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class ConsulTestSupport extends CamelTestSupport {
     public static final Logger LOGGER = LoggerFactory.getLogger(ConsulTestSupport.class);
-    public static final String KV_PREFIX = "/camel";
+    public static final String KV_PREFIX = "camel";
 
     @Rule
     public final TestName testName = new TestName();

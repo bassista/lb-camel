@@ -54,7 +54,7 @@ public class ConsulEventTest extends ConsulTestSupport {
 
         assertFalse(events.isEmpty());
         assertTrue(events.get(0).getPayload().isPresent());
-        assertEquals(val, events.get(0).getPayload().get());
+        assertEquals("\"" + val + "\"", events.get(0).getPayload().get());
     }
 
     @Override

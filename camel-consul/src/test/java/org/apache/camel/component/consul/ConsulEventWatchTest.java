@@ -39,7 +39,7 @@ public class ConsulEventWatchTest extends ConsulTestSupport {
 
         MockEndpoint mock = getMockEndpoint("mock:event-watch");
         mock.expectedMessageCount(3);
-        mock.expectedBodiesReceived(val1, val2, val3);
+        mock.expectedBodiesReceived("\"" + val1 + "\"", "\"" + val2 + "\"", "\"" + val3 + "\"");
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
         client.fireEvent(key, val1);
