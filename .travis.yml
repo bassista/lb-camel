@@ -7,9 +7,10 @@ language:
   - java
 before_install:
   - ./camel-consul/src/main/bash/consul_install.sh -p ./consul-dist
+install: true
 script:
   - ./camel-consul/src/main/bash/consul_run.sh -p ./consul-dist
-  - mvn clean install
+  - ./mvnw clean install
 jdk:
   - oraclejdk8
 env:
