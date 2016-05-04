@@ -16,12 +16,23 @@
  */
 package org.apache.camel.component.ehcache;
 
-import org.apache.camel.Processor;
-import org.apache.camel.impl.DefaultConsumer;
 
-public class EhcacheConsumer extends DefaultConsumer {
+public interface EhcacheConstants {
+    String ACTION = "CamelEhcacheAction";
+    String SUCCESS = "CamelEhcacheSuccess";
+    String HAS_RESULT = "CamelEhcacheHasResult";
+    String KEY = "CamelEhcacheKey";
+    String KEYS = "CamelEhcacheKeys";
+    String VALUE = "CamelEhcacheValue";
+    String OLD_VALUE = "CamelEhcacheOldValue";
 
-    public EhcacheConsumer(EhcacheEndpoint endpoint, Processor processor) throws Exception {
-        super(endpoint, processor);
-    }
+    String ACTION_CLEAR = "CLEAR";
+    String ACTION_PUT = "PUT";
+    String ACTION_PUT_ALL = "PUT_ALL";
+    String ACTION_PUT_IF_ABSENT = "PUT_IF_ABSENT";
+    String ACTION_GET = "GET";
+    String ACTION_GET_ALL = "GET_ALL";
+    String ACTION_REMOVE = "REMOVE";
+    String ACTION_REMOVE_ALL = "REMOVE_ALL";
+    String ACTION_REPLACE = "REPLACE";
 }

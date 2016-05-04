@@ -20,11 +20,27 @@ import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.impl.DefaultEndpoint;
+import org.apache.camel.spi.Metadata;
+import org.apache.camel.spi.UriEndpoint;
+import org.apache.camel.spi.UriPath;
 
-/**
- * @author lburgazzoli
- */
+@UriEndpoint(scheme = "ehcache", title = "Ehcache", syntax = "ehcache:cacheName", consumerClass = EhcacheConsumer.class, label = "cache,datagrid,clustering")
 public class EhcacheEndpoint extends DefaultEndpoint {
+    @UriPath(description = "the cache name")
+    @Metadata(required = "true")
+    private final String cacheName;
+
+    private final EhcacheConfiguration configuration;
+    private final EhcacheManager cacheManager;
+
+    EhcacheEndpoint(String uri,  EhcacheComponent component, EhcacheConfiguration configuration) throws Exception {
+        super(uri, component);
+
+        this.cacheName = configuration.getCacheName();
+        this.configuration = configuration;
+        this.cacheManager = new EhcacheManager(configuration);
+    }
+
     @Override
     public Producer createProducer() throws Exception {
         return null;
@@ -39,4 +55,30 @@ public class EhcacheEndpoint extends DefaultEndpoint {
     public boolean isSingleton() {
         return false;
     }
+
+    @Override
+    protected void doStart() throws Exception {
+        cacheManager.start();
+        super.doStart();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        super.doStop();
+        cacheManager.stop();
+    }
+
+    @Override
+    public EhcacheComponent getComponent() {
+        return (EhcacheComponent) super.getComponent();
+    }
+
+    EhcacheManager getManager() {
+        return cacheManager;
+    }
+
+    EhcacheConfiguration getConfiguration() {
+        return configuration;
+    }
+
 }

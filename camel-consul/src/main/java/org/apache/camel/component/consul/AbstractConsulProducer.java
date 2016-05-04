@@ -16,6 +16,7 @@
  */
 package org.apache.camel.component.consul;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -31,8 +32,8 @@ import org.apache.camel.util.ObjectHelper;
 public abstract class AbstractConsulProducer<C> extends DefaultProducer {
     private final AbstractConsulEndpoint endpoint;
     private final ConsulConfiguration configuration;
-    private Map<String, MessageProcessor> processors;
     private final Function<Consul, C> clientSupplier;
+    private Map<String, MessageProcessor> processors;
     private C client;
 
     protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, Function<Consul, C> clientSupplier) {
@@ -63,6 +64,8 @@ public abstract class AbstractConsulProducer<C> extends DefaultProducer {
 
         if (processors.isEmpty()) {
             bindActionProcessors();
+
+            processors = Collections.unmodifiableMap(processors);
         }
     }
 

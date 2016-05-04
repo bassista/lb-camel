@@ -72,7 +72,7 @@ public class EhcacheManager implements Service {
 
     public <K, V> Cache<K, V> getCache(String name, Class<K> keyType, Class<V> valueType) throws Exception {
         Cache<K, V> cache = cacheManager.getCache(name, keyType, valueType);
-        if (cache == null && configuration != null && configuration.isPermitCacheCreation()) {
+        if (cache == null && configuration != null && configuration.isCreateCacheIfNotExist()) {
             final CacheConfiguration config = configuration.getCacheConfiguration(name);
             final ResourcePools pools = configuration.getResourcePools(name);
 
@@ -89,5 +89,11 @@ public class EhcacheManager implements Service {
         }
 
         return cache;
+    }
+
+    public Cache<Object, Object> getCache() throws Exception  {
+        ObjectHelper.notNull(configuration, "Ehcache configuration");
+
+        return getCache(configuration.getCacheName(), Object.class, Object.class);
     }
 }

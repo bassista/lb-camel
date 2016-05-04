@@ -39,7 +39,7 @@ public class EhcacheComponent extends UriEndpointComponent {
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         final CamelContext context = getCamelContext();
 
-        final EhcacheConfiguration configuration = new EhcacheConfiguration(context);
+        final EhcacheConfiguration configuration = new EhcacheConfiguration(context, remaining);
         configuration.addCacheConfigurationFromParameters(parameters);
 
         setProperties(configuration, parameters);

@@ -17,6 +17,7 @@
 package org.apache.camel.component.ehcache;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,13 +26,12 @@ import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 import org.apache.camel.util.EndpointHelper;
 import org.apache.camel.util.IntrospectionSupport;
+import org.apache.camel.util.ResourceHelper;
 import org.ehcache.CacheManager;
 import org.ehcache.config.CacheConfiguration;
 import org.ehcache.config.ResourcePools;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.xml.XmlConfiguration;
-
-import static org.apache.camel.util.ResourceHelper.resolveMandatoryResourceAsUrl;
 
 @UriParams
 public class EhcacheConfiguration {
@@ -39,44 +39,84 @@ public class EhcacheConfiguration {
     public static final String PREFIX_POOL = "pool.";
 
     private final CamelContext context;
+    private final String cacheName;
 
     @UriParam
     private String configUri;
 
     @UriParam(defaultValue = "true")
-    private boolean permitCacheCreation = true;
+    private boolean createCacheIfNotExist = true;
+
+    @UriParam
+    private String action;
+    @UriParam
+    private String key;
 
     @UriParam
     private CacheManager cacheManager;
-    @UriParam
+    @UriParam(label = "advanced")
     private CacheConfiguration<?,?> defaultCacheConfiguration;
-    @UriParam
+    @UriParam(label = "advanced")
     private ResourcePools defaultCacheResourcePools;
 
-    @UriParam(prefix = PREFIX_CACHE, multiValue = true, javaType = "java.lang.String")
+    @UriParam(label = "advanced", prefix = PREFIX_CACHE, multiValue = true, javaType = "java.lang.String")
     private Map<String, CacheConfiguration> cacheConfigurations;
-    @UriParam(prefix = PREFIX_POOL, multiValue = true, javaType = "java.lang.String")
+    @UriParam(label = "advanced", prefix = PREFIX_POOL, multiValue = true, javaType = "java.lang.String")
     private Map<String, ResourcePools> cacheResourcePools;
 
+    EhcacheConfiguration(String cacheName) {
+        this(null, cacheName);
+    }
 
-    EhcacheConfiguration(CamelContext context) {
+    EhcacheConfiguration(CamelContext context, String cacheName) {
         this.context = context;
+        this.cacheName = cacheName;
+    }
+
+    public CamelContext getContext() {
+        return context;
+    }
+
+    public String getCacheName() {
+        return cacheName;
     }
 
     public String getConfigUri() {
         return configUri;
     }
 
+    public URL getConfigUriAsUrl() throws IOException {
+        return context != null
+            ? ResourceHelper.resolveMandatoryResourceAsUrl(context.getClassResolver(), configUri)
+            : new URL(configUri);
+    }
+
     public void setConfigUri(String configUri) {
         this.configUri = configUri;
     }
 
-    public boolean isPermitCacheCreation() {
-        return permitCacheCreation;
+    public boolean isCreateCacheIfNotExist() {
+        return createCacheIfNotExist;
     }
 
-    public void setPermitCacheCreation(boolean permitCacheCreation) {
-        this.permitCacheCreation = permitCacheCreation;
+    public void setCreateCacheIfNotExist(boolean createCacheIfNotExist) {
+        this.createCacheIfNotExist = createCacheIfNotExist;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public CacheManager getCacheManager() {
@@ -178,11 +218,7 @@ public class EhcacheConfiguration {
         if (cacheManager != null) {
             manager = cacheManager;
         } else if (configUri != null) {
-            XmlConfiguration config = new XmlConfiguration(
-                resolveMandatoryResourceAsUrl(context.getClassResolver(), configUri)
-            );
-
-            manager = CacheManagerBuilder.newCacheManager(config);
+            manager = CacheManagerBuilder.newCacheManager(new XmlConfiguration(getConfigUriAsUrl()));
         } else {
             CacheManagerBuilder builder = CacheManagerBuilder.newCacheManagerBuilder();
             if (cacheConfigurations != null) {
