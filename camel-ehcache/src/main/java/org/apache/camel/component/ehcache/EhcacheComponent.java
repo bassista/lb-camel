@@ -21,9 +21,6 @@ import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.impl.UriEndpointComponent;
-import org.apache.camel.util.EndpointHelper;
-import org.apache.camel.util.IntrospectionSupport;
-import org.ehcache.config.CacheConfiguration;
 
 /**
  * Represents the component that manages {@link EhcacheEndpoint}.
@@ -41,19 +38,11 @@ public class EhcacheComponent extends UriEndpointComponent {
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         final CamelContext context = getCamelContext();
-        final EhcacheConfiguration configuration = new EhcacheConfiguration();
 
-        Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, "cache.");
-        for (Map.Entry<String, Object> entry : models.entrySet()) {
-            configuration.addCacheConfiguration(
-                entry.getKey(),
-                EndpointHelper.resolveParameter(
-                    context,
-                    (String)entry.getValue(),
-                    CacheConfiguration.class
-                )
-            );
-        }
+        final EhcacheConfiguration configuration = new EhcacheConfiguration(context);
+        configuration.addCacheConfigurationFromParameters(parameters);
+
+        setProperties(configuration, parameters);
 
         return null;
     }
