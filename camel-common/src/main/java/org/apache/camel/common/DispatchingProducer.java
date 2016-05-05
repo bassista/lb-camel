@@ -24,9 +24,10 @@ import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
+import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultProducer;
-import org.apache.camel.util.ObjectHelper;
+import org.apache.camel.util.ExchangeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,17 +120,30 @@ public class DispatchingProducer extends DefaultProducer {
         return message.getHeader(header, null, type);
     }
 
-    protected <D> D getMandatoryHeader(Exchange exchange, String header, D defaultValue, Class<D> type) {
+    protected <D> D getMandatoryHeader(Exchange exchange, String header, Class<D> type) throws Exception {
+        return getMandatoryHeader(exchange.getIn(), header, type);
+    }
+
+    protected <D> D getMandatoryHeader(Exchange exchange, String header, D defaultValue, Class<D> type) throws Exception {
         return getMandatoryHeader(exchange.getIn(), header, defaultValue, type);
     }
 
-    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) {
-        return ObjectHelper.notNull(getHeader(message, header, defaultValue, type), header);
+    protected <D> D getMandatoryHeader(Message message, String header, Class<D> type) throws Exception {
+        return getMandatoryHeader(message, header, null, type);
+    }
+
+    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
+        D value = getHeader(message, header, defaultValue, type);
+        if (value == null) {
+            throw new NoSuchHeaderException(message.getExchange(), header, type);
+        }
+
+        return value;
     }
 
     protected Message getResultMessage(Exchange exchange) {
         Message message;
-        if (exchange.getPattern().isOutCapable()) {
+        if (ExchangeHelper.isOutCapable(exchange)) {
             message = exchange.getOut();
             message.copyFrom(exchange.getIn());
         } else {

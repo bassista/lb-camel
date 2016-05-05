@@ -28,7 +28,7 @@ import org.apache.camel.spi.UriEndpoint;
 @UriEndpoint(scheme = "consul", title = "Consul Agent", syntax = "consul://agent", producerOnly = true, label = "api,cloud")
 public class ConsulAgentEndpoint extends AbstractConsulEndpoint {
     public ConsulAgentEndpoint(String uri, ConsulComponent component, ConsulConfiguration configuration) {
-        super("kv", uri, component, configuration);
+        super("agent", uri, component, configuration);
     }
 
     @Override

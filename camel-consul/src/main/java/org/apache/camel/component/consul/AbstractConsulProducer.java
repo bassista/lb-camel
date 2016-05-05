@@ -16,14 +16,12 @@
  */
 package org.apache.camel.component.consul;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.orbitz.consul.Consul;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.common.DispatchingProducer;
-import org.apache.camel.util.ObjectHelper;
 
 
 public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
@@ -45,24 +43,6 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
     //
     // *************************************************************************
 
-    protected void bind(String key, Function<C, Object> supplier) {
-        bind(key, wrap(supplier));
-    }
-
-    protected void bind(String key, BiFunction<C, Message, Object> supplier) {
-        bind(key, wrap(supplier));
-    }
-
-    protected void onError(Message message) throws Exception {
-        throw new IllegalStateException(
-            "No processor registered for action " + message.getHeader(ConsulConstants.CONSUL_ACTION)
-        );
-    }
-
-    // *************************************************************************
-    //
-    // *************************************************************************
-
     protected Consul getConsul() throws Exception {
         return endpoint.getConsul();
     }
@@ -76,22 +56,7 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
     }
 
     protected ConsulConfiguration getConfiguration() {
-        return getConfiguration();
-    }
-
-    protected String getAction(Message message) {
-        return message.getHeader(
-            ConsulConstants.CONSUL_ACTION,
-            configuration.getAction(),
-            String.class);
-    }
-
-    protected String getMandatoryAction(Message message) {
-        return getMandatoryHeader(
-            message,
-            ConsulConstants.CONSUL_ACTION,
-            configuration.getAction(),
-            String.class);
+        return configuration;
     }
 
     protected String getKey(Message message) {
@@ -101,25 +66,12 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
             String.class);
     }
 
-    protected String getMandatoryKey(Message message) {
+    protected String getMandatoryKey(Message message) throws Exception {
         return getMandatoryHeader(
             message,
             ConsulConstants.CONSUL_KEY,
             configuration.getKey(),
             String.class);
-    }
-
-    protected <T> T getMandatoryHeader(Message message, String header, Class<T> type) {
-        return ObjectHelper.notNull(
-            message.getHeader(header, type),
-            header
-        );
-    }
-
-    protected <T> T getMandatoryHeader(Message message, String header, T defaultValue, Class<T> type) {
-        return ObjectHelper.notNull(
-            message.getHeader(header, defaultValue, type),
-            header);
     }
 
     protected <T> T getOption(Message message, T defaultValue, Class<T> type) {
@@ -148,14 +100,12 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
 
     protected void setBodyAndResult(Message message, Object body, boolean result) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT, result);
-        message.setBody(body);
+        if (body != null) {
+            message.setBody(body);
+        }
     }
 
     protected Processor wrap(Function<C, Object> supplier) {
-        return exchange -> setBodyAndResult(exchange.getIn(), supplier.apply(getClient()));
-    }
-
-    protected Processor wrap(BiFunction<C, Message, Object> supplier) {
-        return exchange -> setBodyAndResult(exchange.getIn(), supplier.apply(getClient(), exchange.getIn()));
+        return exchange -> setBodyAndResult(getResultMessage(exchange), supplier.apply(getClient()));
     }
 }

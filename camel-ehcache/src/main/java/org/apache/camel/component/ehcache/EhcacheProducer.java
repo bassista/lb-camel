@@ -48,7 +48,7 @@ public class EhcacheProducer extends DispatchingProducer {
 
     @ExchangeProcessor(EhcacheConstants.ACTION_PUT)
     public void onPut(Exchange exchange) throws Exception {
-        cache.put(getKey(exchange), getValue(exchange));
+        cache.put(getKey(exchange), getValue(exchange, Object.class));
 
         setResult(exchange, true, null, null);
     }
@@ -62,7 +62,7 @@ public class EhcacheProducer extends DispatchingProducer {
 
     @ExchangeProcessor(EhcacheConstants.ACTION_PUT_IF_ABSENT)
     public void onPutIfAbsent(Exchange exchange) throws Exception {
-        Object oldValue = cache.putIfAbsent(getKey(exchange), getValue(exchange));
+        Object oldValue = cache.putIfAbsent(getKey(exchange), getValue(exchange, Object.class));
 
         setResult(exchange, true, null, oldValue);
     }
@@ -106,7 +106,7 @@ public class EhcacheProducer extends DispatchingProducer {
     public void onReplace(Exchange exchange) throws Exception {
         boolean success = true;
         Object oldValue = null;
-        Object value = getValue(exchange);
+        Object value = getValue(exchange, Object.class);
         Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
         if (valueToReplace == null) {
             oldValue = cache.replace(getKey(exchange), value);
@@ -121,7 +121,7 @@ public class EhcacheProducer extends DispatchingProducer {
     // Helpers
     // ****************************
 
-    private String getKey(Exchange exchange) {
+    private String getKey(Exchange exchange) throws Exception {
         return getMandatoryHeader(
             exchange,
             EhcacheConstants.KEY,
@@ -129,15 +129,7 @@ public class EhcacheProducer extends DispatchingProducer {
             String.class);
     }
 
-    private Object getValue(Exchange exchange) {
-        return getMandatoryHeader(
-            exchange,
-            EhcacheConstants.VALUE,
-            exchange.getIn().getBody(),
-            Object.class);
-    }
-
-    private <T> T getValue(Exchange exchange, Class<T> type) {
+    private <T> T getValue(Exchange exchange, Class<T> type)  throws Exception {
         return getMandatoryHeader(
             exchange,
             EhcacheConstants.VALUE,
