@@ -33,7 +33,7 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
     }
 
     @ExchangeProcessor(ConsulEventActions.FIRE)
-    public void fire(Exchange exchange) throws Exception {
+    protected void fire(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         setBodyAndResult(
             message,
@@ -46,7 +46,7 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
     }
 
     @ExchangeProcessor(ConsulEventActions.LIST)
-    public void list(Exchange exchange) throws Exception {
+    protected void list(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         setBodyAndResult(
             message,

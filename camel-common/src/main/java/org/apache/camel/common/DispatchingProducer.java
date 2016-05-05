@@ -88,7 +88,16 @@ public class DispatchingProducer extends DefaultProducer {
     private void bind(ExchangeProcessor processor, Method method) {
         if (processor != null) {
             LOGGER.debug("bind key={}, class={}, method={}", processor.value(), this.getClass(), method.getName());
-            bind(processor.value(), new ExchangeProcessorInvoker(target != null ? target : this, method));
+
+            Object targetObject = target != null ? target : this;
+            if (!method.isAccessible()) {
+                LOGGER.debug("Method {}::{} is not accessible, force it",
+                    targetObject.getClass().getName(), method.getName());
+
+                method.setAccessible(true);
+            }
+
+            bind(processor.value(), new ExchangeProcessorInvoker(targetObject, method));
         }
     }
 

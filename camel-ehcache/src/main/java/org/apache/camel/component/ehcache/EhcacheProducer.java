@@ -40,49 +40,49 @@ public class EhcacheProducer extends DispatchingProducer {
 
 
     @ExchangeProcessor(EhcacheConstants.ACTION_CLEAR)
-    public void onClear(Exchange exchange) throws Exception {
+    protected void onClear(Exchange exchange) throws Exception {
         cache.clear();
 
         setResult(exchange, true, null, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_PUT)
-    public void onPut(Exchange exchange) throws Exception {
+    protected void onPut(Exchange exchange) throws Exception {
         cache.put(getKey(exchange), getValue(exchange, Object.class));
 
         setResult(exchange, true, null, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_PUT_ALL)
-    public void onPutAll(Exchange exchange) throws Exception {
+    protected void onPutAll(Exchange exchange) throws Exception {
         cache.putAll(getValue(exchange, Map.class));
 
         setResult(exchange, true, null, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_PUT_IF_ABSENT)
-    public void onPutIfAbsent(Exchange exchange) throws Exception {
+    protected void onPutIfAbsent(Exchange exchange) throws Exception {
         Object oldValue = cache.putIfAbsent(getKey(exchange), getValue(exchange, Object.class));
 
         setResult(exchange, true, null, oldValue);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_GET)
-    public void onGet(Exchange exchange) throws Exception {
+    protected void onGet(Exchange exchange) throws Exception {
         Object result = cache.get(getKey(exchange));
 
         setResult(exchange, true, result, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_GET_ALL)
-    public void onGetAll(Exchange exchange) throws Exception {
+    protected void onGetAll(Exchange exchange) throws Exception {
         Object result = cache.getAll(getHeader(exchange, EhcacheConstants.KEYS, Set.class));
 
         setResult(exchange, true, result, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE)
-    public void onRemove(Exchange exchange) throws Exception {
+    protected void onRemove(Exchange exchange) throws Exception {
 
         boolean success = true;
         Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
@@ -96,14 +96,14 @@ public class EhcacheProducer extends DispatchingProducer {
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE_ALL)
-    public void onRemoveAll(Exchange exchange) throws Exception {
+    protected void onRemoveAll(Exchange exchange) throws Exception {
         cache.removeAll(getHeader(exchange, EhcacheConstants.KEYS, Set.class));
 
         setResult(exchange, true, null, null);
     }
 
     @ExchangeProcessor(EhcacheConstants.ACTION_REPLACE)
-    public void onReplace(Exchange exchange) throws Exception {
+    protected void onReplace(Exchange exchange) throws Exception {
         boolean success = true;
         Object oldValue = null;
         Object value = getValue(exchange, Object.class);

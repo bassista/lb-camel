@@ -34,7 +34,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.PUT)
-    public void put(Exchange exchange) throws Exception {
+    protected void put(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
 
         message.setHeader(
@@ -49,7 +49,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.GET_VALUE)
-    public void getValue(Exchange exchange) throws Exception {
+    protected void getValue(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         Object result;
 
@@ -68,7 +68,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.GET_VALUES)
-    public void getValues(Exchange exchange) throws Exception {
+    protected void getValues(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         Object result;
 
@@ -87,33 +87,33 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.GET_KEYS)
-    public void getKeys(Exchange exchange) throws Exception {
+    protected void getKeys(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         setBodyAndResult(message,getClient().getKeys(getMandatoryKey(message)));
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.GET_SESSIONS)
-    public void getSessions(Exchange exchange) throws Exception {
+    protected void getSessions(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         setBodyAndResult(message, getClient().getSession(getMandatoryKey(message)));
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.DELETE_KEY)
-    public void deleteKey(Exchange exchange) throws Exception {
+    protected void deleteKey(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         getClient().deleteKey(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.DELETE_KEYS)
-    public void deleteKeys(Exchange exchange) throws Exception {
+    protected void deleteKeys(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         getClient().deleteKeys(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.LOCK)
-    public void lock(Exchange exchange) throws Exception {
+    protected void lock(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().acquireLock(
@@ -125,7 +125,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
     }
 
     @ExchangeProcessor(ConsulKeyValueActions.UNLOCK)
-    public void unlock(Exchange exchange) throws Exception {
+    protected void unlock(Exchange exchange) throws Exception {
         Message message = getResultMessage(exchange);
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().releaseLock(
