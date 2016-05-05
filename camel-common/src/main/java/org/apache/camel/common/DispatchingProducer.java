@@ -67,7 +67,7 @@ public class DispatchingProducer extends DefaultProducer {
         if (processors.isEmpty()) {
             doSetup();
 
-            for (final Method method : this.getClass().getMethods()) {
+            for (final Method method : this.getClass().getDeclaredMethods()) {
                 ExchangeProcessors annotation = method.getAnnotation(ExchangeProcessors.class);
                 if (annotation != null) {
                     for (ExchangeProcessor processor : annotation.value()) {
