@@ -26,11 +26,11 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <artifactId>camel-consul</artifactId>
+  <artifactId>camel-common</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Consul Component</name>
-  <description>Camel Consul support</description>
+  <name>Camel Common</name>
+  <description>Camel Common</description>
 
   <url>http://camel.apache.org</url>
 
@@ -40,23 +40,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.github.lburgazzoli</groupId>
-      <artifactId>camel-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.orbitz.consul</groupId>
-      <artifactId>consul-client</artifactId>
-      <version>${consul-version}</version>
-    </dependency>
-    <!--
-    <dependency>
-      <groupId>org.apache.servicemix.bundles</groupId>
-      <artifactId>org.apache.servicemix.bundles.orbitz-consul-client</artifactId>
-      <version>${consul-bundle-version}</version>
-    </dependency>
-    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
@@ -77,12 +60,6 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>org.apache.camel.component.consul.camel-consul</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=consul</Export-Service>
-          </instructions>
-        </configuration>
       </plugin>
     </plugins>
   </build>

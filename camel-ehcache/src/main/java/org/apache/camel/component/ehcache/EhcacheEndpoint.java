@@ -33,7 +33,7 @@ public class EhcacheEndpoint extends DefaultEndpoint {
     private final EhcacheConfiguration configuration;
     private final EhcacheManager cacheManager;
 
-    EhcacheEndpoint(String uri,  EhcacheComponent component, EhcacheConfiguration configuration) throws Exception {
+    EhcacheEndpoint(String uri, EhcacheComponent component, EhcacheConfiguration configuration) throws Exception {
         super(uri, component);
 
         this.cacheName = configuration.getCacheName();
@@ -43,7 +43,7 @@ public class EhcacheEndpoint extends DefaultEndpoint {
 
     @Override
     public Producer createProducer() throws Exception {
-        return null;
+        return new EhcacheProducer(this, configuration);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class EhcacheEndpoint extends DefaultEndpoint {
 
     @Override
     public boolean isSingleton() {
-        return false;
+        return true;
     }
 
     @Override

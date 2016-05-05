@@ -24,29 +24,10 @@ import org.apache.camel.component.consul.ConsulConfiguration;
 public class ConsulAgentProducer extends AbstractConsulProducer<AgentClient> {
     ConsulAgentProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
         super(endpoint, configuration, c -> c.agentClient());
-    }
 
-    @Override
-    protected void bindActionProcessors() {
         bind(ConsulAgentActions.CHECKS, wrap(c -> c.getChecks()));
         bind(ConsulAgentActions.SERVICES, wrap(c -> c.getServices()));
         bind(ConsulAgentActions.MEMBERS, wrap(c -> c.getMembers()));
         bind(ConsulAgentActions.AGENT, wrap(c -> c.getAgent()));
     }
-
-    // *************************************************************************
-    //
-    // *************************************************************************
-
-    /*
-    private void list(Message message) throws Exception {
-        setBodyAndResult(
-            message,
-            getClient().listEvents(
-                getKey(message),
-                getOption(message, QueryOptions.BLANK, QueryOptions.class)
-            )
-        );
-    }
-    */
 }

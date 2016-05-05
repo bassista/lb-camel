@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.consul;
 
+package org.apache.camel.component.ehcache;
+
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,27 +25,54 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.KeyValueClient;
+import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.Configuration;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.xml.XmlConfiguration;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsulTestSupport extends CamelTestSupport {
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConsulTestSupport.class);
-    public static final String KV_PREFIX = "/camel";
+public class EhcacheTestSupport extends CamelTestSupport  {
+    public static final Logger LOGGER = LoggerFactory.getLogger(EhcacheTestSupport.class);
+    public static final String EHCACHE_CONFIG = "/ehcache/ehcache-config.xml";
 
     @Rule
-    public final TestName testName = new TestName();
+    public final TestName testName = new TestName();;
+    public CacheManager cacheManager = null;
 
-    protected Consul getConsul() {
-        return Consul.builder().build();
+    @Override
+    protected void doPreSetup() throws Exception {
+        final URL url = this.getClass().getResource(EHCACHE_CONFIG);
+        final Configuration xmlConfig = new XmlConfiguration(url);
+
+        cacheManager = CacheManagerBuilder.newCacheManager(xmlConfig);
+        cacheManager.init();
     }
 
-    protected KeyValueClient getKeyValueClient() {
-        return getConsul().keyValueClient();
+    @Override
+    public void tearDown() throws Exception {
+        if (cacheManager != null) {
+            cacheManager.close();
+        }
+
+        super.tearDown();
+    }
+
+    @Override
+    protected JndiRegistry createRegistry() throws Exception {
+        JndiRegistry registry = super.createRegistry();
+        registry.bind("cacheManager", cacheManager);
+
+        return registry;
+    }
+
+    protected Cache<Object, Object> getCache(String name) {
+        return cacheManager.getCache(name, Object.class, Object.class);
     }
 
     protected String generateRandomString() {
@@ -59,10 +88,6 @@ public class ConsulTestSupport extends CamelTestSupport {
 
     protected List<String> generateRandomListOfStrings(int size) {
         return Arrays.asList(generateRandomArrayOfStrings(size));
-    }
-
-    protected String generateKey() {
-        return KV_PREFIX + "/" + testName.getMethodName() + "/" + generateRandomString();
     }
 
     protected static class KVBuilder {

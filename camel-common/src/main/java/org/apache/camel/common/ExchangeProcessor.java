@@ -14,25 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.ehcache;
+package org.apache.camel.common;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface EhcacheConstants {
-    String ACTION = "CamelEhcacheAction";
-    String ACTION_HAS_RESULT = "CamelEhcacheActionHasResult";
-    String ACTION_SUCCEEDED = "CamelEhcacheActionSucceeded";
-    String KEY = "CamelEhcacheKey";
-    String KEYS = "CamelEhcacheKeys";
-    String VALUE = "CamelEhcacheValue";
-    String OLD_VALUE = "CamelEhcacheOldValue";
-
-    String ACTION_CLEAR = "CLEAR";
-    String ACTION_PUT = "PUT";
-    String ACTION_PUT_ALL = "PUT_ALL";
-    String ACTION_PUT_IF_ABSENT = "PUT_IF_ABSENT";
-    String ACTION_GET = "GET";
-    String ACTION_GET_ALL = "GET_ALL";
-    String ACTION_REMOVE = "REMOVE";
-    String ACTION_REMOVE_ALL = "REMOVE_ALL";
-    String ACTION_REPLACE = "REPLACE";
+@Repeatable(ExchangeProcessors.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ExchangeProcessor {
+    String value();
 }

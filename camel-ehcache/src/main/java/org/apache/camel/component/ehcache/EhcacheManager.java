@@ -37,7 +37,7 @@ public class EhcacheManager implements Service {
     private final boolean managed;
 
     public EhcacheManager(EhcacheConfiguration configuration) throws IOException {
-        this(configuration.createCacheManager(), true, configuration);
+        this(configuration.createCacheManager(), !configuration.hasCacheManager(), configuration);
     }
 
     public EhcacheManager(CacheManager cacheManager) {

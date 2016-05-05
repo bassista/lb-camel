@@ -41,6 +41,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.github.lburgazzoli</groupId>
+      <artifactId>camel-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
       <version>${ehcache-version}</version>

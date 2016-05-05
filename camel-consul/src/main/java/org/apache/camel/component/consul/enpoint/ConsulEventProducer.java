@@ -20,7 +20,9 @@ package org.apache.camel.component.consul.enpoint;
 import com.orbitz.consul.EventClient;
 import com.orbitz.consul.option.EventOptions;
 import com.orbitz.consul.option.QueryOptions;
+import org.apache.camel.Exchange;
 import org.apache.camel.Message;
+import org.apache.camel.common.ExchangeProcessor;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
@@ -30,17 +32,9 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
         super(endpoint, configuration, c -> c.eventClient());
     }
 
-    @Override
-    protected void bindActionProcessors() {
-        bind(ConsulEventActions.FIRE, this::fire);
-        bind(ConsulEventActions.LIST, this::list);
-    }
-
-    // *************************************************************************
-    //
-    // *************************************************************************
-
-    private void fire(Message message) throws Exception {
+    @ExchangeProcessor(ConsulEventActions.FIRE)
+    public void fire(Exchange exchange) throws Exception {
+        Message message = getResultMessage(exchange);
         setBodyAndResult(
             message,
             getClient().fireEvent(
@@ -50,7 +44,10 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
             )
         );
     }
-    private void list(Message message) throws Exception {
+
+    @ExchangeProcessor(ConsulEventActions.LIST)
+    public void list(Exchange exchange) throws Exception {
+        Message message = getResultMessage(exchange);
         setBodyAndResult(
             message,
             getClient().listEvents(

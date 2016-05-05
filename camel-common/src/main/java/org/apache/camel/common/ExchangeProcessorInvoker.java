@@ -14,34 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.camel.common;
 
-package org.apache.camel.component.ehcache;
+import java.lang.reflect.Method;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 
-@Ignore
-public class EhcacheComponentTest extends CamelTestSupport {
 
-    @Test
-    public void testChronicle() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(1);       
-        
-        assertMockEndpointsSatisfied();
+public class ExchangeProcessorInvoker implements Processor {
+    private final Object target;
+    private final Method method;
+
+    public ExchangeProcessorInvoker(Object target, Method method) {
+        this.target = target;
+        this.method = method;
     }
 
     @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
-        return new RouteBuilder() {
-            public void configure() {
-                from("teiid://foo")
-                  .to("teiid://bar")
-                  .to("mock:result");
-            }
-        };
+    public void process(Exchange exchange) throws Exception {
+        method.invoke(target, exchange);
     }
 }

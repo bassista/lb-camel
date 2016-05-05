@@ -127,6 +127,10 @@ public class EhcacheConfiguration {
         this.cacheManager = cacheManager;
     }
 
+    public boolean hasCacheManager() {
+        return this.cacheManager != null;
+    }
+
     // ****************************
     // Cache Configuration
     // ****************************
@@ -147,7 +151,7 @@ public class EhcacheConfiguration {
         cacheConfigurations.put(cacheName, cacheConfiguration);
     }
 
-    public void addCacheConfigurationFromParameters(Map<String, Object> parameters) {
+    public EhcacheConfiguration addCacheConfigurationFromParameters(Map<String, Object> parameters) {
         Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, PREFIX_CACHE);
         for (Map.Entry<String, Object> entry : models.entrySet()) {
             addCacheConfiguration(
@@ -159,6 +163,8 @@ public class EhcacheConfiguration {
                 )
             );
         }
+
+        return this;
     }
 
     public CacheConfiguration getCacheConfiguration(String cacheName) {
@@ -187,7 +193,7 @@ public class EhcacheConfiguration {
         cacheResourcePools.put(cacheName, resourcePools);
     }
 
-    public void addResourcePoolsFromParameters(Map<String, Object> parameters) {
+    public EhcacheConfiguration addResourcePoolsFromParameters(Map<String, Object> parameters) {
         Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, PREFIX_POOL);
         for (Map.Entry<String, Object> entry : models.entrySet()) {
             addResourcePools(
@@ -199,6 +205,8 @@ public class EhcacheConfiguration {
                 )
             );
         }
+
+        return this;
     }
 
     public ResourcePools getResourcePools(String cacheName) {
@@ -207,10 +215,20 @@ public class EhcacheConfiguration {
             : defaultCacheResourcePools;
     }
 
-
     // ****************************
     // Helpers
     // ****************************
+
+    public static EhcacheConfiguration create(CamelContext context, String remaining, Map<String, Object> parameters) throws Exception {
+        EhcacheConfiguration configuration = new EhcacheConfiguration(context, remaining);
+        configuration.addCacheConfigurationFromParameters(parameters);
+        configuration.addResourcePoolsFromParameters(parameters);
+
+        EndpointHelper.setReferenceProperties(context, configuration, parameters);
+        EndpointHelper.setProperties(context, configuration, parameters);
+
+        return configuration;
+    }
 
     public CacheManager createCacheManager() throws IOException {
         CacheManager manager;

@@ -409,6 +409,7 @@
     <!-- ******************************************************************* -->
 
     <modules>
+        <module>camel-common</module>
         <module>camel-chronicle</module>
         <module>camel-teiid</module>
         <module>camel-consul</module>

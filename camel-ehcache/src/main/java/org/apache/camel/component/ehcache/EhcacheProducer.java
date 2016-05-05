@@ -18,155 +18,143 @@ package org.apache.camel.component.ehcache;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.impl.DefaultProducer;
-import org.apache.camel.util.ObjectHelper;
+import org.apache.camel.common.DispatchingProducer;
+import org.apache.camel.common.ExchangeProcessor;
 import org.ehcache.Cache;
 
-public class EhcacheProducer extends DefaultProducer {
+public class EhcacheProducer extends DispatchingProducer {
     private final EhcacheConfiguration configuration;
     private final EhcacheManager manager;
     private final Cache<Object, Object> cache;
 
     public EhcacheProducer(EhcacheEndpoint endpoint, EhcacheConfiguration configuration) throws Exception {
-        super(endpoint);
+        super(endpoint, EhcacheConstants.ACTION, configuration.getAction());
 
         this.configuration = configuration;
         this.manager = endpoint.getManager();
         this.cache = manager.getCache();
     }
 
-    @Override
-    public void process(Exchange exchange) throws Exception {
-        final String action = getAction(exchange);
 
-        Object resultBody = null;
-        Object oldValue = null;
+    @ExchangeProcessor(EhcacheConstants.ACTION_CLEAR)
+    public void onClear(Exchange exchange) throws Exception {
+        cache.clear();
+
+        setResult(exchange, true, null, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_PUT)
+    public void onPut(Exchange exchange) throws Exception {
+        cache.put(getKey(exchange), getValue(exchange));
+
+        setResult(exchange, true, null, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_PUT_ALL)
+    public void onPutAll(Exchange exchange) throws Exception {
+        cache.putAll(getValue(exchange, Map.class));
+
+        setResult(exchange, true, null, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_PUT_IF_ABSENT)
+    public void onPutIfAbsent(Exchange exchange) throws Exception {
+        Object oldValue = cache.putIfAbsent(getKey(exchange), getValue(exchange));
+
+        setResult(exchange, true, null, oldValue);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_GET)
+    public void onGet(Exchange exchange) throws Exception {
+        Object result = cache.get(getKey(exchange));
+
+        setResult(exchange, true, result, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_GET_ALL)
+    public void onGetAll(Exchange exchange) throws Exception {
+        Object result = cache.getAll(getHeader(exchange, EhcacheConstants.KEYS, Set.class));
+
+        setResult(exchange, true, result, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE)
+    public void onRemove(Exchange exchange) throws Exception {
+
         boolean success = true;
-
-        switch (action) {
-        case EhcacheConstants.ACTION_CLEAR:
-            cache.clear();
-            break;
-        case EhcacheConstants.ACTION_PUT:
-            cache.put(getKey(exchange), getValue(exchange));
-            break;
-        case EhcacheConstants.ACTION_PUT_ALL:
-            cache.putAll(getValue(exchange, Map.class));
-            break;
-        case EhcacheConstants.ACTION_PUT_IF_ABSENT:
-            oldValue = cache.putIfAbsent(getKey(exchange), getValue(exchange));
-            break;
-        case EhcacheConstants.ACTION_GET:
-            resultBody = cache.get(getKey(exchange));
-            break;
-        case EhcacheConstants.ACTION_GET_ALL:
-            resultBody = cache.getAll(getInHeaderValue(exchange, EhcacheConstants.KEYS, Set.class));
-            break;
-        case EhcacheConstants.ACTION_REMOVE: {
-                Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
-                if (valueToReplace == null) {
-                    cache.remove(getKey(exchange));
-                } else {
-                    success = cache.remove(getKey(exchange), valueToReplace);
-                }
-            }
-            break;
-        case EhcacheConstants.ACTION_REMOVE_ALL:
-            cache.removeAll(getInHeaderValue(exchange, EhcacheConstants.KEYS, Set.class));
-            break;
-        case EhcacheConstants.ACTION_REPLACE: {
-                Object value = getValue(exchange);
-                Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
-                if (valueToReplace == null) {
-                    oldValue = cache.replace(getKey(exchange), value);
-                } else {
-                    success = cache.replace(getKey(exchange), valueToReplace, value);
-                }
-            }
-
-            break;
-        default:
-            throw new IllegalArgumentException("Unknown action " + action);
+        Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
+        if (valueToReplace == null) {
+            cache.remove(getKey(exchange));
+        } else {
+            success = cache.remove(getKey(exchange), valueToReplace);
         }
 
-        Message msg = getResultMessage(exchange);
-        msg.setHeader(EhcacheConstants.SUCCESS, success);
-        msg.setHeader(EhcacheConstants.HAS_RESULT, oldValue != null || resultBody != null);
+        setResult(exchange, success, null, null);
+    }
 
-        if (oldValue != null) {
-            msg.setHeader(EhcacheConstants.OLD_VALUE, oldValue);
+    @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE_ALL)
+    public void onRemoveAll(Exchange exchange) throws Exception {
+        cache.removeAll(getHeader(exchange, EhcacheConstants.KEYS, Set.class));
+
+        setResult(exchange, true, null, null);
+    }
+
+    @ExchangeProcessor(EhcacheConstants.ACTION_REPLACE)
+    public void onReplace(Exchange exchange) throws Exception {
+        boolean success = true;
+        Object oldValue = null;
+        Object value = getValue(exchange);
+        Object valueToReplace = exchange.getIn().getHeader(EhcacheConstants.OLD_VALUE);
+        if (valueToReplace == null) {
+            oldValue = cache.replace(getKey(exchange), value);
+        } else {
+            success = cache.replace(getKey(exchange), valueToReplace, value);
         }
-        if (resultBody != null) {
-            msg.setBody(resultBody);
-        }
+
+        setResult(exchange, success, null, oldValue);
     }
 
-    // **********************************
-    // Header helpers
-    // **********************************
-
-    private <T> T getInHeaderValue(Exchange exchange, String header, Supplier<T> defaultValueSupplier, Class<T> type) {
-        T value = exchange.getIn().getHeader(header, type);
-        if (value == null && defaultValueSupplier != null) {
-            value = defaultValueSupplier.get();
-        }
-
-        return ObjectHelper.notNull(value, header);
-    }
-
-    private <T> T getInHeaderValue(Exchange exchange, String header, Class<T> type) {
-        return getInHeaderValue(exchange, header, null, type);
-    }
-
-    private String getAction(Exchange exchange) {
-        return getInHeaderValue(
-            exchange,
-            EhcacheConstants.ACTION,
-            configuration::getAction,
-            String.class);
-    }
+    // ****************************
+    // Helpers
+    // ****************************
 
     private String getKey(Exchange exchange) {
-        return getInHeaderValue(
+        return getMandatoryHeader(
             exchange,
             EhcacheConstants.KEY,
-            configuration::getKey,
+            configuration.getKey(),
             String.class);
     }
 
     private Object getValue(Exchange exchange) {
-        return getInHeaderValue(
+        return getMandatoryHeader(
             exchange,
             EhcacheConstants.VALUE,
-            exchange.getIn()::getBody,
+            exchange.getIn().getBody(),
             Object.class);
     }
 
     private <T> T getValue(Exchange exchange, Class<T> type) {
-        return getInHeaderValue(
+        return getMandatoryHeader(
             exchange,
             EhcacheConstants.VALUE,
-            () -> exchange.getIn().getBody(type),
+            exchange.getIn().getBody(type),
             type);
     }
 
-    // **********************************
-    // Misc helpers
-    // **********************************
+    private void setResult(Exchange exchange, boolean success, Object result, Object oldValue) {
+        Message msg = getResultMessage(exchange);
+        msg.setHeader(EhcacheConstants.ACTION_SUCCEEDED, success);
+        msg.setHeader(EhcacheConstants.ACTION_HAS_RESULT, oldValue != null || result != null);
 
-    private Message getResultMessage(Exchange exchange) {
-        Message message;
-        if (exchange.getPattern().isOutCapable()) {
-            message = exchange.getOut();
-            message.copyFrom(exchange.getIn());
-        } else {
-            message = exchange.getIn();
+        if (oldValue != null) {
+            msg.setHeader(EhcacheConstants.OLD_VALUE, oldValue);
         }
-
-        return message;
+        if (result != null) {
+            msg.setBody(result);
+        }
     }
 }

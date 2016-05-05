@@ -16,72 +16,41 @@
  */
 package org.apache.camel.component.consul;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.orbitz.consul.Consul;
-import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.impl.DefaultProducer;
+import org.apache.camel.Processor;
+import org.apache.camel.common.DispatchingProducer;
 import org.apache.camel.util.ObjectHelper;
 
 
-public abstract class AbstractConsulProducer<C> extends DefaultProducer {
+public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
     private final AbstractConsulEndpoint endpoint;
     private final ConsulConfiguration configuration;
     private final Function<Consul, C> clientSupplier;
-    private Map<String, MessageProcessor> processors;
     private C client;
 
     protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, Function<Consul, C> clientSupplier) {
-        super(endpoint);
+        super(endpoint, ConsulConstants.CONSUL_ACTION, configuration.getAction());
 
         this.endpoint = endpoint;
         this.configuration = configuration;
         this.clientSupplier = clientSupplier;
-        this.processors = new HashMap<>();
         this.client = null;
-    }
-
-    @Override
-    public void process(Exchange exchange) throws Exception {
-        final Message in = exchange.getIn();
-        final String action = getMandatoryAction(in);
-
-        processors.getOrDefault(action, this::onError).process(in);
     }
 
     // *************************************************************************
     //
     // *************************************************************************
 
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        if (processors.isEmpty()) {
-            bindActionProcessors();
-
-            processors = Collections.unmodifiableMap(processors);
-        }
-    }
-
-    protected void bindActionProcessors() {
-    }
-
-    protected void bind(String key, MessageProcessor processor) {
-        this.processors.put(key, processor);
-    }
-
     protected void bind(String key, Function<C, Object> supplier) {
-        this.processors.put(key, wrap(supplier));
+        bind(key, wrap(supplier));
     }
 
     protected void bind(String key, BiFunction<C, Message, Object> supplier) {
-        this.processors.put(key, wrap(supplier));
+        bind(key, wrap(supplier));
     }
 
     protected void onError(Message message) throws Exception {
@@ -182,11 +151,11 @@ public abstract class AbstractConsulProducer<C> extends DefaultProducer {
         message.setBody(body);
     }
 
-    protected MessageProcessor wrap(Function<C, Object> supplier) {
-        return message -> setBodyAndResult(message, supplier.apply(getClient()));
+    protected Processor wrap(Function<C, Object> supplier) {
+        return exchange -> setBodyAndResult(exchange.getIn(), supplier.apply(getClient()));
     }
 
-    protected MessageProcessor wrap(BiFunction<C, Message, Object> supplier) {
-        return message -> setBodyAndResult(message, supplier.apply(getClient(), message));
+    protected Processor wrap(BiFunction<C, Message, Object> supplier) {
+        return exchange -> setBodyAndResult(exchange.getIn(), supplier.apply(getClient(), exchange.getIn()));
     }
 }
