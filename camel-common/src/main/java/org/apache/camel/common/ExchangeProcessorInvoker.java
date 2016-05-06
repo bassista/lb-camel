@@ -17,6 +17,7 @@
 package org.apache.camel.common;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -25,14 +26,20 @@ import org.apache.camel.Processor;
 public class ExchangeProcessorInvoker implements Processor {
     private final Object target;
     private final Method method;
+    private final Function<Exchange, Object> converter;
 
     public ExchangeProcessorInvoker(Object target, Method method) {
+        this(target, method, null);
+    }
+
+    public ExchangeProcessorInvoker(Object target, Method method, Function<Exchange, Object> converter) {
         this.target = target;
         this.method = method;
+        this.converter = converter;
     }
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        method.invoke(target, exchange);
+        method.invoke(target, converter == null ? exchange : converter.apply(exchange));
     }
 }

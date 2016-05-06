@@ -16,17 +16,10 @@
  */
 package org.apache.camel.common;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Repeatable(ExchangeProcessors.class)
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ExchangeProcessor {
-    String value();
-
-    ExchangeProcessorType type() default ExchangeProcessorType.DEFAULT;
+public enum ExchangeProcessorType {
+    DEFAULT,
+    EXCHANGE,
+    IN,
+    OUT,
+    RESULT
 }

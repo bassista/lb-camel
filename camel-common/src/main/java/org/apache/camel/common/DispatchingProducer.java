@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
@@ -38,18 +39,28 @@ public class DispatchingProducer extends DefaultProducer {
     private final String defaultHeaderValue;
     private Map<String, Processor> processors;
     private Object target;
+    private ExchangeProcessorType processorType;
 
     public DispatchingProducer(Endpoint endpoint, String header) {
-        this(endpoint, header, null);
+        this(endpoint, header, null, ExchangeProcessorType.EXCHANGE);
+    }
+
+    public DispatchingProducer(Endpoint endpoint, String header, ExchangeProcessorType processorType) {
+        this(endpoint, header, null, processorType);
     }
 
     public DispatchingProducer(Endpoint endpoint, String header, String defaultHeaderValue) {
+        this(endpoint, header, defaultHeaderValue, ExchangeProcessorType.EXCHANGE);
+    }
+
+    public DispatchingProducer(Endpoint endpoint, String header, String defaultHeaderValue, ExchangeProcessorType processorType) {
         super(endpoint);
 
         this.header = header;
         this.defaultHeaderValue = defaultHeaderValue;
         this.processors = new HashMap<>();
         this.target = null;
+        this.processorType = processorType;
     }
 
     @Override
@@ -85,9 +96,8 @@ public class DispatchingProducer extends DefaultProducer {
     protected void doSetup() throws Exception {
     }
 
-    private void bind(ExchangeProcessor processor, Method method) {
-        if (processor != null) {
-            LOGGER.debug("bind key={}, class={}, method={}", processor.value(), this.getClass(), method.getName());
+    private void bind(ExchangeProcessor exchangeProcessor, Method method) {
+        if (exchangeProcessor != null) {
 
             Object targetObject = target != null ? target : this;
             if (!method.isAccessible()) {
@@ -97,7 +107,24 @@ public class DispatchingProducer extends DefaultProducer {
                 method.setAccessible(true);
             }
 
-            bind(processor.value(), new ExchangeProcessorInvoker(targetObject, method));
+            ExchangeProcessorType type = exchangeProcessor.type();
+            if (type == ExchangeProcessorType.DEFAULT) {
+                type = processorType;
+            }
+
+            Function<Exchange, Object> converter = null;
+            if (type == ExchangeProcessorType.IN) {
+                converter = e -> e.getIn();
+            } else if (type == ExchangeProcessorType.OUT) {
+                converter = e -> e.getOut();
+            } else if (type == ExchangeProcessorType.RESULT) {
+                converter = this::getResultMessage;
+            }
+
+            LOGGER.debug("bind key={}, class={}, method={}, type={}",
+                exchangeProcessor.value(), this.getClass(), method.getName(), type);
+
+            bind(exchangeProcessor.value(), new ExchangeProcessorInvoker(targetObject, method, converter));
         }
     }
 
@@ -111,6 +138,10 @@ public class DispatchingProducer extends DefaultProducer {
 
     protected final void setTarget(Object target) {
         this.target = target;
+    }
+
+    protected final void setProcessorType(ExchangeProcessorType processorType) {
+        this.processorType = processorType;
     }
 
     protected <D> D getHeader(Exchange exchange, String header, D defaultValue, Class<D> type) {
