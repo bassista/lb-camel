@@ -26,11 +26,10 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <groupId>org.apache.camel.component.teiid</groupId>
   <artifactId>camel-teiid</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Teiid Component</name>
+  <name>Camel Component :: Teiid</name>
   <description>Camel Teiid support</description>
 
   <url>http://camel.apache.org</url>

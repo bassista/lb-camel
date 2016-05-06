@@ -29,7 +29,7 @@
   <artifactId>camel-chronicle</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Chronicle Component</name>
+  <name>Camel Component :: Chronicle</name>
   <description>Camel Chronicle support</description>
 
   <url>http://camel.apache.org</url>

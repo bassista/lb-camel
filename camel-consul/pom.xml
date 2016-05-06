@@ -29,7 +29,7 @@
   <artifactId>camel-consul</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Consul Component</name>
+  <name>Camel Component :: Consul</name>
   <description>Camel Consul support</description>
 
   <url>http://camel.apache.org</url>

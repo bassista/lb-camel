@@ -29,7 +29,7 @@
   <artifactId>camel-samples-spring-boot</artifactId>
   <packaging>jar</packaging>
 
-  <name>Camel Samples Spring Boot</name>
+  <name>Camel Samples :: Spring Boot</name>
   <description>Camel Samples Spring Boot</description>
 
   <url>http://camel.apache.org</url>

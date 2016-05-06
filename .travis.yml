@@ -6,7 +6,6 @@ addons:
 language:
   - java
 install:
-  - ./camel-consul/src/main/bash/consul_client_install.sh
   - ./camel-consul/src/main/bash/consul_install.sh -p ./consul-dist
   - ./camel-consul/src/main/bash/consul_run.sh -p ./consul-dist
 script:

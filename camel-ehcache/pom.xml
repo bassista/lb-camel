@@ -29,7 +29,7 @@
   <artifactId>camel-ehcache</artifactId>
   <packaging>bundle</packaging>
 
-  <name>Camel Ehcache Component</name>
+  <name>Camel Component :: Ehcache</name>
   <description>Camel Ehcache support</description>
 
   <url>http://camel.apache.org</url>
