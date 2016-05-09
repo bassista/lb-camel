@@ -199,7 +199,7 @@ public class DispatchingProducer extends DefaultProducer {
         Handler[] value();
     }
 
-    private class HandlerInvoker implements Processor {
+    protected final class HandlerInvoker implements Processor {
         private final Object target;
         private final Method method;
         private final Function<Exchange, Object> converter;
