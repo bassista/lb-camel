@@ -48,7 +48,7 @@ public class EhcacheConsumerTest extends EhcacheTestSupport {
         all.expectedHeaderValuesReceivedInAnyOrder(EhcacheConstants.EVENT_TYPE, EventType.CREATED, EventType.UPDATED);
         all.expectedBodiesReceived(values);
 
-        Cache<Object, Object> cache = getCache("mycache");
+        Cache<Object, Object> cache = getCache(TEST_CACHE_NAME);
         cache.put(key, values[0]);
         cache.put(key, values[1]);
 
@@ -59,11 +59,11 @@ public class EhcacheConsumerTest extends EhcacheTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("ehcache://mycache?cacheManager=#cacheManager&eventTypes=CREATED")
+                fromF("ehcache://%s?cacheManager=#cacheManager&eventTypes=CREATED", TEST_CACHE_NAME)
                     .to("mock:created");
-                from("ehcache://mycache?cacheManager=#cacheManager&eventTypes=UPDATED")
+                fromF("ehcache://%s?cacheManager=#cacheManager&eventTypes=UPDATED", TEST_CACHE_NAME)
                     .to("mock:updated");
-                from("ehcache://mycache?cacheManager=#cacheManager")
+                fromF("ehcache://%s?cacheManager=#cacheManager", TEST_CACHE_NAME)
                     .to("mock:all");
             }
         };

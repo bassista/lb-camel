@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class EhcacheTestSupport extends CamelTestSupport  {
     public static final Logger LOGGER = LoggerFactory.getLogger(EhcacheTestSupport.class);
     public static final String EHCACHE_CONFIG = "/ehcache/ehcache-config.xml";
+    public static final String TEST_CACHE_NAME = "mycache";
 
     @Rule
     public final TestName testName = new TestName();;

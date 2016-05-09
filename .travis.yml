@@ -6,8 +6,7 @@ addons:
 language:
   - java
 install:
-  - git clone https://github.com/apache/camel.git /tmp/apache-camel
-  - ./.travis-mvn.sh -f /tmp/apache-camel/pom.xml install -Dtest=false
+  - ./camel-common/src/main/bash/camel_install.sh
   - ./camel-consul/src/main/bash/consul_install.sh -p ./consul-dist
   - ./camel-consul/src/main/bash/consul_run.sh -p ./consul-dist
 script:

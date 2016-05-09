@@ -42,7 +42,7 @@ public class DispatchingProducer extends DefaultProducer {
 
     private final String header;
     private final String defaultHeaderValue;
-    private Map<String, Processor> processors;
+    private Map<Object, Processor> handlers;
     private Object target;
 
     public DispatchingProducer(Endpoint endpoint, String header) {
@@ -54,14 +54,14 @@ public class DispatchingProducer extends DefaultProducer {
 
         this.header = header;
         this.defaultHeaderValue = defaultHeaderValue;
-        this.processors = new HashMap<>();
+        this.handlers = new HashMap<>();
         this.target = null;
     }
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        final String action = getMandatoryHeader(exchange.getIn(), header, defaultHeaderValue, String.class);
-        final Processor processor = processors.getOrDefault(action, this::onMissingProcessor);
+        final Object action = getMandatoryHeader(exchange.getIn(), header, defaultHeaderValue, Object.class);
+        final Processor processor = handlers.getOrDefault(action, this::onMissingProcessor);
 
         processor.process(exchange);
     }
@@ -70,7 +70,7 @@ public class DispatchingProducer extends DefaultProducer {
     protected void doStart() throws Exception {
         super.doStart();
 
-        if (processors.isEmpty()) {
+        if (handlers.isEmpty()) {
             doSetup();
 
             for (final Method method : this.getClass().getDeclaredMethods()) {
@@ -84,47 +84,40 @@ public class DispatchingProducer extends DefaultProducer {
                 bind(method.getAnnotation(Handler.class), method);
             }
 
-            processors = Collections.unmodifiableMap(processors);
+            handlers = Collections.unmodifiableMap(handlers);
         }
     }
 
     protected void doSetup() throws Exception {
     }
 
-    private void bind(Handler exchangeProcessor, Method method) {
-        if (exchangeProcessor != null) {
-
+    private void bind(Handler handler, Method method) {
+        if (handler != null) {
             Object targetObject = target != null ? target : this;
             if (!method.isAccessible()) {
-                LOGGER.debug("Method {}::{} is not accessible, force it",
-                    targetObject.getClass().getName(), method.getName());
-
                 method.setAccessible(true);
             }
 
-            Function<Exchange, Object> converter = null;
             if (method.getParameterCount() == 1) {
-                Class<?> type = method.getParameterTypes()[0];
-                if (Message.class.isAssignableFrom(type)) {
-                    converter = e -> e.getIn();
-                } else if (Exchange.class.isAssignableFrom(type)) {
-                    converter = null;
-                }
+                final Class<?> type = method.getParameterTypes()[0];
 
                 LOGGER.debug("bind key={}, class={}, method={}, type={}",
-                    exchangeProcessor.value(), this.getClass(), method.getName(), type);
+                    handler.value(), this.getClass(), method.getName(), type);
 
-                bind(exchangeProcessor.value(), new HandlerInvoker(targetObject, method, converter));
+                bind(handler.value(), new HandlerInvoker(
+                    targetObject,
+                    method,
+                    Message.class.isAssignableFrom(type) ? e -> e.getIn() : null));
             }
         }
     }
 
-    protected final void bind(String key, Processor processor) {
-        if (processors.containsKey(key)) {
+    protected final void bind(Object key, Processor processor) {
+        if (handlers.containsKey(key)) {
             LOGGER.warn("A processor was already set for action {}", key);
         }
 
-        this.processors.put(key, processor);
+        this.handlers.put(key, processor);
     }
 
     protected final void setTarget(Object target) {
@@ -190,7 +183,7 @@ public class DispatchingProducer extends DefaultProducer {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     public @interface Handler {
-        String value();
+        Object value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)

@@ -21,7 +21,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.ehcache.Cache;
 import org.junit.Test;
 
-public class EhcacheTest extends EhcacheTestSupport {
+public class EhcacheProducerTest extends EhcacheTestSupport {
 
     @Test
     public void testCacheClear() throws Exception {
@@ -59,7 +59,7 @@ public class EhcacheTest extends EhcacheTestSupport {
 
         assertMockEndpointsSatisfied();
 
-        Cache<Object, Object> cache = getCache("mycache");
+        Cache<Object, Object> cache = getCache(TEST_CACHE_NAME);
         assertTrue(cache.containsKey(key));
         assertEquals(val, cache.get(key));
     }
@@ -69,7 +69,7 @@ public class EhcacheTest extends EhcacheTestSupport {
         final String key = generateRandomString();
         final String val = generateRandomString();
 
-        Cache<Object, Object> cache = getCache("mycache");
+        Cache<Object, Object> cache = getCache(TEST_CACHE_NAME);
         cache.put(key, val);
 
         MockEndpoint mock = getMockEndpoint("mock:result");
@@ -93,7 +93,7 @@ public class EhcacheTest extends EhcacheTestSupport {
         return new RouteBuilder() {
             public void configure() {
                 from("direct://start")
-                  .to("ehcache://mycache?cacheManager=#cacheManager")
+                  .toF("ehcache://%s?cacheManager=#cacheManager", TEST_CACHE_NAME)
                     .to("log:org.apache.camel.component.ehcache?level=INFO&showAll=true&multiline=true")
                     .to("mock:result");
             }
