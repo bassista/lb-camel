@@ -42,7 +42,7 @@ public class DispatchingProducer extends DefaultProducer {
 
     private final String header;
     private final String defaultHeaderValue;
-    private Map<Object, Processor> handlers;
+    private Map<String, Processor> handlers;
     private Object target;
 
     public DispatchingProducer(Endpoint endpoint, String header) {
@@ -60,7 +60,7 @@ public class DispatchingProducer extends DefaultProducer {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        final Object action = getMandatoryHeader(exchange.getIn(), header, defaultHeaderValue, Object.class);
+        final String action = getMandatoryHeader(exchange.getIn(), header, defaultHeaderValue, String.class);
         final Processor processor = handlers.getOrDefault(action, this::onMissingProcessor);
 
         processor.process(exchange);
@@ -112,7 +112,7 @@ public class DispatchingProducer extends DefaultProducer {
         }
     }
 
-    protected final void bind(Object key, Processor processor) {
+    protected final void bind(String key, Processor processor) {
         if (handlers.containsKey(key)) {
             LOGGER.warn("A processor was already set for action {}", key);
         }
@@ -183,7 +183,7 @@ public class DispatchingProducer extends DefaultProducer {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     public @interface Handler {
-        Object value();
+        String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -197,11 +197,7 @@ public class DispatchingProducer extends DefaultProducer {
         private final Method method;
         private final Function<Exchange, Object> converter;
 
-        public HandlerInvoker(Object target, Method method) {
-            this(target, method, null);
-        }
-
-        public HandlerInvoker(Object target, Method method, Function<Exchange, Object> converter) {
+        HandlerInvoker(Object target, Method method, Function<Exchange, Object> converter) {
             this.target = target;
             this.method = method;
             this.converter = converter;
