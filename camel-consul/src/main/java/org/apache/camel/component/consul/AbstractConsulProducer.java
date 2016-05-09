@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import com.orbitz.consul.Consul;
 import org.apache.camel.Message;
+import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.Processor;
 import org.apache.camel.common.DispatchingProducer;
 
@@ -57,6 +58,23 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
 
     protected ConsulConfiguration getConfiguration() {
         return configuration;
+    }
+
+    protected <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
+        return message.getHeader(header, defaultValue, type);
+    }
+
+    protected <D> D getMandatoryHeader(Message message, String header, Class<D> type) throws Exception {
+        return getMandatoryHeader(message, header, null, type);
+    }
+
+    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
+        D value = getHeader(message, header, defaultValue, type);
+        if (value == null) {
+            throw new NoSuchHeaderException(message.getExchange(), header, type);
+        }
+
+        return value;
     }
 
     protected String getKey(Message message) {

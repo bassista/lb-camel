@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
@@ -43,7 +42,7 @@ public class DispatchingProducer extends DefaultProducer {
     private final String header;
     private final String defaultHeaderValue;
     private Map<String, Processor> handlers;
-    private Object target;
+    private final Object target;
 
     public DispatchingProducer(Endpoint endpoint, String header) {
         this(endpoint, header, null);
@@ -60,9 +59,12 @@ public class DispatchingProducer extends DefaultProducer {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        final String action = getMandatoryHeader(exchange.getIn(), header, defaultHeaderValue, String.class);
-        final Processor processor = handlers.getOrDefault(action, this::onMissingProcessor);
+        final String action = exchange.getIn().getHeader(header, defaultHeaderValue, String.class);
+        if (action == null) {
+            throw new NoSuchHeaderException(exchange, header, String.class);
+        }
 
+        final Processor processor = handlers.getOrDefault(action, this::onMissingProcessor);
         processor.process(exchange);
     }
 
@@ -73,7 +75,7 @@ public class DispatchingProducer extends DefaultProducer {
         if (handlers.isEmpty()) {
             doSetup();
 
-            for (final Method method : target.getClass().getDeclaredMethods()) {
+            for (final Method method : this.getClass().getDeclaredMethods()) {
                 Handlers annotation = method.getAnnotation(Handlers.class);
                 if (annotation != null) {
                     for (Handler processor : annotation.value()) {
@@ -91,7 +93,7 @@ public class DispatchingProducer extends DefaultProducer {
     protected void doSetup() throws Exception {
     }
 
-    private void bind(Handler handler, Method method) {
+    private void bind(Handler handler, final Method method) {
         if (handler == null) {
             return;
         }
@@ -106,11 +108,11 @@ public class DispatchingProducer extends DefaultProducer {
             LOGGER.debug("bind key={}, class={}, method={}, type={}",
                 handler.value(), this.getClass(), method.getName(), type);
 
-            bind(handler.value(), new HandlerInvoker(
-                    target,
-                    method,
-                    Message.class.isAssignableFrom(type) ? e -> e.getIn() : null)
-            );
+            if (Message.class.isAssignableFrom(type)) {
+                bind(handler.value(), e -> method.invoke(target, e.getIn()));
+            } else {
+                bind(handler.value(), e -> method.invoke(target, e));
+            }
         }
     }
 
@@ -120,47 +122,6 @@ public class DispatchingProducer extends DefaultProducer {
         }
 
         this.handlers.put(key, processor);
-    }
-
-    protected final void setTarget(Object target) {
-        this.target = target;
-    }
-
-    protected <D> D getHeader(Exchange exchange, String header, D defaultValue, Class<D> type) {
-        return getHeader(exchange.getIn(), header, defaultValue, type);
-    }
-
-    protected <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
-        return message.getHeader(header, defaultValue, type);
-    }
-
-    protected <D> D getHeader(Exchange exchange, String header, Class<D> type) {
-        return getHeader(exchange.getIn(), header, null, type);
-    }
-
-    protected <D> D getHeader(Message message, String header, Class<D> type) {
-        return message.getHeader(header, null, type);
-    }
-
-    protected <D> D getMandatoryHeader(Exchange exchange, String header, Class<D> type) throws Exception {
-        return getMandatoryHeader(exchange.getIn(), header, type);
-    }
-
-    protected <D> D getMandatoryHeader(Exchange exchange, String header, D defaultValue, Class<D> type) throws Exception {
-        return getMandatoryHeader(exchange.getIn(), header, defaultValue, type);
-    }
-
-    protected <D> D getMandatoryHeader(Message message, String header, Class<D> type) throws Exception {
-        return getMandatoryHeader(message, header, null, type);
-    }
-
-    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
-        D value = getHeader(message, header, defaultValue, type);
-        if (value == null) {
-            throw new NoSuchHeaderException(message.getExchange(), header, type);
-        }
-
-        return value;
     }
 
     private void onMissingProcessor(Exchange exchange) throws Exception {
@@ -180,22 +141,5 @@ public class DispatchingProducer extends DefaultProducer {
     @Target(ElementType.METHOD)
     public  @interface Handlers {
         Handler[] value();
-    }
-
-    protected final class HandlerInvoker implements Processor {
-        private final Object target;
-        private final Method method;
-        private final Function<Exchange, Object> converter;
-
-        HandlerInvoker(Object target, Method method, Function<Exchange, Object> converter) {
-            this.target = target;
-            this.method = method;
-            this.converter = converter;
-        }
-
-        @Override
-        public void process(Exchange exchange) throws Exception {
-            method.invoke(target, converter == null ? exchange : converter.apply(exchange));
-        }
     }
 }

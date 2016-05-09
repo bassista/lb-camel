@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.camel.Message;
+import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.common.DispatchingProducer;
 import org.ehcache.Cache;
 
@@ -117,6 +118,23 @@ public class EhcacheProducer extends DispatchingProducer {
     // ****************************
     // Helpers
     // ****************************
+
+    protected <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
+        return message.getHeader(header, defaultValue, type);
+    }
+
+    protected <D> D getHeader(Message message, String header, Class<D> type) {
+        return message.getHeader(header, null, type);
+    }
+
+    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
+        D value = getHeader(message, header, defaultValue, type);
+        if (value == null) {
+            throw new NoSuchHeaderException(message.getExchange(), header, type);
+        }
+
+        return value;
+    }
 
     private String getKey(Message message) throws Exception {
         return getMandatoryHeader(
