@@ -33,7 +33,7 @@ import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultProducer;
-import org.apache.camel.util.ExchangeHelper;
+import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +55,7 @@ public class DispatchingProducer extends DefaultProducer {
         this.header = header;
         this.defaultHeaderValue = defaultHeaderValue;
         this.handlers = new HashMap<>();
-        this.target = null;
+        this.target = this;
     }
 
     @Override
@@ -73,15 +73,15 @@ public class DispatchingProducer extends DefaultProducer {
         if (handlers.isEmpty()) {
             doSetup();
 
-            for (final Method method : this.getClass().getDeclaredMethods()) {
+            for (final Method method : target.getClass().getDeclaredMethods()) {
                 Handlers annotation = method.getAnnotation(Handlers.class);
                 if (annotation != null) {
                     for (Handler processor : annotation.value()) {
                         bind(processor, method);
                     }
+                } else {
+                    bind(method.getAnnotation(Handler.class), method);
                 }
-
-                bind(method.getAnnotation(Handler.class), method);
             }
 
             handlers = Collections.unmodifiableMap(handlers);
@@ -92,23 +92,25 @@ public class DispatchingProducer extends DefaultProducer {
     }
 
     private void bind(Handler handler, Method method) {
-        if (handler != null) {
-            Object targetObject = target != null ? target : this;
-            if (!method.isAccessible()) {
-                method.setAccessible(true);
-            }
+        if (handler == null) {
+            return;
+        }
 
-            if (method.getParameterCount() == 1) {
-                final Class<?> type = method.getParameterTypes()[0];
+        ObjectHelper.notNull(method, "method");
 
-                LOGGER.debug("bind key={}, class={}, method={}, type={}",
-                    handler.value(), this.getClass(), method.getName(), type);
+        if (method.getParameterCount() == 1) {
+            method.setAccessible(true);
 
-                bind(handler.value(), new HandlerInvoker(
-                    targetObject,
+            final Class<?> type = method.getParameterTypes()[0];
+
+            LOGGER.debug("bind key={}, class={}, method={}, type={}",
+                handler.value(), this.getClass(), method.getName(), type);
+
+            bind(handler.value(), new HandlerInvoker(
+                    target,
                     method,
-                    Message.class.isAssignableFrom(type) ? e -> e.getIn() : null));
-            }
+                    Message.class.isAssignableFrom(type) ? e -> e.getIn() : null)
+            );
         }
     }
 
@@ -159,18 +161,6 @@ public class DispatchingProducer extends DefaultProducer {
         }
 
         return value;
-    }
-
-    protected Message getResultMessage(Exchange exchange) {
-        Message message;
-        if (ExchangeHelper.isOutCapable(exchange)) {
-            message = exchange.getOut();
-            message.copyFrom(exchange.getIn());
-        } else {
-            message = exchange.getIn();
-        }
-
-        return message;
     }
 
     private void onMissingProcessor(Exchange exchange) throws Exception {

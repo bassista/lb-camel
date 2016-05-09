@@ -106,6 +106,6 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
     }
 
     protected Processor wrap(Function<C, Object> supplier) {
-        return exchange -> setBodyAndResult(getResultMessage(exchange), supplier.apply(getClient()));
+        return exchange -> setBodyAndResult(exchange.getIn(), supplier.apply(getClient()));
     }
 }
