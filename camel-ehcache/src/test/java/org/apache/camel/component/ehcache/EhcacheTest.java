@@ -31,7 +31,10 @@ public class EhcacheTest extends EhcacheTestSupport {
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_HAS_RESULT, false);
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_SUCCEEDED, true);
 
-        template().sendBodyAndHeader("direct://start", null, EhcacheConstants.ACTION, EhcacheConstants.ACTION_CLEAR);
+        fluentTemplate()
+            .withHeader(EhcacheConstants.ACTION, EhcacheConstants.ACTION_CLEAR)
+            .to("direct://start")
+            .send();
         
         assertMockEndpointsSatisfied();
     }
@@ -47,14 +50,12 @@ public class EhcacheTest extends EhcacheTestSupport {
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_HAS_RESULT, false);
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_SUCCEEDED, true);
 
-        template().sendBodyAndHeaders(
-            "direct://start",
-            val,
-            new KVBuilder()
-                .put(EhcacheConstants.ACTION, EhcacheConstants.ACTION_PUT)
-                .put(EhcacheConstants.KEY, key)
-                .build()
-        );
+        fluentTemplate()
+            .withHeader(EhcacheConstants.ACTION, EhcacheConstants.ACTION_PUT)
+            .withHeader(EhcacheConstants.KEY, key)
+            .withBody(val)
+            .to("direct://start")
+            .send();
 
         assertMockEndpointsSatisfied();
 
@@ -77,14 +78,12 @@ public class EhcacheTest extends EhcacheTestSupport {
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_HAS_RESULT, true);
         mock.expectedHeaderReceived(EhcacheConstants.ACTION_SUCCEEDED, true);
 
-        template().sendBodyAndHeaders(
-            "direct://start",
-            val,
-            new KVBuilder()
-                .put(EhcacheConstants.ACTION, EhcacheConstants.ACTION_GET)
-                .put(EhcacheConstants.KEY, key)
-                .build()
-        );
+        fluentTemplate()
+            .withHeader(EhcacheConstants.ACTION, EhcacheConstants.ACTION_GET)
+            .withHeader(EhcacheConstants.KEY, key)
+            .withBody(val)
+            .to("direct://start")
+            .send();
 
         assertMockEndpointsSatisfied();
     }

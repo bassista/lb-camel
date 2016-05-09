@@ -21,18 +21,17 @@ import com.orbitz.consul.EventClient;
 import com.orbitz.consul.option.EventOptions;
 import com.orbitz.consul.option.QueryOptions;
 import org.apache.camel.Message;
-import org.apache.camel.common.ExchangeProcessor;
-import org.apache.camel.common.ExchangeProcessorType;
+import org.apache.camel.common.DispatchingProducer;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
 
 public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
     ConsulEventProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration) {
-        super(endpoint, configuration, ExchangeProcessorType.IN, c -> c.eventClient());
+        super(endpoint, configuration, c -> c.eventClient());
     }
 
-    @ExchangeProcessor(ConsulEventActions.FIRE)
+    @DispatchingProducer.Handler(ConsulEventActions.FIRE)
     protected void fire(Message message ) throws Exception {
         setBodyAndResult(
             message,
@@ -44,7 +43,7 @@ public class ConsulEventProducer extends AbstractConsulProducer<EventClient> {
         );
     }
 
-    @ExchangeProcessor(ConsulEventActions.LIST)
+    @DispatchingProducer.Handler(ConsulEventActions.LIST)
     protected void list(Message message) throws Exception {
         setBodyAndResult(
             message,

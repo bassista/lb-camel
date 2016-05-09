@@ -17,14 +17,12 @@
 package org.apache.camel.component.consul;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
+import org.apache.camel.builder.FluentProducerTemplate;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -65,28 +63,7 @@ public class ConsulTestSupport extends CamelTestSupport {
         return KV_PREFIX + "/" + testName.getMethodName() + "/" + generateRandomString();
     }
 
-    protected static class KVBuilder {
-        private final Map<String, Object> kv;
-
-        public KVBuilder() {
-            this(new HashMap<>());
-        }
-
-        private KVBuilder(Map<String, Object> headers) {
-            this.kv = headers;
-        }
-
-        public KVBuilder on(Map<String, Object> headers) {
-            return new KVBuilder(headers);
-        }
-
-        public KVBuilder put(String key, Object val) {
-            kv.put(key, val);
-            return this;
-        }
-
-        public Map<String, Object> build() {
-            return Collections.unmodifiableMap(this.kv);
-        }
+    FluentProducerTemplate fluentTemplate() {
+        return FluentProducerTemplate.on(context());
     }
 }

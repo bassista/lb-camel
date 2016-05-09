@@ -19,12 +19,10 @@ package org.apache.camel.component.ehcache;
 
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.apache.camel.builder.FluentProducerTemplate;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.ehcache.Cache;
@@ -90,28 +88,7 @@ public class EhcacheTestSupport extends CamelTestSupport  {
         return Arrays.asList(generateRandomArrayOfStrings(size));
     }
 
-    protected static class KVBuilder {
-        private final Map<String, Object> kv;
-
-        public KVBuilder() {
-            this(new HashMap<>());
-        }
-
-        private KVBuilder(Map<String, Object> headers) {
-            this.kv = headers;
-        }
-
-        public KVBuilder on(Map<String, Object> headers) {
-            return new KVBuilder(headers);
-        }
-
-        public KVBuilder put(String key, Object val) {
-            kv.put(key, val);
-            return this;
-        }
-
-        public Map<String, Object> build() {
-            return Collections.unmodifiableMap(this.kv);
-        }
+    FluentProducerTemplate fluentTemplate() {
+        return FluentProducerTemplate.on(context());
     }
 }

@@ -34,14 +34,12 @@ public class ConsulKeyValueTest extends ConsulTestSupport {
         mock.expectedBodiesReceived(val);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        template().sendBodyAndHeaders(
-            "direct:kv",
-            val,
-            new KVBuilder()
-                .put(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
-                .put(ConsulConstants.CONSUL_KEY, key)
-                .build()
-        );
+        fluentTemplate()
+            .withHeader(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
+            .withHeader(ConsulConstants.CONSUL_KEY, key)
+            .withBody(val)
+            .to("direct:kv")
+            .send();
 
         mock.assertIsSatisfied();
 

@@ -16,6 +16,11 @@
  */
 package org.apache.camel.common;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,28 +44,18 @@ public class DispatchingProducer extends DefaultProducer {
     private final String defaultHeaderValue;
     private Map<String, Processor> processors;
     private Object target;
-    private ExchangeProcessorType processorType;
 
     public DispatchingProducer(Endpoint endpoint, String header) {
-        this(endpoint, header, null, ExchangeProcessorType.EXCHANGE);
-    }
-
-    public DispatchingProducer(Endpoint endpoint, String header, ExchangeProcessorType processorType) {
-        this(endpoint, header, null, processorType);
+        this(endpoint, header, null);
     }
 
     public DispatchingProducer(Endpoint endpoint, String header, String defaultHeaderValue) {
-        this(endpoint, header, defaultHeaderValue, ExchangeProcessorType.EXCHANGE);
-    }
-
-    public DispatchingProducer(Endpoint endpoint, String header, String defaultHeaderValue, ExchangeProcessorType processorType) {
         super(endpoint);
 
         this.header = header;
         this.defaultHeaderValue = defaultHeaderValue;
         this.processors = new HashMap<>();
         this.target = null;
-        this.processorType = processorType;
     }
 
     @Override
@@ -79,14 +74,14 @@ public class DispatchingProducer extends DefaultProducer {
             doSetup();
 
             for (final Method method : this.getClass().getDeclaredMethods()) {
-                ExchangeProcessors annotation = method.getAnnotation(ExchangeProcessors.class);
+                Handlers annotation = method.getAnnotation(Handlers.class);
                 if (annotation != null) {
-                    for (ExchangeProcessor processor : annotation.value()) {
+                    for (Handler processor : annotation.value()) {
                         bind(processor, method);
                     }
                 }
 
-                bind(method.getAnnotation(ExchangeProcessor.class), method);
+                bind(method.getAnnotation(Handler.class), method);
             }
 
             processors = Collections.unmodifiableMap(processors);
@@ -96,7 +91,7 @@ public class DispatchingProducer extends DefaultProducer {
     protected void doSetup() throws Exception {
     }
 
-    private void bind(ExchangeProcessor exchangeProcessor, Method method) {
+    private void bind(Handler exchangeProcessor, Method method) {
         if (exchangeProcessor != null) {
 
             Object targetObject = target != null ? target : this;
@@ -107,24 +102,20 @@ public class DispatchingProducer extends DefaultProducer {
                 method.setAccessible(true);
             }
 
-            ExchangeProcessorType type = exchangeProcessor.type();
-            if (type == ExchangeProcessorType.DEFAULT) {
-                type = processorType;
-            }
-
             Function<Exchange, Object> converter = null;
-            if (type == ExchangeProcessorType.IN) {
-                converter = e -> e.getIn();
-            } else if (type == ExchangeProcessorType.OUT) {
-                converter = e -> e.getOut();
-            } else if (type == ExchangeProcessorType.RESULT) {
-                converter = this::getResultMessage;
+            if (method.getParameterCount() == 1) {
+                Class<?> type = method.getParameterTypes()[0];
+                if (Message.class.isAssignableFrom(type)) {
+                    converter = e -> e.getIn();
+                } else if (Exchange.class.isAssignableFrom(type)) {
+                    converter = null;
+                }
+
+                LOGGER.debug("bind key={}, class={}, method={}, type={}",
+                    exchangeProcessor.value(), this.getClass(), method.getName(), type);
+
+                bind(exchangeProcessor.value(), new HandlerInvoker(targetObject, method, converter));
             }
-
-            LOGGER.debug("bind key={}, class={}, method={}, type={}",
-                exchangeProcessor.value(), this.getClass(), method.getName(), type);
-
-            bind(exchangeProcessor.value(), new ExchangeProcessorInvoker(targetObject, method, converter));
         }
     }
 
@@ -138,10 +129,6 @@ public class DispatchingProducer extends DefaultProducer {
 
     protected final void setTarget(Object target) {
         this.target = target;
-    }
-
-    protected final void setProcessorType(ExchangeProcessorType processorType) {
-        this.processorType = processorType;
     }
 
     protected <D> D getHeader(Exchange exchange, String header, D defaultValue, Class<D> type) {
@@ -197,5 +184,39 @@ public class DispatchingProducer extends DefaultProducer {
         throw new IllegalStateException(
             "Unsupported operation " + exchange.getIn().getHeader(header)
         );
+    }
+
+    @Repeatable(Handlers.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface Handler {
+        String value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public  @interface Handlers {
+        Handler[] value();
+    }
+
+    private class HandlerInvoker implements Processor {
+        private final Object target;
+        private final Method method;
+        private final Function<Exchange, Object> converter;
+
+        public HandlerInvoker(Object target, Method method) {
+            this(target, method, null);
+        }
+
+        public HandlerInvoker(Object target, Method method, Function<Exchange, Object> converter) {
+            this.target = target;
+            this.method = method;
+            this.converter = converter;
+        }
+
+        @Override
+        public void process(Exchange exchange) throws Exception {
+            method.invoke(target, converter == null ? exchange : converter.apply(exchange));
+        }
     }
 }

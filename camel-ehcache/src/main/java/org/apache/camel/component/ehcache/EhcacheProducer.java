@@ -21,8 +21,6 @@ import java.util.Set;
 
 import org.apache.camel.Message;
 import org.apache.camel.common.DispatchingProducer;
-import org.apache.camel.common.ExchangeProcessor;
-import org.apache.camel.common.ExchangeProcessorType;
 import org.ehcache.Cache;
 
 public class EhcacheProducer extends DispatchingProducer {
@@ -31,56 +29,56 @@ public class EhcacheProducer extends DispatchingProducer {
     private final Cache<Object, Object> cache;
 
     public EhcacheProducer(EhcacheEndpoint endpoint, EhcacheConfiguration configuration) throws Exception {
-        super(endpoint, EhcacheConstants.ACTION, configuration.getAction(), ExchangeProcessorType.IN);
+        super(endpoint, EhcacheConstants.ACTION, configuration.getAction());
 
         this.configuration = configuration;
         this.manager = endpoint.getManager();
         this.cache = manager.getCache();
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_CLEAR)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_CLEAR)
     protected void onClear(Message message) throws Exception {
         cache.clear();
 
         setResult(message, true, null, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_PUT)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_PUT)
     protected void onPut(Message message) throws Exception {
         cache.put(getKey(message), getValue(message, Object.class));
 
         setResult(message, true, null, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_PUT_ALL)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_PUT_ALL)
     protected void onPutAll(Message message) throws Exception {
         cache.putAll(getValue(message, Map.class));
 
         setResult(message, true, null, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_PUT_IF_ABSENT)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_PUT_IF_ABSENT)
     protected void onPutIfAbsent(Message message) throws Exception {
         Object oldValue = cache.putIfAbsent(getKey(message), getValue(message, Object.class));
 
         setResult(message, true, null, oldValue);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_GET)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_GET)
     protected void onGet(Message message) throws Exception {
         Object result = cache.get(getKey(message));
 
         setResult(message, true, result, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_GET_ALL)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_GET_ALL)
     protected void onGetAll(Message message) throws Exception {
         Object result = cache.getAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, result, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_REMOVE)
     protected void onRemove(Message message) throws Exception {
 
         boolean success = true;
@@ -94,14 +92,14 @@ public class EhcacheProducer extends DispatchingProducer {
         setResult(message, success, null, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_REMOVE_ALL)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_REMOVE_ALL)
     protected void onRemoveAll(Message message) throws Exception {
         cache.removeAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, null, null);
     }
 
-    @ExchangeProcessor(EhcacheConstants.ACTION_REPLACE)
+    @DispatchingProducer.Handler(EhcacheConstants.ACTION_REPLACE)
     protected void onReplace(Message message) throws Exception {
         boolean success = true;
         Object oldValue = null;

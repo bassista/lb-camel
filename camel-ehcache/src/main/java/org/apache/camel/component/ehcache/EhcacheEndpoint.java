@@ -48,7 +48,7 @@ public class EhcacheEndpoint extends DefaultEndpoint {
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        return null;
+        return new EhcacheConsumer(this, configuration, processor);
     }
 
     @Override

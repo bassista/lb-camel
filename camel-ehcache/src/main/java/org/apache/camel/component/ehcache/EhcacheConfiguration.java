@@ -18,8 +18,11 @@ package org.apache.camel.component.ehcache;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.spi.UriParam;
@@ -31,6 +34,9 @@ import org.ehcache.CacheManager;
 import org.ehcache.config.CacheConfiguration;
 import org.ehcache.config.ResourcePools;
 import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.event.EventFiring;
+import org.ehcache.event.EventOrdering;
+import org.ehcache.event.EventType;
 import org.ehcache.xml.XmlConfiguration;
 
 @UriParams
@@ -47,9 +53,9 @@ public class EhcacheConfiguration {
     @UriParam(defaultValue = "true")
     private boolean createCacheIfNotExist = true;
 
-    @UriParam
+    @UriParam(label = "producer")
     private String action;
-    @UriParam
+    @UriParam(label = "producer")
     private String key;
 
     @UriParam
@@ -63,6 +69,24 @@ public class EhcacheConfiguration {
     private Map<String, CacheConfiguration> cacheConfigurations;
     @UriParam(label = "advanced", prefix = PREFIX_POOL, multiValue = true, javaType = "java.lang.String")
     private Map<String, ResourcePools> cacheResourcePools;
+
+    @UriParam(
+        label = "consumer",
+        enums = "ORDERED,UNORDERED",
+        defaultValue = "ORDERED")
+    private EventOrdering eventOrdering = EventOrdering.ORDERED;
+
+    @UriParam(
+        label = "consumer",
+        enums = "ASYNCHRONOUS, SYNCHRONOUS",
+        defaultValue = "ASYNCHRONOUS")
+    private EventFiring eventFiring = EventFiring.ASYNCHRONOUS;
+
+    @UriParam(
+        label = "consumer",
+        enums = "EVICTED,EXPIRED,REMOVED,CREATED,UPDATED",
+        defaultValue = "EVICTED,EXPIRED,REMOVED,CREATED,UPDATED")
+    private Set<EventType> eventTypes = EnumSet.of(EventType.values()[0], EventType.values());
 
     EhcacheConfiguration(String cacheName) {
         this(null, cacheName);
@@ -129,6 +153,48 @@ public class EhcacheConfiguration {
 
     public boolean hasCacheManager() {
         return this.cacheManager != null;
+    }
+
+    public EventOrdering getEventOrdering() {
+        return eventOrdering;
+    }
+
+    public void setEventOrdering(String eventOrdering) {
+        setEventOrdering(EventOrdering.valueOf(eventOrdering));
+    }
+
+    public void setEventOrdering(EventOrdering eventOrdering) {
+        this.eventOrdering = eventOrdering;
+    }
+
+    public EventFiring getEventFiring() {
+        return eventFiring;
+    }
+
+    public void setEventFiring(String eventFiring) {
+        setEventFiring(EventFiring.valueOf(eventFiring));
+    }
+
+    public void setEventFiring(EventFiring eventFiring) {
+        this.eventFiring = eventFiring;
+    }
+
+    public Set<EventType> getEventTypes() {
+        return eventTypes;
+    }
+
+    public void setEventTypes(String eventTypesString) {
+        Set<EventType> eventTypes = new HashSet<>();
+        String[] events = eventTypesString.split(",");
+        for (String event : events) {
+            eventTypes.add(EventType.valueOf(event));
+        }
+
+        setEventTypes(eventTypes);
+    }
+
+    public void setEventTypes(Set<EventType> eventTypes) {
+        this.eventTypes = new HashSet<>(eventTypes);
     }
 
     // ****************************

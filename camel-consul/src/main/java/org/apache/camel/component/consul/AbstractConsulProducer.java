@@ -22,7 +22,6 @@ import com.orbitz.consul.Consul;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.common.DispatchingProducer;
-import org.apache.camel.common.ExchangeProcessorType;
 
 
 public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
@@ -32,11 +31,7 @@ public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
     private C client;
 
     protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, Function<Consul, C> clientSupplier) {
-        this(endpoint, configuration, ExchangeProcessorType.EXCHANGE, clientSupplier);
-    }
-
-    protected AbstractConsulProducer(AbstractConsulEndpoint endpoint, ConsulConfiguration configuration, ExchangeProcessorType processorType, Function<Consul, C> clientSupplier) {
-        super(endpoint, ConsulConstants.CONSUL_ACTION, configuration.getAction(), processorType);
+        super(endpoint, ConsulConstants.CONSUL_ACTION, configuration.getAction());
 
         this.endpoint = endpoint;
         this.configuration = configuration;

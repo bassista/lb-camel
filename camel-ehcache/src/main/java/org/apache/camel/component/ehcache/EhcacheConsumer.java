@@ -16,12 +16,61 @@
  */
 package org.apache.camel.component.ehcache;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
+import org.ehcache.Cache;
+import org.ehcache.event.CacheEvent;
+import org.ehcache.event.CacheEventListener;
 
-public class EhcacheConsumer extends DefaultConsumer {
+public class EhcacheConsumer extends DefaultConsumer implements CacheEventListener<Object, Object> {
+    private final EhcacheConfiguration configuration;
+    private final EhcacheManager manager;
+    private final Cache<Object, Object> cache;
 
-    public EhcacheConsumer(EhcacheEndpoint endpoint, Processor processor) throws Exception {
+    public EhcacheConsumer(EhcacheEndpoint endpoint, EhcacheConfiguration configuration, Processor processor) throws Exception {
         super(endpoint, processor);
+
+        this.configuration = configuration;
+        this.manager = endpoint.getManager();
+        this.cache = manager.getCache();
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+
+        this.cache.getRuntimeConfiguration().registerCacheEventListener(
+            this,
+            configuration.getEventOrdering(),
+            configuration.getEventFiring(),
+            configuration.getEventTypes()
+        );
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        cache.getRuntimeConfiguration().deregisterCacheEventListener(this);
+
+        super.doStop();
+    }
+
+    @Override
+    public void onEvent(CacheEvent<Object, Object> event) {
+        final Exchange exchange = getEndpoint().createExchange();
+        final Message message = exchange.getIn();
+
+        message.setHeader(EhcacheConstants.KEY, event.getKey());
+        message.setHeader(EhcacheConstants.EVENT_TYPE, event.getType());
+        message.setHeader(EhcacheConstants.OLD_VALUE, event.getOldValue());
+        message.setBody(event.getNewValue());
+
+        try {
+            getProcessor().process(exchange);
+        } catch (Exception e) {
+            getExceptionHandler().handleException("Error processing exchange", exchange, e);
+        }
+
     }
 }
