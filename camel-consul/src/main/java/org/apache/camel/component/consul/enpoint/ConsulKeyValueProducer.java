@@ -20,7 +20,7 @@ import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.option.PutOptions;
 import com.orbitz.consul.option.QueryOptions;
 import org.apache.camel.Message;
-import org.apache.camel.common.DispatchingProducer;
+import org.apache.camel.common.EnhancedDefaultProducer;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
@@ -32,7 +32,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         super(endpoint, configuration, c -> c.keyValueClient());
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.PUT)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.PUT)
     protected void put(Message message) throws Exception {
         message.setHeader(
             ConsulConstants.CONSUL_RESULT,
@@ -45,7 +45,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         );
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.GET_VALUE)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_VALUE)
     protected void getValue(Message message) throws Exception {
         Object result;
 
@@ -63,7 +63,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         setBodyAndResult(message, result);
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.GET_VALUES)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_VALUES)
     protected void getValues(Message message) throws Exception {
         Object result;
 
@@ -81,29 +81,29 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         setBodyAndResult(message, result);
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.GET_KEYS)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_KEYS)
     protected void getKeys(Message message) throws Exception {
         setBodyAndResult(message,getClient().getKeys(getMandatoryKey(message)));
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.GET_SESSIONS)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_SESSIONS)
     protected void getSessions(Message message) throws Exception {
         setBodyAndResult(message, getClient().getSession(getMandatoryKey(message)));
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.DELETE_KEY)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.DELETE_KEY)
     protected void deleteKey(Message message) throws Exception {
         getClient().deleteKey(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.DELETE_KEYS)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.DELETE_KEYS)
     protected void deleteKeys(Message message) throws Exception {
         getClient().deleteKeys(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.LOCK)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.LOCK)
     protected void lock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().acquireLock(
@@ -114,7 +114,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         );
     }
 
-    @DispatchingProducer.Handler(ConsulKeyValueActions.UNLOCK)
+    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.UNLOCK)
     protected void unlock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().releaseLock(

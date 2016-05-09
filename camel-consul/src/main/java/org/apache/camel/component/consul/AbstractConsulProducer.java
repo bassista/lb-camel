@@ -22,10 +22,10 @@ import com.orbitz.consul.Consul;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.Processor;
-import org.apache.camel.common.DispatchingProducer;
+import org.apache.camel.common.EnhancedDefaultProducer;
 
 
-public abstract class AbstractConsulProducer<C> extends DispatchingProducer {
+public abstract class AbstractConsulProducer<C> extends EnhancedDefaultProducer {
     private final AbstractConsulEndpoint endpoint;
     private final ConsulConfiguration configuration;
     private final Function<Consul, C> clientSupplier;

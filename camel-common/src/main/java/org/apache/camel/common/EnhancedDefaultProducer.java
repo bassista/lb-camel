@@ -32,23 +32,22 @@ import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultProducer;
-import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DispatchingProducer extends DefaultProducer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DispatchingProducer.class);
+public class EnhancedDefaultProducer extends DefaultProducer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnhancedDefaultProducer.class);
 
     private final String header;
     private final String defaultHeaderValue;
-    private Map<String, Processor> handlers;
     private final Object target;
+    private Map<String, Processor> handlers;
 
-    public DispatchingProducer(Endpoint endpoint, String header) {
+    public EnhancedDefaultProducer(Endpoint endpoint, String header) {
         this(endpoint, header, null);
     }
 
-    public DispatchingProducer(Endpoint endpoint, String header, String defaultHeaderValue) {
+    public EnhancedDefaultProducer(Endpoint endpoint, String header, String defaultHeaderValue) {
         super(endpoint);
 
         this.header = header;
@@ -94,13 +93,7 @@ public class DispatchingProducer extends DefaultProducer {
     }
 
     private void bind(Handler handler, final Method method) {
-        if (handler == null) {
-            return;
-        }
-
-        ObjectHelper.notNull(method, "method");
-
-        if (method.getParameterCount() == 1) {
+        if (handler != null && method.getParameterCount() == 1) {
             method.setAccessible(true);
 
             final Class<?> type = method.getParameterTypes()[0];
@@ -118,7 +111,7 @@ public class DispatchingProducer extends DefaultProducer {
 
     protected final void bind(String key, Processor processor) {
         if (handlers.containsKey(key)) {
-            LOGGER.warn("A processor was already set for action {}", key);
+            LOGGER.warn("A processor is already set for action {}", key);
         }
 
         this.handlers.put(key, processor);
