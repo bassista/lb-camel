@@ -60,7 +60,6 @@
         <spring-version>${spring4-version}</spring-version>
         <consul-version>0.11.3</consul-version>
         <consul-bundle-version>${consul-version}_1-SNAPSHOT</consul-bundle-version>
-        <ehcache-version>3.0.0</ehcache-version>
         <infinispan-version>8.2.1.Final</infinispan-version>
         <log4j2-version>2.5</log4j2-version>
         <spring-boot-version>1.3.4.RELEASE</spring-boot-version>
@@ -413,7 +412,6 @@
         <module>camel-chronicle</module>
         <module>camel-teiid</module>
         <module>camel-consul</module>
-        <module>camel-ehcache</module>
         <module>camel-samples</module>
     </modules>
 
