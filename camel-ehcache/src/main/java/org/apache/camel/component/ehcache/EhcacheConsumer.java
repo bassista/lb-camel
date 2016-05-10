@@ -24,7 +24,7 @@ import org.ehcache.Cache;
 import org.ehcache.event.CacheEvent;
 import org.ehcache.event.CacheEventListener;
 
-public class EhcacheConsumer extends DefaultConsumer implements CacheEventListener<Object, Object> {
+public final class EhcacheConsumer extends DefaultConsumer implements CacheEventListener<Object, Object> {
     private final EhcacheConfiguration configuration;
     private final EhcacheManager manager;
     private final Cache<Object, Object> cache;
@@ -71,6 +71,5 @@ public class EhcacheConsumer extends DefaultConsumer implements CacheEventListen
         } catch (Exception e) {
             getExceptionHandler().handleException("Error processing exchange", exchange, e);
         }
-
     }
 }

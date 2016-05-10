@@ -19,69 +19,108 @@ package org.apache.camel.component.ehcache;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
-import org.apache.camel.common.EnhancedDefaultProducer;
+import org.apache.camel.impl.DefaultProducer;
 import org.ehcache.Cache;
 
-public class EhcacheProducer extends EnhancedDefaultProducer {
+public final class EhcacheProducer extends DefaultProducer {
     private final EhcacheConfiguration configuration;
     private final EhcacheManager manager;
     private final Cache<Object, Object> cache;
 
     public EhcacheProducer(EhcacheEndpoint endpoint, EhcacheConfiguration configuration) throws Exception {
-        super(endpoint, EhcacheConstants.ACTION, configuration.getAction());
+        super(endpoint);
 
         this.configuration = configuration;
         this.manager = endpoint.getManager();
         this.cache = manager.getCache();
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_CLEAR)
-    protected void onClear(Message message) throws Exception {
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        final Message message = exchange.getIn();
+        final String action = exchange.getIn().getHeader(EhcacheConstants.ACTION, configuration.getAction(), String.class);
+
+        if (action == null) {
+            throw new NoSuchHeaderException(exchange, EhcacheConstants.ACTION, String.class);
+        }
+
+        switch (action) {
+        case EhcacheConstants.ACTION_CLEAR:
+            onClear(message);
+            break;
+        case EhcacheConstants.ACTION_PUT:
+            onPut(message);
+            break;
+        case EhcacheConstants.ACTION_PUT_ALL:
+            onPutAll(message);
+            break;
+        case EhcacheConstants.ACTION_PUT_IF_ABSENT:
+            onPutIfAbsent(message);
+            break;
+        case EhcacheConstants.ACTION_GET:
+            onGet(message);
+            break;
+        case EhcacheConstants.ACTION_GET_ALL:
+            onGetAll(message);
+            break;
+        case EhcacheConstants.ACTION_REMOVE:
+            onRemove(message);
+            break;
+        case EhcacheConstants.ACTION_REMOVE_ALL:
+            onRemoveAll(message);
+            break;
+        case EhcacheConstants.ACTION_REPLACE:
+            onReplace(message);
+            break;
+        default:
+            throw new IllegalStateException("Unsupported operation " + action);
+        }
+    }
+    
+    // ****************************
+    // Handlers
+    // ****************************
+
+    private void onClear(Message message) throws Exception {
         cache.clear();
 
         setResult(message, true, null, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_PUT)
-    protected void onPut(Message message) throws Exception {
+    private void onPut(Message message) throws Exception {
         cache.put(getKey(message), getValue(message, Object.class));
 
         setResult(message, true, null, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_PUT_ALL)
-    protected void onPutAll(Message message) throws Exception {
+    private void onPutAll(Message message) throws Exception {
         cache.putAll(getValue(message, Map.class));
 
         setResult(message, true, null, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_PUT_IF_ABSENT)
-    protected void onPutIfAbsent(Message message) throws Exception {
+    private void onPutIfAbsent(Message message) throws Exception {
         Object oldValue = cache.putIfAbsent(getKey(message), getValue(message, Object.class));
 
         setResult(message, true, null, oldValue);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_GET)
-    protected void onGet(Message message) throws Exception {
+    private void onGet(Message message) throws Exception {
         Object result = cache.get(getKey(message));
 
         setResult(message, true, result, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_GET_ALL)
-    protected void onGetAll(Message message) throws Exception {
+    private void onGetAll(Message message) throws Exception {
         Object result = cache.getAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, result, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_REMOVE)
-    protected void onRemove(Message message) throws Exception {
-
+    private void onRemove(Message message) throws Exception {
         boolean success = true;
         Object valueToReplace = message.getHeader(EhcacheConstants.OLD_VALUE);
         if (valueToReplace == null) {
@@ -93,15 +132,13 @@ public class EhcacheProducer extends EnhancedDefaultProducer {
         setResult(message, success, null, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_REMOVE_ALL)
-    protected void onRemoveAll(Message message) throws Exception {
+    private void onRemoveAll(Message message) throws Exception {
         cache.removeAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, null, null);
     }
 
-    @EnhancedDefaultProducer.Handler(EhcacheConstants.ACTION_REPLACE)
-    protected void onReplace(Message message) throws Exception {
+    private void onReplace(Message message) throws Exception {
         boolean success = true;
         Object oldValue = null;
         Object value = getValue(message, Object.class);
@@ -119,15 +156,15 @@ public class EhcacheProducer extends EnhancedDefaultProducer {
     // Helpers
     // ****************************
 
-    protected <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
+    private <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
         return message.getHeader(header, defaultValue, type);
     }
 
-    protected <D> D getHeader(Message message, String header, Class<D> type) {
+    private <D> D getHeader(Message message, String header, Class<D> type) {
         return message.getHeader(header, null, type);
     }
 
-    protected <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
+    private <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
         D value = getHeader(message, header, defaultValue, type);
         if (value == null) {
             throw new NoSuchHeaderException(message.getExchange(), header, type);

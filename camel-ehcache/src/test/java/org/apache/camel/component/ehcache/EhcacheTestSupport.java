@@ -20,7 +20,10 @@ package org.apache.camel.component.ehcache;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.camel.builder.FluentProducerTemplate;
 import org.apache.camel.impl.JndiRegistry;
@@ -55,11 +58,11 @@ public class EhcacheTestSupport extends CamelTestSupport  {
 
     @Override
     public void tearDown() throws Exception {
+        super.tearDown();
+
         if (cacheManager != null) {
             cacheManager.close();
         }
-
-        super.tearDown();
     }
 
     @Override
@@ -87,6 +90,13 @@ public class EhcacheTestSupport extends CamelTestSupport  {
 
     protected List<String> generateRandomListOfStrings(int size) {
         return Arrays.asList(generateRandomArrayOfStrings(size));
+    }
+
+    protected Map<String, String> generateRandomMapOfString(int size) {
+        return IntStream.range(0, size).boxed().collect(Collectors.toMap(
+            i -> i + "-" + generateRandomString(),
+            i -> i + "-" + generateRandomString()
+        ));
     }
 
     FluentProducerTemplate fluentTemplate() {
