@@ -19,6 +19,7 @@ package org.apache.camel.component.ehcache;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.camel.CamelExchangeException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
@@ -115,7 +116,7 @@ public final class EhcacheProducer extends DefaultProducer {
     }
 
     private void onGetAll(Message message) throws Exception {
-        Object result = cache.getAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
+        Object result = cache.getAll(message.getHeader(EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, result, null);
     }
@@ -133,7 +134,7 @@ public final class EhcacheProducer extends DefaultProducer {
     }
 
     private void onRemoveAll(Message message) throws Exception {
-        cache.removeAll(getHeader(message, EhcacheConstants.KEYS, Set.class));
+        cache.removeAll(message.getHeader(EhcacheConstants.KEYS, Set.class));
 
         setResult(message, true, null, null);
     }
@@ -156,37 +157,36 @@ public final class EhcacheProducer extends DefaultProducer {
     // Helpers
     // ****************************
 
-    private <D> D getHeader(Message message, String header, D defaultValue, Class<D> type) {
-        return message.getHeader(header, defaultValue, type);
-    }
-
-    private <D> D getHeader(Message message, String header, Class<D> type) {
-        return message.getHeader(header, null, type);
-    }
-
-    private <D> D getMandatoryHeader(Message message, String header, D defaultValue, Class<D> type) throws Exception {
-        D value = getHeader(message, header, defaultValue, type);
+    private String getKey(final Message message) throws Exception {
+        String value = message.getHeader(EhcacheConstants.KEY, String.class);
         if (value == null) {
-            throw new NoSuchHeaderException(message.getExchange(), header, type);
+            value = configuration.getKey();
+        }
+
+        if (value == null) {
+            throw new CamelExchangeException(
+                "No value provided in header or as default value (" + EhcacheConstants.KEY + ")",
+                message.getExchange()
+            );
         }
 
         return value;
     }
 
-    private String getKey(Message message) throws Exception {
-        return getMandatoryHeader(
-            message,
-            EhcacheConstants.KEY,
-            configuration.getKey(),
-            String.class);
-    }
+    private <T> T getValue(final Message message, final Class<T> type)  throws Exception {
+        T value = message.getHeader(EhcacheConstants.VALUE, type);
+        if (value == null) {
+            value = message.getBody(type);
+        }
 
-    private <T> T getValue(Message message, Class<T> type)  throws Exception {
-        return getMandatoryHeader(
-            message,
-            EhcacheConstants.VALUE,
-            message.getBody(type),
-            type);
+        if (value == null) {
+            throw new CamelExchangeException(
+                "No value provided in header or body (" + EhcacheConstants.VALUE + ")",
+                message.getExchange()
+            );
+        }
+
+        return value;
     }
 
     private void setResult(Message message, boolean success, Object result, Object oldValue) {
