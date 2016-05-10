@@ -250,7 +250,7 @@ public class EhcacheConfiguration {
         cacheConfigurations.put(cacheName, cacheConfiguration);
     }
 
-    public EhcacheConfiguration addCacheConfigurationFromParameters(Map<String, Object> parameters) {
+    EhcacheConfiguration addCacheConfigurationFromParameters(Map<String, Object> parameters) {
         Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, PREFIX_CACHE);
         for (Map.Entry<String, Object> entry : models.entrySet()) {
             addCacheConfiguration(
@@ -298,7 +298,7 @@ public class EhcacheConfiguration {
         cacheResourcePools.put(cacheName, resourcePools);
     }
 
-    public EhcacheConfiguration addResourcePoolsFromParameters(Map<String, Object> parameters) {
+    EhcacheConfiguration addResourcePoolsFromParameters(Map<String, Object> parameters) {
         Map<String, Object> models = IntrospectionSupport.extractProperties(parameters, PREFIX_POOL);
         for (Map.Entry<String, Object> entry : models.entrySet()) {
             addResourcePools(
