@@ -115,6 +115,9 @@ public class EhcacheConfiguration {
             : new URL(configUri);
     }
 
+    /**
+     * URI pointing to the Ehcache XML configuration file's location
+     */
     public void setConfigUri(String configUri) {
         this.configUri = configUri;
     }
@@ -123,6 +126,10 @@ public class EhcacheConfiguration {
         return createCacheIfNotExist;
     }
 
+    /**
+     * Configure if a cache need to be created if it does exist or can't be
+     * pre-configured.
+     */
     public void setCreateCacheIfNotExist(boolean createCacheIfNotExist) {
         this.createCacheIfNotExist = createCacheIfNotExist;
     }
@@ -131,6 +138,10 @@ public class EhcacheConfiguration {
         return action;
     }
 
+    /**
+     * To configure the default cache action. If an action is set in the message
+     * header, then the operation from the header takes precedence.
+     */
     public void setAction(String action) {
         this.action = action;
     }
@@ -139,6 +150,10 @@ public class EhcacheConfiguration {
         return key;
     }
 
+    /**
+     * To configure the default action key. If a key is set in the message
+     * header, then the key from the header takes precedence.
+     */
     public void setKey(String key) {
         this.key = key;
     }
@@ -147,6 +162,9 @@ public class EhcacheConfiguration {
         return cacheManager;
     }
 
+    /**
+     * The cache manager
+     */
     public void setCacheManager(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
@@ -159,6 +177,9 @@ public class EhcacheConfiguration {
         return eventOrdering;
     }
 
+    /**
+     * Set the the delivery mode (ordered, unordered)
+     */
     public void setEventOrdering(String eventOrdering) {
         setEventOrdering(EventOrdering.valueOf(eventOrdering));
     }
@@ -171,6 +192,9 @@ public class EhcacheConfiguration {
         return eventFiring;
     }
 
+    /**
+     * Set the the delivery mode (synchronous, asynchronous)
+     */
     public void setEventFiring(String eventFiring) {
         setEventFiring(EventFiring.valueOf(eventFiring));
     }
@@ -183,6 +207,9 @@ public class EhcacheConfiguration {
         return eventTypes;
     }
 
+    /**
+     * Set the type of events to listen for
+     */
     public void setEventTypes(String eventTypesString) {
         Set<EventType> eventTypes = new HashSet<>();
         String[] events = eventTypesString.split(",");
@@ -201,6 +228,9 @@ public class EhcacheConfiguration {
     // Cache Configuration
     // ****************************
 
+    /**
+     * The default cache configuration to be used to create caches.
+     */
     public void setDefaultCacheConfiguration(CacheConfiguration<?, ?> defaultCacheConfiguration) {
         this.defaultCacheConfiguration = defaultCacheConfiguration;
     }
@@ -209,6 +239,9 @@ public class EhcacheConfiguration {
         return defaultCacheConfiguration;
     }
 
+    /**
+     * The cache configuration to be used for cache cacheName.
+     */
     public void addCacheConfiguration(String cacheName, CacheConfiguration cacheConfiguration) {
         if (cacheConfigurations == null) {
             cacheConfigurations = new HashMap<>();
@@ -247,10 +280,16 @@ public class EhcacheConfiguration {
         return defaultCacheResourcePools;
     }
 
+    /**
+     * The default resource pools to be used to create caches.
+     */
     public void setDefaultCacheResourcePools(ResourcePools defaultCacheResourcePools) {
         this.defaultCacheResourcePools = defaultCacheResourcePools;
     }
 
+    /**
+     * The resource pools to be used for cache cacheName.
+     */
     public void addResourcePools(String cacheName, ResourcePools resourcePools) {
         if (cacheResourcePools == null) {
             cacheResourcePools = new HashMap<>();
@@ -285,7 +324,7 @@ public class EhcacheConfiguration {
     // Helpers
     // ****************************
 
-    public static EhcacheConfiguration create(CamelContext context, String remaining, Map<String, Object> parameters) throws Exception {
+    static EhcacheConfiguration create(CamelContext context, String remaining, Map<String, Object> parameters) throws Exception {
         EhcacheConfiguration configuration = new EhcacheConfiguration(context, remaining);
         configuration.addCacheConfigurationFromParameters(parameters);
         configuration.addResourcePoolsFromParameters(parameters);
@@ -296,7 +335,7 @@ public class EhcacheConfiguration {
         return configuration;
     }
 
-    public CacheManager createCacheManager() throws IOException {
+    CacheManager createCacheManager() throws IOException {
         CacheManager manager;
 
         if (cacheManager != null) {
