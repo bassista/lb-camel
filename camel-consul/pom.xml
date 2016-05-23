@@ -41,11 +41,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.github.lburgazzoli</groupId>
-      <artifactId>camel-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.orbitz.consul</groupId>
       <artifactId>consul-client</artifactId>
       <version>${consul-version}</version>

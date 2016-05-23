@@ -19,8 +19,8 @@ package org.apache.camel.component.consul.enpoint;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.option.PutOptions;
 import com.orbitz.consul.option.QueryOptions;
+import org.apache.camel.InvokeOnHeader;
 import org.apache.camel.Message;
-import org.apache.camel.common.EnhancedDefaultProducer;
 import org.apache.camel.component.consul.AbstractConsulEndpoint;
 import org.apache.camel.component.consul.AbstractConsulProducer;
 import org.apache.camel.component.consul.ConsulConfiguration;
@@ -32,7 +32,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         super(endpoint, configuration, c -> c.keyValueClient());
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.PUT)
+    @InvokeOnHeader(ConsulKeyValueActions.PUT)
     protected void put(Message message) throws Exception {
         message.setHeader(
             ConsulConstants.CONSUL_RESULT,
@@ -45,7 +45,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         );
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_VALUE)
+    @InvokeOnHeader(ConsulKeyValueActions.GET_VALUE)
     protected void getValue(Message message) throws Exception {
         Object result;
 
@@ -63,7 +63,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         setBodyAndResult(message, result);
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_VALUES)
+    @InvokeOnHeader(ConsulKeyValueActions.GET_VALUES)
     protected void getValues(Message message) throws Exception {
         Object result;
 
@@ -81,29 +81,29 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         setBodyAndResult(message, result);
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_KEYS)
+    @InvokeOnHeader(ConsulKeyValueActions.GET_KEYS)
     protected void getKeys(Message message) throws Exception {
         setBodyAndResult(message,getClient().getKeys(getMandatoryKey(message)));
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.GET_SESSIONS)
+    @InvokeOnHeader(ConsulKeyValueActions.GET_SESSIONS)
     protected void getSessions(Message message) throws Exception {
         setBodyAndResult(message, getClient().getSession(getMandatoryKey(message)));
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.DELETE_KEY)
+    @InvokeOnHeader(ConsulKeyValueActions.DELETE_KEY)
     protected void deleteKey(Message message) throws Exception {
         getClient().deleteKey(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.DELETE_KEYS)
+    @InvokeOnHeader(ConsulKeyValueActions.DELETE_KEYS)
     protected void deleteKeys(Message message) throws Exception {
         getClient().deleteKeys(getMandatoryKey(message));
         message.setHeader(ConsulConstants.CONSUL_RESULT, true);
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.LOCK)
+    @InvokeOnHeader(ConsulKeyValueActions.LOCK)
     protected void lock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().acquireLock(
@@ -114,7 +114,7 @@ public class ConsulKeyValueProducer extends AbstractConsulProducer<KeyValueClien
         );
     }
 
-    @EnhancedDefaultProducer.Handler(ConsulKeyValueActions.UNLOCK)
+    @InvokeOnHeader(ConsulKeyValueActions.UNLOCK)
     protected void unlock(Message message) throws Exception {
         message.setHeader(ConsulConstants.CONSUL_RESULT,
             getClient().releaseLock(

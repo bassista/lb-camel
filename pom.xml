@@ -58,7 +58,7 @@
         <jackson2-version>2.7.4</jackson2-version>
         <spring4-version>4.2.5.RELEASE</spring4-version>
         <spring-version>${spring4-version}</spring-version>
-        <consul-version>0.11.3</consul-version>
+        <consul-version>0.12.0</consul-version>
         <consul-bundle-version>${consul-version}_1-SNAPSHOT</consul-bundle-version>
         <infinispan-version>8.2.1.Final</infinispan-version>
         <log4j2-version>2.5</log4j2-version>
@@ -408,7 +408,6 @@
     <!-- ******************************************************************* -->
 
     <modules>
-        <module>camel-common</module>
         <module>camel-chronicle</module>
         <module>camel-teiid</module>
         <module>camel-consul</module>
