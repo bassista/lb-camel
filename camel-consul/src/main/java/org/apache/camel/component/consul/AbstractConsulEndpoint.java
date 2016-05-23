@@ -21,6 +21,7 @@ import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
+import org.apache.camel.util.ObjectHelper;
 
 public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
 
@@ -61,17 +62,28 @@ public abstract class AbstractConsulEndpoint extends DefaultEndpoint {
     public synchronized Consul getConsul() throws Exception {
         if (consul == null) {
             Consul.Builder builder = Consul.builder();
+            builder.withPing(configuration.isPingInstance());
 
-            if (configuration.getUrl() != null) {
+            if (ObjectHelper.isNotEmpty(configuration.getUrl())) {
                 builder.withUrl(configuration.getUrl());
             }
-
-            if (configuration.getSslContextParameters() != null) {
-                builder.withSslContext(configuration.getSslContextParameters().createSSLContext());
+            if (ObjectHelper.isNotEmpty(configuration.getSslContextParameters())) {
+                builder.withSslContext(configuration.getSslContextParameters().createSSLContext(getCamelContext()));
             }
-
-            if (configuration.getObjectMapper() != null) {
-                builder.withObjectMapper(configuration.getObjectMapper());
+            if (ObjectHelper.isNotEmpty(configuration.getAclToken())) {
+                builder.withAclToken(configuration.getAclToken());
+            }
+            if (configuration.requiresBasicAuthentication()) {
+                builder.withBasicAuth(configuration.getUserName(), configuration.getPassword());
+            }
+            if (ObjectHelper.isNotEmpty(configuration.getConnectTimeoutMillis())) {
+                builder.withConnectTimeoutMillis(configuration.getConnectTimeoutMillis());
+            }
+            if (ObjectHelper.isNotEmpty(configuration.getReadTimeoutMillis())) {
+                builder.withReadTimeoutMillis(configuration.getReadTimeoutMillis());
+            }
+            if (ObjectHelper.isNotEmpty(configuration.getWriteTimeoutMillis())) {
+                builder.withWriteTimeoutMillis(configuration.getWriteTimeoutMillis());
             }
 
             consul = builder.build();

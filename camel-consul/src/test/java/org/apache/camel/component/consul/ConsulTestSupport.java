@@ -22,7 +22,6 @@ import java.util.UUID;
 
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
-import org.apache.camel.builder.FluentProducerTemplate;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -61,9 +60,5 @@ public class ConsulTestSupport extends CamelTestSupport {
 
     protected String generateKey() {
         return KV_PREFIX + "/" + testName.getMethodName() + "/" + generateRandomString();
-    }
-
-    FluentProducerTemplate fluentTemplate() {
-        return FluentProducerTemplate.on(context());
     }
 }

@@ -16,10 +16,9 @@
  */
 package org.apache.camel.component.consul;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
+import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.jsse.SSLContextParameters;
 
 @UriParams
@@ -27,13 +26,24 @@ public class ConsulConfiguration {
     @UriParam
     private String url;
 
-    @UriParam
-    @Metadata(label = "security")
+    @UriParam(label = "security")
     private SSLContextParameters sslContextParameters;
+    @UriParam(label = "security")
+    private String aclToken;
+    @UriParam(label = "security")
+    private String userName;
+    @UriParam(label = "security")
+    private String password;
 
     @UriParam
-    @Metadata(label = "advanced")
-    private ObjectMapper objectMapper;
+    private Long connectTimeoutMillis;
+    @UriParam
+    private Long readTimeoutMillis;
+    @UriParam
+    private Long writeTimeoutMillis;
+    @UriParam(defaultValue = "true")
+    private boolean pingInstance = true;
+
 
     @UriParam(label = "producer")
     private String action;
@@ -77,19 +87,93 @@ public class ConsulConfiguration {
         this.sslContextParameters = sslContextParameters;
     }
 
-    public ObjectMapper getObjectMapper() {
-        return objectMapper;
+    public String getAclToken() {
+        return aclToken;
     }
 
     /**
-     * The {@link ObjectMapper} to use by the client
+     * Sets the ACL token to be used with Consul
      */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public void setAclToken(String aclToken) {
+        this.aclToken = aclToken;
     }
 
     public String getAction() {
         return action;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Sets the username to be used for basic authentication
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Sets the password to be used for basic authentication
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean requiresBasicAuthentication() {
+        return ObjectHelper.isNotEmpty(userName) && ObjectHelper.isNotEmpty(password);
+    }
+
+    public Long getConnectTimeoutMillis() {
+        return connectTimeoutMillis;
+    }
+
+    /**
+     * Connect timeout for OkHttpClient
+     */
+    public void setConnectTimeoutMillis(Long connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+    }
+
+    public Long getReadTimeoutMillis() {
+        return readTimeoutMillis;
+    }
+
+    /**
+     * Read timeout for OkHttpClient
+     */
+    public void setReadTimeoutMillis(Long readTimeoutMillis) {
+        this.readTimeoutMillis = readTimeoutMillis;
+    }
+
+    public Long getWriteTimeoutMillis() {
+        return writeTimeoutMillis;
+    }
+
+    /**
+     * Write timeout for OkHttpClient
+     */
+    public void setWritTeimeoutMillis(Long writeTimeoutMillis) {
+        this.writeTimeoutMillis = writeTimeoutMillis;
+    }
+
+    public void setWriteTimeoutMillis(Long writeTimeoutMillis) {
+        this.writeTimeoutMillis = writeTimeoutMillis;
+    }
+
+    public boolean isPingInstance() {
+        return pingInstance;
+    }
+
+    /**
+     * Configure if the AgentClient should attempt a ping before returning the Consul instance
+     */
+    public void setPingInstance(boolean pingInstance) {
+        this.pingInstance = pingInstance;
     }
 
     /**
