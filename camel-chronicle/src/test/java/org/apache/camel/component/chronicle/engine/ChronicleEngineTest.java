@@ -14,22 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+package org.apache.camel.component.chronicle.engine;
 
-public enum ChronicleTypes {
-    ENGINE,
-    MAP,
-    QUEUE;
+import org.apache.camel.component.chronicle.ChronicleTestSupport;
 
-    private final static ChronicleTypes[] VALUES = values();
-
-    public static ChronicleTypes fromName(String name) {
-        for (int i = VALUES.length; i >= 0; i--) {
-            if (VALUES[i].name().equalsIgnoreCase(name)) {
-                return VALUES[i];
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown Chronicle type: " + name);
-    }
+public class ChronicleEngineTest extends ChronicleTestSupport {
 }

@@ -14,13 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+
+package org.apache.camel.component.chronicle;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
 import org.apache.camel.Endpoint;
-
+import org.apache.camel.component.chronicle.engine.ChronicleEngineConfiguration;
+import org.apache.camel.component.chronicle.engine.ChronicleEngineEnpoint;
 import org.apache.camel.impl.UriEndpointComponent;
 import org.apache.camel.util.ObjectHelper;
 
@@ -41,13 +45,25 @@ public class ChronicleComponent extends UriEndpointComponent {
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         String name = ObjectHelper.before(remaining, "/");
 
-        switch(ChronicleTypes.fromName(name)) {
-        case ENGINE:
-            ChronicleEngineConfiguration configuration = new ChronicleEngineConfiguration(getCamelContext());
-            setProperties(configuration, parameters);
-            return new ChronicleEngineEnpoint(uri, this, remaining, configuration);
-        default:
+        if (ObjectHelper.equal(name, ChronicleTypes.ENGINE, true)) {
+            return new ChronicleEngineEnpoint(
+                uri,
+                this,
+                remaining,
+                createConfiguration(ChronicleEngineConfiguration::new, parameters));
+        } else {
             throw new IllegalArgumentException("Unknown type: " + remaining);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <C> C createConfiguration(Supplier<C> supplier, Map<String, Object> parameters) throws Exception {
+        final C configuration = supplier.get();
+        if (configuration instanceof CamelContextAware) {
+            ((CamelContextAware)configuration).setCamelContext(getCamelContext());
+        }
+
+        setProperties(configuration, parameters);
+        return configuration;
     }
 }

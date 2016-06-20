@@ -14,15 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+
+package org.apache.camel.component.chronicle.engine;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 
 @UriParams
-class ChronicleEngineConfiguration {
+public class ChronicleEngineConfiguration implements CamelContextAware {
 
     @UriParam
     @Metadata(required = "true")
@@ -44,10 +46,20 @@ class ChronicleEngineConfiguration {
     @UriParam
     private boolean subscribeTopicEvents;
 
-    private final CamelContext context;
+    private CamelContext camelContext;
 
-    public ChronicleEngineConfiguration(CamelContext context) {
-        this.context = context;
+    // ****************************
+    //
+    // ****************************
+
+    @Override
+    public CamelContext getCamelContext() {
+        return camelContext;
+    }
+
+    @Override
+    public void setCamelContext(CamelContext camelContext) {
+        this.camelContext = camelContext;
     }
 
     // ****************************

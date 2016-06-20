@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,20 +29,19 @@ import net.openhft.chronicle.engine.tree.TopologicalEvent;
 import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import net.openhft.chronicle.wire.WireType;
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
+import org.apache.camel.component.chronicle.AbstractChronicleConsumer;
 import org.apache.camel.util.ObjectHelper;
-
-import static org.apache.camel.component.teiid.ChronicleEngineHelper.fromMapEventTypeName;
-import static org.apache.camel.component.teiid.ChronicleEngineHelper.toMapEventTypeName;
 
 /**
  * The Chronicle Engine consumer.
  */
-class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineEnpoint, ChronicleEngineConfiguration> {
+public class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineEnpoint, ChronicleEngineConfiguration> {
     private AssetTree tree;
 
-    ChronicleEngineConsumer(ChronicleEngineEnpoint endpoint, Processor processor) {
+    public ChronicleEngineConsumer(ChronicleEngineEnpoint endpoint, Processor processor) {
         super(endpoint, processor);
     }
 
@@ -57,7 +57,7 @@ class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineE
 
         tree = new VanillaAssetTree()
             .forRemoteAccess(
-                conf.getHostPortDescription().split(","),
+                conf.getHostPortDescription(),
                 WireType.valueOf(conf.getWireType()),
                 t -> { throw new RuntimeCamelException(t); }
         );
@@ -107,8 +107,8 @@ class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineE
                 String[] events = toBeFiltered.split(",");
                 filteredEvents = new ArrayList<>(events.length);
 
-                for (int i=0; i<events.length; i++) {
-                    filteredEvents.add(fromMapEventTypeName(events[i]));
+                for (int i = 0; i < events.length; i++) {
+                    filteredEvents.add(ChronicleEngineHelper.fromMapEventTypeName(events[i]));
                 }
             }
         }
@@ -119,15 +119,17 @@ class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineE
                 return;
             }
 
-            Exchange exchange = getEndpoint().createExchange();
-            exchange.getIn().setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
-            exchange.getIn().setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
-            exchange.getIn().setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, toMapEventTypeName(event));
-            exchange.getIn().setHeader(ChronicleEngineConstants.MAP_KEY, event.getKey());
-            exchange.getIn().setBody(event.getValue());
+            final Exchange exchange = getEndpoint().createExchange();
+            final Message message = exchange.getIn();
+
+            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
+            message.setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, ChronicleEngineHelper.toMapEventTypeName(event));
+            message.setHeader(ChronicleEngineConstants.MAP_KEY, event.getKey());
+            message.setBody(event.getValue());
 
             if (event.oldValue() != null) {
-                exchange.getIn().setHeader(ChronicleEngineConstants.MAP_OLD_VALUE, event.oldValue());
+                message.setHeader(ChronicleEngineConstants.MAP_OLD_VALUE, event.oldValue());
             }
 
             try {
@@ -145,12 +147,14 @@ class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineE
     private class EngineTopologicalEventListener implements Subscriber<TopologicalEvent> {
         @Override
         public void onMessage(TopologicalEvent event) throws InvalidSubscriberException {
-            Exchange exchange = getEndpoint().createExchange();
-            exchange.getIn().setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
-            exchange.getIn().setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
-            exchange.getIn().setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_NAME, event.name());
-            exchange.getIn().setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_FULL_NAME, event.fullName());
-            exchange.getIn().setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_ADDED, Boolean.toString(event.added()));
+            final Exchange exchange = getEndpoint().createExchange();
+            final Message message = exchange.getIn();
+
+            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
+            message.setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_NAME, event.name());
+            message.setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_FULL_NAME, event.fullName());
+            message.setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_ADDED, Boolean.toString(event.added()));
 
             try {
                 getProcessor().process(exchange);
@@ -166,11 +170,13 @@ class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineE
 
     private class EngineTopicEventListener implements TopicSubscriber<Object, Object> {
         @Override
-        public void onMessage(Object topic, Object message) throws InvalidSubscriberException {
-            Exchange exchange = getEndpoint().createExchange();
-            exchange.getIn().setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
-            exchange.getIn().setHeader(ChronicleEngineConstants.TOPIC, topic);
-            exchange.getIn().setBody(message);
+        public void onMessage(Object topic, Object dataMessage) throws InvalidSubscriberException {
+            final Exchange exchange = getEndpoint().createExchange();
+            final Message message = exchange.getIn();
+
+            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.TOPIC, topic);
+            message.setBody(dataMessage);
 
             try {
                 getProcessor().process(exchange);

@@ -47,20 +47,20 @@
         <!--<version.camel>2.17.0</version.camel>-->
         <version.log4j>1.2.17</version.log4j>
         <version.common.lang3>3.4</version.common.lang3>
-        <version.chronicle.engine>1.11.4</version.chronicle.engine>
-        <version.teiid>8.13.4</version.teiid>
+        <version.chronicle.engine>1.13.0-SNAPSHOT</version.chronicle.engine>
+        <version.teiid>9.0.0.Final</version.teiid>
         <version.oltu.oauth2>1.0.1</version.oltu.oauth2>
 
         <jdk.version>1.8</jdk.version>
         <cxf-version>3.1.6</cxf-version>
         <junit-version>4.12</junit-version>
         <htmlunit.version>2.15</htmlunit.version>
-        <jackson2-version>2.7.4</jackson2-version>
-        <spring4-version>4.2.5.RELEASE</spring4-version>
+        <jackson2-version>2.7.5</jackson2-version>
+        <spring4-version>4.2.0.RELEASE</spring4-version>
         <spring-version>${spring4-version}</spring-version>
-        <infinispan-version>8.2.1.Final</infinispan-version>
-        <log4j2-version>2.5</log4j2-version>
-        <spring-boot-version>1.3.4.RELEASE</spring-boot-version>
+        <infinispan-version>8.2.2.Final</infinispan-version>
+        <log4j2-version>2.6.1</log4j2-version>
+        <spring-boot-version>1.3.5.RELEASE</spring-boot-version>
     </properties>
 
     <!-- ******************************************************************* -->

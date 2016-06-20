@@ -14,11 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
+
+package org.apache.camel.component.chronicle.engine;
 
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
+import org.apache.camel.component.chronicle.AbstractChronicleEndpoint;
+import org.apache.camel.component.chronicle.ChronicleComponent;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriPath;
@@ -26,12 +29,12 @@ import org.apache.camel.util.ObjectHelper;
 
 
 @UriEndpoint(scheme = "chronicle", title = "Chronicle", syntax="chronicle:engine/path", consumerClass = ChronicleEngineConsumer.class, label = "Chronicle")
-class ChronicleEngineEnpoint extends AbstractChronicleEndpoint<ChronicleEngineConfiguration> {
+public class ChronicleEngineEnpoint extends AbstractChronicleEndpoint<ChronicleEngineConfiguration> {
     @UriPath(description = "The data path")
     @Metadata(required = "true")
     private final String path;
 
-    ChronicleEngineEnpoint(String uri, ChronicleComponent component, String remaining, ChronicleEngineConfiguration configuration) throws Exception {
+    public ChronicleEngineEnpoint(String uri, ChronicleComponent component, String remaining, ChronicleEngineConfiguration configuration) throws Exception {
         super(uri, component, configuration);
 
         this.path = ObjectHelper.after(remaining, "/");

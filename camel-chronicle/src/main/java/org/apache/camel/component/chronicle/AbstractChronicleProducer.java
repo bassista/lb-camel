@@ -14,26 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
 
-import org.apache.camel.impl.DefaultEndpoint;
+package org.apache.camel.component.chronicle;
 
-abstract class AbstractChronicleEndpoint<C> extends DefaultEndpoint {
+import org.apache.camel.impl.DefaultProducer;
 
-    private final C configuration;
-
-    protected AbstractChronicleEndpoint(String uri, ChronicleComponent component, C configuration) {
-        super(uri, component);
-
-        this.configuration = configuration;
+/**
+ * An Abstract Chronicle producer.
+ */
+public abstract class AbstractChronicleProducer<E extends AbstractChronicleEndpoint<C>, C> extends DefaultProducer {
+    protected AbstractChronicleProducer(E endpoint) {
+        super(endpoint);
     }
 
-    @Override
-    public boolean isSingleton() {
-        return true;
+    @SuppressWarnings("unchecked")
+    protected E getChronicleEnpoint() {
+        return (E)super.getEndpoint();
     }
 
     protected C getConfiguration() {
-        return configuration;
+        return getChronicleEnpoint().getConfiguration();
     }
 }

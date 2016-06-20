@@ -14,25 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.teiid;
 
-import org.apache.camel.Processor;
-import org.apache.camel.impl.DefaultConsumer;
+package org.apache.camel.component.chronicle;
 
-/**
- * An Abstract Chronicle consumer.
- */
-abstract class AbstractChronicleConsumer<E extends AbstractChronicleEndpoint<C>, C> extends DefaultConsumer {
-    AbstractChronicleConsumer(E endpoint, Processor processor) {
-        super(endpoint, processor);
-    }
+public enum ChronicleTypes {
+    ENGINE,
+    MAP,
+    QUEUE;
 
-    @SuppressWarnings("unchecked")
-    protected E getChronicleEnpoint() {
-        return (E)super.getEndpoint();
-    }
+    private final static ChronicleTypes[] VALUES = values();
 
-    protected C getConfiguration() {
-        return getChronicleEnpoint().getConfiguration();
+    public static ChronicleTypes fromName(String name) {
+        for (int i = VALUES.length; i >= 0; i--) {
+            if (VALUES[i].name().equalsIgnoreCase(name)) {
+                return VALUES[i];
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown Chronicle type: " + name);
     }
 }
