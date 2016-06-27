@@ -17,6 +17,9 @@
 
 package org.apache.camel.component.chronicle;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import net.openhft.chronicle.engine.server.ServerEndpoint;
 import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import net.openhft.chronicle.network.TCPRegistry;
@@ -32,9 +35,14 @@ public class ChronicleTestSupport extends CamelTestSupport {
     @Rule
     public final TestName name = new TestName();
 
+    private final List<VanillaAssetTree> clients;
     private VanillaAssetTree serverAssetTree;
     private ServerEndpoint serverEndpoint;
     private WireType wireType;
+
+    protected  ChronicleTestSupport() {
+        this.clients = new LinkedList<>();
+    }
 
     public TestName getName() {
         return name;
@@ -52,6 +60,23 @@ public class ChronicleTestSupport extends CamelTestSupport {
         return wireType;
     }
 
+    public String getAddress() {
+        return "localhost:9876";
+    }
+
+    public String[] getAddresses() {
+        return new String[] { getAddress() };
+    }
+
+    public VanillaAssetTree client() {
+        VanillaAssetTree client = new VanillaAssetTree()
+            .forRemoteAccess(getAddresses(), getWireType());
+
+        clients.add(client);
+
+        return client;
+    }
+
     // **************************
     // set-up / tear-down
     // **************************
@@ -60,12 +85,20 @@ public class ChronicleTestSupport extends CamelTestSupport {
     protected void doPreSetup() throws Exception {
         wireType = WireType.TEXT;
         serverAssetTree = new VanillaAssetTree().forTesting();
-        serverEndpoint = new ServerEndpoint("localhost:9876", serverAssetTree);
+        serverEndpoint = new ServerEndpoint(getAddress(), serverAssetTree);
     }
 
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
+
+        for (VanillaAssetTree client : clients) {
+            try {
+                client.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
 
         serverAssetTree.close();
         serverEndpoint.close();

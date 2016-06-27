@@ -17,9 +17,12 @@
 
 package org.apache.camel.component.chronicle;
 
+import net.openhft.chronicle.engine.api.tree.AssetTree;
+import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import org.apache.camel.impl.DefaultEndpoint;
+import org.apache.camel.util.ObjectHelper;
 
-public abstract class AbstractChronicleEndpoint<C> extends DefaultEndpoint {
+public abstract class AbstractChronicleEndpoint<C extends ChronicleConfiguration> extends DefaultEndpoint {
     private final C configuration;
 
     protected AbstractChronicleEndpoint(String uri, ChronicleComponent component, C configuration) {
@@ -35,5 +38,17 @@ public abstract class AbstractChronicleEndpoint<C> extends DefaultEndpoint {
 
     protected C getConfiguration() {
         return configuration;
+    }
+
+    // ****************************
+    // Helpers
+    // ****************************
+
+    public AssetTree remoteAssetTree() {
+        return new VanillaAssetTree()
+            .forRemoteAccess(
+                ObjectHelper.notNull(configuration.getAddresses(), "addresses"),
+                ObjectHelper.notNull(configuration.getWireType(), "WireType")
+            );
     }
 }

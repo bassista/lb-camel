@@ -17,76 +17,24 @@
 
 package org.apache.camel.component.chronicle.engine;
 
-import net.openhft.chronicle.wire.WireType;
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
-import org.apache.camel.spi.Metadata;
+import org.apache.camel.component.chronicle.ChronicleConfiguration;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 
 @UriParams
-public class ChronicleEngineConfiguration implements CamelContextAware {
+public class ChronicleEngineConfiguration extends ChronicleConfiguration {
 
-    @UriParam
-    @Metadata(required = "true")
-    private String address;
+    @UriParam(defaultValue = "true")
+    private boolean subscribeMapEvents = true;
 
-    @UriParam(defaultValue = "BINARY")
-    private String wireType = WireType.BINARY.name();
-
-    @UriParam
-    private boolean subscribeMapEvents;
-
-    @UriParam
-    private String filteredMapEvents;
+    @UriParam(javaType = "java.lang.String")
+    private String[] filteredMapEvents;
 
     @UriParam
     private boolean subscribeTopologicalEvents;
 
     @UriParam
     private boolean subscribeTopicEvents;
-
-    private CamelContext camelContext;
-
-    // ****************************
-    //
-    // ****************************
-
-    @Override
-    public CamelContext getCamelContext() {
-        return camelContext;
-    }
-
-    @Override
-    public void setCamelContext(CamelContext camelContext) {
-        this.camelContext = camelContext;
-    }
-
-    // ****************************
-    // CLIENT OPTIONS
-    // ****************************
-
-    public String getAddress() {
-        return address;
-    }
-
-    /**
-     * Description
-     */
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getWireType() {
-        return wireType;
-    }
-
-    /**
-     * Description
-     */
-    public void setWireType(String wireType) {
-        this.wireType = wireType;
-    }
 
     // ****************************
     // MAP EVENTS OPTIONS
@@ -103,7 +51,7 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
         this.subscribeMapEvents = subscribeMapEvents;
     }
 
-    public String getFilteredMapEvents() {
+    public String[] getFilteredMapEvents() {
         return filteredMapEvents;
     }
 
@@ -111,6 +59,13 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
      * Description
      */
     public void setFilteredMapEvents(String filteredMapEvents) {
+        setFilteredMapEvents(filteredMapEvents.split(","));
+    }
+
+    /**
+     * Description
+     */
+    public void setFilteredMapEvents(String[] filteredMapEvents) {
         this.filteredMapEvents = filteredMapEvents;
     }
 

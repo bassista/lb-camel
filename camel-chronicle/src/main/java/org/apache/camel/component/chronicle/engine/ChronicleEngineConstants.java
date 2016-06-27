@@ -18,17 +18,13 @@
 package org.apache.camel.component.chronicle.engine;
 
 public interface ChronicleEngineConstants {
-    String ASSET_NAME                   = "ChronicleEngineAssetName";
-    String PATH                         = "ChronicleEnginePath";
-    String TOPIC                        = "ChronicleEngineTopic";
-    String TOPOLOGICAL_EVENT_NAME       = "ChronicleEngineTopologicalEventName";
-    String TOPOLOGICAL_EVENT_FULL_NAME  = "ChronicleEngineTopologicalEventFullName";
-    String TOPOLOGICAL_EVENT_ADDED      = "ChronicleEngineTopologicalEventAdded";
-    String MAP_EVENT_TYPE               = "ChronicleEngineMapEventType";
-    String MAP_KEY                      = "ChronicleEngineMapKey";
-    String MAP_OLD_VALUE                = "ChronicleEngineMapOldValue";
-
-    String MAP_EVENT_TYPE_INSERT = "insert";
-    String MAP_EVENT_TYPE_UPDATE = "update";
-    String MAP_EVENT_TYPE_REMOVE = "remove";
+    String ASSET_NAME = "ChronicleEngineAssetName";
+    String PATH = "ChronicleEnginePath";
+    String TOPIC = "ChronicleEngineTopic";
+    String TOPOLOGICAL_EVENT_NAME = "ChronicleEngineTopologicalEventName";
+    String TOPOLOGICAL_EVENT_FULL_NAME = "ChronicleEngineTopologicalEventFullName";
+    String TOPOLOGICAL_EVENT_ADDED = "ChronicleEngineTopologicalEventAdded";
+    String MAP_EVENT_TYPE = "ChronicleEngineMapEventType";
+    String MAP_KEY = "ChronicleEngineMapKey";
+    String MAP_OLD_VALUE = "ChronicleEngineMapOldValue";
 }

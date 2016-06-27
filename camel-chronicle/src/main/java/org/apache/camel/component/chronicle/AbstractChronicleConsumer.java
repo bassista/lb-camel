@@ -23,7 +23,7 @@ import org.apache.camel.impl.DefaultConsumer;
 /**
  * An Abstract Chronicle consumer.
  */
-public abstract class AbstractChronicleConsumer<E extends AbstractChronicleEndpoint<C>, C> extends DefaultConsumer {
+public abstract class AbstractChronicleConsumer<C extends ChronicleConfiguration, E extends AbstractChronicleEndpoint<C>> extends DefaultConsumer {
     protected AbstractChronicleConsumer(E endpoint, Processor processor) {
         super(endpoint, processor);
     }

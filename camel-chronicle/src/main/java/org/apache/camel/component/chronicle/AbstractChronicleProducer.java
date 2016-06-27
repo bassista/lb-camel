@@ -22,7 +22,7 @@ import org.apache.camel.impl.DefaultProducer;
 /**
  * An Abstract Chronicle producer.
  */
-public abstract class AbstractChronicleProducer<E extends AbstractChronicleEndpoint<C>, C> extends DefaultProducer {
+public abstract class AbstractChronicleProducer<C extends ChronicleConfiguration, E extends AbstractChronicleEndpoint<C>> extends DefaultProducer {
     protected AbstractChronicleProducer(E endpoint) {
         super(endpoint);
     }

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.chronicle.engine;
 
 import net.openhft.chronicle.engine.api.map.MapEvent;
@@ -22,35 +21,37 @@ import net.openhft.chronicle.engine.map.InsertedEvent;
 import net.openhft.chronicle.engine.map.RemovedEvent;
 import net.openhft.chronicle.engine.map.UpdatedEvent;
 
-public final class ChronicleEngineHelper {
 
-    private ChronicleEngineHelper() {
+public enum ChronicleEngineMapEventType {
+    INSERT(InsertedEvent.class),
+    UPDATE(UpdatedEvent.class),
+    REMOVE(RemovedEvent.class);
+
+    private final Class<? extends MapEvent> type;
+
+    ChronicleEngineMapEventType(Class<? extends MapEvent> type) {
+        this.type = type;
     }
 
-    public static String toMapEventTypeName(MapEvent event) {
+    public Class<? extends MapEvent> getType() {
+        return this.type;
+    }
+
+    public static Class<? extends MapEvent> getType(String name) {
+        return valueOf(name.toUpperCase()).getType();
+    }
+
+    public static ChronicleEngineMapEventType fromEvent(MapEvent event) {
         if (event instanceof InsertedEvent) {
-            return ChronicleEngineConstants.MAP_EVENT_TYPE_INSERT;
+            return ChronicleEngineMapEventType.INSERT;
         }
         if (event instanceof UpdatedEvent) {
-            return ChronicleEngineConstants.MAP_EVENT_TYPE_UPDATE;
+            return ChronicleEngineMapEventType.UPDATE;
         }
         if (event instanceof RemovedEvent) {
-            return ChronicleEngineConstants.MAP_EVENT_TYPE_REMOVE;
+            return ChronicleEngineMapEventType.REMOVE;
         }
 
         throw new IllegalArgumentException("Unknown event type: " + event.getClass());
-    }
-
-    public static Class<? extends MapEvent> fromMapEventTypeName(String event) {
-        switch (event.toUpperCase()) {
-        case ChronicleEngineConstants.MAP_EVENT_TYPE_INSERT:
-            return InsertedEvent.class;
-        case ChronicleEngineConstants.MAP_EVENT_TYPE_UPDATE:
-            return UpdatedEvent.class;
-        case ChronicleEngineConstants.MAP_EVENT_TYPE_REMOVE:
-            return RemovedEvent.class;
-        default:
-            throw new IllegalArgumentException("Unknown event type: " + event);
-        }
     }
 }

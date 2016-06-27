@@ -26,19 +26,16 @@ import net.openhft.chronicle.engine.api.pubsub.Subscriber;
 import net.openhft.chronicle.engine.api.pubsub.TopicSubscriber;
 import net.openhft.chronicle.engine.api.tree.AssetTree;
 import net.openhft.chronicle.engine.tree.TopologicalEvent;
-import net.openhft.chronicle.engine.tree.VanillaAssetTree;
-import net.openhft.chronicle.wire.WireType;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.component.chronicle.AbstractChronicleConsumer;
-import org.apache.camel.util.ObjectHelper;
 
 /**
  * The Chronicle Engine consumer.
  */
-public class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineEnpoint, ChronicleEngineConfiguration> {
+public class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineConfiguration, ChronicleEngineEnpoint> {
     private AssetTree tree;
 
     public ChronicleEngineConsumer(ChronicleEngineEnpoint endpoint, Processor processor) {
@@ -52,15 +49,7 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
         }
 
         ChronicleEngineConfiguration conf = getConfiguration();
-        ObjectHelper.notNull(conf.getAddress(), "HostPortDescription");
-        ObjectHelper.notNull(conf.getWireType(), "WireType");
-
-        tree = new VanillaAssetTree()
-            .forRemoteAccess(
-                conf.getAddress(),
-                WireType.valueOf(conf.getWireType()),
-                t -> { throw new RuntimeCamelException(t); }
-        );
+        tree = getChronicleEnpoint().remoteAssetTree();
 
         if (conf.isSubscribeMapEvents()) {
             tree.registerSubscriber(
@@ -100,15 +89,13 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
     private class EngineMapEventListener implements Subscriber<MapEvent> {
         private List<Class<? extends MapEvent>> filteredEvents;
 
-        EngineMapEventListener(String toBeFiltered) {
+        EngineMapEventListener(String[] events) {
             this.filteredEvents = null;
 
-            if (ObjectHelper.isNotEmpty(toBeFiltered)) {
-                String[] events = toBeFiltered.split(",");
+            if (events != null && events.length > 0) {
                 filteredEvents = new ArrayList<>(events.length);
-
-                for (int i = 0; i < events.length; i++) {
-                    filteredEvents.add(ChronicleEngineHelper.fromMapEventTypeName(events[i]));
+                for (String event : events) {
+                    filteredEvents.add(ChronicleEngineMapEventType.getType(event));
                 }
             }
         }
@@ -124,7 +111,7 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
 
             message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
             message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
-            message.setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, ChronicleEngineHelper.toMapEventTypeName(event));
+            message.setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, ChronicleEngineMapEventType.fromEvent(event));
             message.setHeader(ChronicleEngineConstants.MAP_KEY, event.getKey());
             message.setBody(event.getValue());
 
