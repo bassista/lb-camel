@@ -17,14 +17,14 @@
 
 package org.apache.camel.component.chronicle;
 
-import org.apache.camel.impl.DefaultProducer;
+import org.apache.camel.impl.HeaderSelectorProducer;
 
 /**
  * An Abstract Chronicle producer.
  */
-public abstract class AbstractChronicleProducer<C extends ChronicleConfiguration, E extends AbstractChronicleEndpoint<C>> extends DefaultProducer {
-    protected AbstractChronicleProducer(E endpoint) {
-        super(endpoint);
+public abstract class AbstractChronicleProducer<C extends ChronicleConfiguration, E extends AbstractChronicleEndpoint<C>> extends HeaderSelectorProducer {
+    protected AbstractChronicleProducer(E endpoint, String header) {
+        super(endpoint, header);
     }
 
     @SuppressWarnings("unchecked")

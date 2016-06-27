@@ -45,7 +45,7 @@ public class ChronicleEngineEnpoint extends AbstractChronicleEndpoint<ChronicleE
 
     @Override
     public Producer createProducer() throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new ChronicleEngineProducer(this);
     }
 
     @Override

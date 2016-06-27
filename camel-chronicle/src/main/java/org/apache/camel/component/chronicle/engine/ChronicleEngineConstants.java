@@ -27,4 +27,5 @@ public interface ChronicleEngineConstants {
     String MAP_EVENT_TYPE = "ChronicleEngineMapEventType";
     String MAP_KEY = "ChronicleEngineMapKey";
     String MAP_OLD_VALUE = "ChronicleEngineMapOldValue";
+    String ACTION = "ChronicleEngineAction";
 }
