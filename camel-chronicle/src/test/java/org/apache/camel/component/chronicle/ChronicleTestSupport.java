@@ -17,8 +17,6 @@
 
 package org.apache.camel.component.chronicle;
 
-import java.net.InetSocketAddress;
-
 import net.openhft.chronicle.engine.server.ServerEndpoint;
 import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import net.openhft.chronicle.network.TCPRegistry;
@@ -37,7 +35,6 @@ public class ChronicleTestSupport extends CamelTestSupport {
     private VanillaAssetTree serverAssetTree;
     private ServerEndpoint serverEndpoint;
     private WireType wireType;
-    private String serverPortDescription;
 
     public TestName getName() {
         return name;
@@ -55,14 +52,6 @@ public class ChronicleTestSupport extends CamelTestSupport {
         return wireType;
     }
 
-    public String getServerPortDescription() {
-        return serverPortDescription;
-    }
-
-    public InetSocketAddress getServerAddress() {
-        return TCPRegistry.lookup(serverPortDescription);
-    }
-
     // **************************
     // set-up / tear-down
     // **************************
@@ -71,10 +60,7 @@ public class ChronicleTestSupport extends CamelTestSupport {
     protected void doPreSetup() throws Exception {
         wireType = WireType.TEXT;
         serverAssetTree = new VanillaAssetTree().forTesting();
-        serverPortDescription = "CameChronicle." + name.getMethodName() + ".host.port";
-
-        TCPRegistry.createServerSocketChannelFor(serverPortDescription);
-        serverEndpoint = new ServerEndpoint(serverPortDescription, serverAssetTree);
+        serverEndpoint = new ServerEndpoint("localhost:9876", serverAssetTree);
     }
 
     @Override

@@ -45,7 +45,7 @@ public class ChronicleComponent extends UriEndpointComponent {
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         String name = ObjectHelper.before(remaining, "/");
 
-        if (ObjectHelper.equal(name, ChronicleTypes.ENGINE, true)) {
+        if (ObjectHelper.equal(name, ChronicleTypes.ENGINE.name(), true)) {
             return new ChronicleEngineEnpoint(
                 uri,
                 this,

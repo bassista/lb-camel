@@ -52,12 +52,12 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
         }
 
         ChronicleEngineConfiguration conf = getConfiguration();
-        ObjectHelper.notNull(conf.getHostPortDescription(), "HostPortDescription");
+        ObjectHelper.notNull(conf.getAddress(), "HostPortDescription");
         ObjectHelper.notNull(conf.getWireType(), "WireType");
 
         tree = new VanillaAssetTree()
             .forRemoteAccess(
-                conf.getHostPortDescription(),
+                conf.getAddress(),
                 WireType.valueOf(conf.getWireType()),
                 t -> { throw new RuntimeCamelException(t); }
         );

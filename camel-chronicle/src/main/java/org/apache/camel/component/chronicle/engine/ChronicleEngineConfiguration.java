@@ -17,6 +17,7 @@
 
 package org.apache.camel.component.chronicle.engine;
 
+import net.openhft.chronicle.wire.WireType;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.spi.Metadata;
@@ -28,11 +29,10 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
 
     @UriParam
     @Metadata(required = "true")
-    private String hostPortDescription;
+    private String address;
 
-    @UriParam
-    @Metadata(required = "true")
-    private String wireType;
+    @UriParam(defaultValue = "BINARY")
+    private String wireType = WireType.BINARY.name();
 
     @UriParam
     private boolean subscribeMapEvents;
@@ -66,15 +66,15 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
     // CLIENT OPTIONS
     // ****************************
 
-    public String getHostPortDescription() {
-        return hostPortDescription;
+    public String getAddress() {
+        return address;
     }
 
     /**
      * Description
      */
-    public void setHostPortDescription(String hostPortDescription) {
-        this.hostPortDescription = hostPortDescription;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getWireType() {

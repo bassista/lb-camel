@@ -16,7 +16,33 @@
  */
 package org.apache.camel.component.chronicle.engine;
 
+import net.openhft.chronicle.engine.tree.VanillaAssetTree;
+import net.openhft.chronicle.wire.WireType;
+import org.apache.camel.RoutesBuilder;
+import org.apache.camel.RuntimeCamelException;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.chronicle.ChronicleTestSupport;
+import org.junit.Test;
 
 public class ChronicleEngineTest extends ChronicleTestSupport {
+
+    @Test
+    public void doTest() {
+        VanillaAssetTree tree = new VanillaAssetTree()
+            .forRemoteAccess(
+                "localhost:9876",
+                WireType.TEXT,
+                t -> { throw new RuntimeCamelException(t); }
+            );
+    }
+
+    @Override
+    protected RoutesBuilder createRouteBuilder() throws Exception {
+        return new RouteBuilder() {
+            public void configure() {
+                from("chronicle://engine/my/path?address=localhost:9876")
+                    .to("log:org.apache.camel.component.chronicle.engine?level=INFO&showAll=true");
+            }
+        };
+    }
 }
