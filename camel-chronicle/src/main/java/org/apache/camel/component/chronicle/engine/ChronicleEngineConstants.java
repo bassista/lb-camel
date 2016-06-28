@@ -25,7 +25,21 @@ public interface ChronicleEngineConstants {
     String TOPOLOGICAL_EVENT_FULL_NAME = "ChronicleEngineTopologicalEventFullName";
     String TOPOLOGICAL_EVENT_ADDED = "ChronicleEngineTopologicalEventAdded";
     String MAP_EVENT_TYPE = "ChronicleEngineMapEventType";
-    String MAP_KEY = "ChronicleEngineMapKey";
-    String MAP_OLD_VALUE = "ChronicleEngineMapOldValue";
+    String RESULT = "ChronicleEngineResult";
+    String KEY = "ChronicleEngineKey";
+    String VALUE = "ChronicleEngineValue";
+    String DEFAULT_VALUE = "ChronicleEngineDefaultValue";
+    String OLD_VALUE = "ChronicleEngineOldValue";
     String ACTION = "ChronicleEngineAction";
+    String ACTION_PUBLISH = "PUBLISH";
+    String ACTION_PUT = "PUT";
+    String ACTION_GET_AND_PUT = "GET_AND_PUT";
+    String ACTION_PUT_ALL = "PUT_ALL";
+    String ACTION_PUT_IF_ABSENT = "PUT_IF_ABSENT";
+    String ACTION_GET = "GET";
+    String ACTION_GET_AND_REMOVE = "GET_AND_REMOVE";
+    String ACTION_GET_OR_DEFAULT = "GET_OR_DEFAULT";
+    String ACTION_REMOVE = "REMOVE";
+    String ACTION_IS_EMPTY = "IS_EMPTY";
+    String ACTION_IS_SIZE = "SIZE";
 }

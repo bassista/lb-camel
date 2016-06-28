@@ -35,7 +35,7 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
         mock.expectedMessageCount(1);
         mock.expectedBodiesReceived("val");
         mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "my/path");
-        mock.expectedHeaderReceived(ChronicleEngineConstants.MAP_KEY, key);
+        mock.expectedHeaderReceived(ChronicleEngineConstants.KEY, key);
 
         Map<String, String> map = client().acquireMap("/my/path", String.class, String.class);
         map.put(key, "val");
@@ -67,7 +67,7 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
             mock.getExchanges().get(1).getIn().getHeader(ChronicleEngineConstants.MAP_EVENT_TYPE),
             ChronicleEngineMapEventType.REMOVE);
         assertEquals(
-            mock.getExchanges().get(1).getIn().getHeader(ChronicleEngineConstants.MAP_OLD_VALUE),
+            mock.getExchanges().get(1).getIn().getHeader(ChronicleEngineConstants.OLD_VALUE),
             "val-2");
     }
 

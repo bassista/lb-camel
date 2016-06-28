@@ -112,11 +112,11 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
             message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
             message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
             message.setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, ChronicleEngineMapEventType.fromEvent(event));
-            message.setHeader(ChronicleEngineConstants.MAP_KEY, event.getKey());
+            message.setHeader(ChronicleEngineConstants.KEY, event.getKey());
             message.setBody(event.getValue());
 
             if (event.oldValue() != null) {
-                message.setHeader(ChronicleEngineConstants.MAP_OLD_VALUE, event.oldValue());
+                message.setHeader(ChronicleEngineConstants.OLD_VALUE, event.oldValue());
             }
 
             try {
