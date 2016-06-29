@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.chronicle.engine;
+
+package org.apache.camel.component.chronicle;
 
 import net.openhft.chronicle.engine.api.map.MapEvent;
 import net.openhft.chronicle.engine.map.InsertedEvent;
@@ -27,6 +28,7 @@ public enum ChronicleEngineMapEventType {
     UPDATE(UpdatedEvent.class),
     REMOVE(RemovedEvent.class);
 
+    private static final ChronicleEngineMapEventType[] VALUES = values();
     private final Class<? extends MapEvent> type;
 
     ChronicleEngineMapEventType(Class<? extends MapEvent> type) {

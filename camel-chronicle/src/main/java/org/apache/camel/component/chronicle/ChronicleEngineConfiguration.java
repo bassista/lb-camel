@@ -15,14 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle.engine;
+package org.apache.camel.component.chronicle;
 
-import org.apache.camel.component.chronicle.ChronicleConfiguration;
+import net.openhft.chronicle.wire.WireType;
+import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 
 @UriParams
-public class ChronicleEngineConfiguration extends ChronicleConfiguration {
+public class ChronicleEngineConfiguration implements CamelContextAware {
+
+    @UriParam(defaultValue = "BINARY", javaType = "java.lang.String")
+    private WireType wireType = WireType.BINARY;
 
     @UriParam(defaultValue = "true")
     private boolean subscribeMapEvents = true;
@@ -35,6 +40,82 @@ public class ChronicleEngineConfiguration extends ChronicleConfiguration {
 
     @UriParam
     private boolean subscribeTopicEvents;
+
+    @UriParam
+    private String action;
+
+    private CamelContext camelContext;
+    private String[] addresses;
+    private String path;
+
+    // ****************************
+    //
+    // ****************************
+
+    @Override
+    public CamelContext getCamelContext() {
+        return camelContext;
+    }
+
+    @Override
+    public void setCamelContext(CamelContext camelContext) {
+        this.camelContext = camelContext;
+    }
+
+    public String[] getAddresses() {
+        return addresses;
+    }
+
+    /**
+     * Description
+     */
+    public void setAddresses(String addresses) {
+        setAddresses(addresses.split(","));
+    }
+
+    /**
+     * Description
+     */
+    public void setAddresses(String[] addresses) {
+        this.addresses = addresses;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Description
+     */
+    public void setPath(String path) {
+        this.path = path;
+
+        if (!this.path.startsWith("/")) {
+            this.path = "/" + this.path;
+        }
+    }
+
+    // ****************************
+    // CLIENT OPTIONS
+    // ****************************
+
+    public WireType getWireType() {
+        return wireType;
+    }
+
+    /**
+     * Description
+     */
+    public void setWireType(String wireType) {
+        setWireType(WireType.valueOf(wireType));
+    }
+
+    /**
+     * Description
+     */
+    public void setWireType(WireType wireType) {
+        this.wireType = wireType;
+    }
 
     // ****************************
     // MAP EVENTS OPTIONS
@@ -97,5 +178,17 @@ public class ChronicleEngineConfiguration extends ChronicleConfiguration {
      */
     public void setSubscribeTopicEvents(boolean subscribeTopicEvents) {
         this.subscribeTopicEvents = subscribeTopicEvents;
+    }
+
+    // ****************************
+    // Misc
+    // ****************************
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

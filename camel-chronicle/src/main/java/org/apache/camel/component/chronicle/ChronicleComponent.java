@@ -18,52 +18,34 @@
 package org.apache.camel.component.chronicle;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
 import org.apache.camel.Endpoint;
-import org.apache.camel.component.chronicle.engine.ChronicleEngineConfiguration;
-import org.apache.camel.component.chronicle.engine.ChronicleEngineEnpoint;
 import org.apache.camel.impl.UriEndpointComponent;
 import org.apache.camel.util.ObjectHelper;
 
 /**
- * Represents the component that manages {@link AbstractChronicleEndpoint}.
+ * Represents the component that manages {@link ChronicleEngineEnpoint}.
  */
 public class ChronicleComponent extends UriEndpointComponent {
     
     public ChronicleComponent() {
-        super(AbstractChronicleEndpoint.class);
+        super(ChronicleEngineEnpoint.class);
     }
 
     public ChronicleComponent(CamelContext context) {
-        super(context, AbstractChronicleEndpoint.class);
+        super(context, ChronicleEngineEnpoint.class);
     }
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        String name = ObjectHelper.before(remaining, "/");
-
-        if (ObjectHelper.equal(name, ChronicleTypes.ENGINE.name(), true)) {
-            return new ChronicleEngineEnpoint(
-                uri,
-                this,
-                remaining,
-                createConfiguration(ChronicleEngineConfiguration::new, parameters));
-        } else {
-            throw new IllegalArgumentException("Unknown type: " + remaining);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <C> C createConfiguration(Supplier<C> supplier, Map<String, Object> parameters) throws Exception {
-        final C configuration = supplier.get();
-        if (configuration instanceof CamelContextAware) {
-            ((CamelContextAware)configuration).setCamelContext(getCamelContext());
-        }
+        final ChronicleEngineConfiguration configuration = new ChronicleEngineConfiguration();
+        configuration.setCamelContext(getCamelContext());
+        configuration.setAddresses(ObjectHelper.before(remaining, "/"));
+        configuration.setPath(ObjectHelper.after(remaining, "/"));
 
         setProperties(configuration, parameters);
-        return configuration;
+
+        return new ChronicleEngineEnpoint(uri, this, configuration);
     }
 }

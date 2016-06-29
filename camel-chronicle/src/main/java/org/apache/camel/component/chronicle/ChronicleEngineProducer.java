@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.chronicle.engine;
+
+package org.apache.camel.component.chronicle;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -24,21 +25,21 @@ import net.openhft.chronicle.engine.api.pubsub.TopicPublisher;
 import net.openhft.chronicle.engine.api.tree.AssetTree;
 import org.apache.camel.InvokeOnHeader;
 import org.apache.camel.Message;
-import org.apache.camel.component.chronicle.AbstractChronicleProducer;
+import org.apache.camel.impl.HeaderSelectorProducer;
 import org.apache.camel.util.ObjectHelper;
 
-import static org.apache.camel.component.chronicle.engine.ChronicleEngineHelper.mandatoryBody;
-import static org.apache.camel.component.chronicle.engine.ChronicleEngineHelper.mandatoryKey;
+import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryBody;
+import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryKey;
 
 
-public class ChronicleEngineProducer extends AbstractChronicleProducer<ChronicleEngineConfiguration, ChronicleEngineEnpoint> {
+public class ChronicleEngineProducer extends HeaderSelectorProducer {
     private final String path;
     private WeakReference<TopicPublisher<Object, Object>> topicPublisher;
     private WeakReference<MapView<Object, Object>> mapView;
-    private AssetTree tree;
+    private AssetTree client;
 
     public ChronicleEngineProducer(ChronicleEngineEnpoint endpoint) {
-        super(endpoint, ChronicleEngineConstants.ACTION);
+        super(endpoint, ChronicleEngineConstants.ACTION, endpoint.getConfiguration().getAction());
 
         this.path = endpoint.getPath();
         this.topicPublisher = null;
@@ -49,7 +50,7 @@ public class ChronicleEngineProducer extends AbstractChronicleProducer<Chronicle
         TopicPublisher<Object, Object> rv = topicPublisher.get();
         if (rv == null) {
             topicPublisher = new WeakReference<>(
-                rv = tree.acquireTopicPublisher(path, Object.class, Object.class)
+                rv = client.acquireTopicPublisher(path, Object.class, Object.class)
             );
         }
 
@@ -60,7 +61,7 @@ public class ChronicleEngineProducer extends AbstractChronicleProducer<Chronicle
         MapView<Object, Object> rv = mapView.get();
         if (rv == null) {
             mapView = new WeakReference<>(
-                rv = tree.acquireMap(path, Object.class, Object.class)
+                rv = client.acquireMap(path, Object.class, Object.class)
             );
         }
 
@@ -75,19 +76,18 @@ public class ChronicleEngineProducer extends AbstractChronicleProducer<Chronicle
     protected void doStart() throws Exception {
         super.doStart();
 
-        if (tree != null) {
+        if (client != null) {
             throw new IllegalStateException("AssetTree already configured");
         }
 
-        ChronicleEngineConfiguration conf = getConfiguration();
-        tree = getChronicleEnpoint().remoteAssetTree();
+        client = ((ChronicleEngineEnpoint)getEndpoint()).createRemoteAssetTree();
     }
 
     @Override
     protected void doStop() throws Exception {
-        if (tree != null) {
-            tree.close();
-            tree = null;
+        if (client != null) {
+            client.close();
+            client = null;
         }
 
         super.doStop();

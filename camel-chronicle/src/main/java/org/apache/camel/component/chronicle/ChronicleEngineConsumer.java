@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle.engine;
+package org.apache.camel.component.chronicle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,44 +30,48 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.RuntimeCamelException;
-import org.apache.camel.component.chronicle.AbstractChronicleConsumer;
+import org.apache.camel.impl.DefaultConsumer;
 
 /**
  * The Chronicle Engine consumer.
  */
-public class ChronicleEngineConsumer extends AbstractChronicleConsumer<ChronicleEngineConfiguration, ChronicleEngineEnpoint> {
-    private AssetTree tree;
+public class ChronicleEngineConsumer extends DefaultConsumer {
+    private final String path;
+    private AssetTree client;
 
     public ChronicleEngineConsumer(ChronicleEngineEnpoint endpoint, Processor processor) {
         super(endpoint, processor);
+
+        this.path = endpoint.getPath();
     }
 
     @Override
     protected void doStart() throws Exception {
-        if (tree != null) {
+        if (client != null) {
             throw new IllegalStateException("AssetTree already configured");
         }
 
-        ChronicleEngineConfiguration conf = getConfiguration();
-        tree = getChronicleEnpoint().remoteAssetTree();
+        ChronicleEngineEnpoint endpoint = (ChronicleEngineEnpoint)getEndpoint();
+        ChronicleEngineConfiguration conf = endpoint.getConfiguration();
+        client = endpoint.createRemoteAssetTree();
 
         if (conf.isSubscribeMapEvents()) {
-            tree.registerSubscriber(
-                getChronicleEnpoint().getPath(),
+            client.registerSubscriber(
+                endpoint.getPath(),
                 MapEvent.class,
                 new EngineMapEventListener(conf.getFilteredMapEvents()));
         }
 
         if (conf.isSubscribeTopologicalEvents()) {
-            tree.registerSubscriber(
-                getChronicleEnpoint().getPath(),
+            client.registerSubscriber(
+                endpoint.getPath(),
                 TopologicalEvent.class,
                 new EngineTopologicalEventListener());
         }
 
         if (conf.isSubscribeTopicEvents()) {
-            tree.registerTopicSubscriber(
-                getChronicleEnpoint().getPath(),
+            client.registerTopicSubscriber(
+                endpoint.getPath(),
                 Object.class,
                 Object.class,
                 new EngineTopicEventListener());
@@ -76,9 +80,9 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
 
     @Override
     protected void doStop() throws Exception {
-        if (tree != null) {
-            tree.close();
-            tree = null;
+        if (client != null) {
+            client.close();
+            client = null;
         }
     }
 
@@ -109,7 +113,7 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
             final Exchange exchange = getEndpoint().createExchange();
             final Message message = exchange.getIn();
 
-            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.PATH, path);
             message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
             message.setHeader(ChronicleEngineConstants.MAP_EVENT_TYPE, ChronicleEngineMapEventType.fromEvent(event));
             message.setHeader(ChronicleEngineConstants.KEY, event.getKey());
@@ -137,7 +141,7 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
             final Exchange exchange = getEndpoint().createExchange();
             final Message message = exchange.getIn();
 
-            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.PATH, path);
             message.setHeader(ChronicleEngineConstants.ASSET_NAME, event.assetName());
             message.setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_NAME, event.name());
             message.setHeader(ChronicleEngineConstants.TOPOLOGICAL_EVENT_FULL_NAME, event.fullName());
@@ -161,7 +165,7 @@ public class ChronicleEngineConsumer extends AbstractChronicleConsumer<Chronicle
             final Exchange exchange = getEndpoint().createExchange();
             final Message message = exchange.getIn();
 
-            message.setHeader(ChronicleEngineConstants.PATH, getChronicleEnpoint().getPath());
+            message.setHeader(ChronicleEngineConstants.PATH, path);
             message.setHeader(ChronicleEngineConstants.TOPIC, topic);
             message.setBody(dataMessage);
 

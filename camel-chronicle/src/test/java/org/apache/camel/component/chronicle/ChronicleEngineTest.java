@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.chronicle.engine;
+
+package org.apache.camel.component.chronicle;
 
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.chronicle.ChronicleTestSupport;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:map-events");
         mock.expectedMessageCount(1);
         mock.expectedBodiesReceived("val");
-        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "my/path");
+        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "/my/path");
         mock.expectedHeaderReceived(ChronicleEngineConstants.KEY, key);
 
         Map<String, String> map = client().acquireMap("/my/path", String.class, String.class);
@@ -78,7 +78,7 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:topological-events");
         mock.expectedMessageCount(1);
         mock.expectedBodiesReceived((String)null);
-        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "my/path");
+        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "/my/path");
         mock.expectedHeaderReceived(ChronicleEngineConstants.TOPOLOGICAL_EVENT_FULL_NAME, "/my/path");
 
         Map<String, String> map = client().acquireMap("/my/path", String.class, String.class);
@@ -94,7 +94,7 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:topic-events");
         mock.expectedMessageCount(1);
         mock.expectedBodiesReceived("val");
-        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "my/path");
+        mock.expectedHeaderReceived(ChronicleEngineConstants.PATH, "/my/path");
 
         Map<String, String> map = client().acquireMap("/my/path", String.class, String.class);
         map.put(key, "val");
@@ -106,13 +106,13 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
     protected RoutesBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("chronicle://engine/my/path?addresses=localhost:9876")
+                from("chronicle://localhost:9876/my/path")
                     .to("mock:map-events");
-                from("chronicle://engine/my/path?addresses=localhost:9876&filteredMapEvents=update")
+                from("chronicle://localhost:9876/my/path?filteredMapEvents=update")
                     .to("mock:map-events-filtering");
-                from("chronicle://engine/my/path?addresses=localhost:9876&subscribeMapEvents=false&subscribeTopologicalEvents=true")
+                from("chronicle://localhost:9876/my/path?subscribeMapEvents=false&subscribeTopologicalEvents=true")
                     .to("mock:topological-events");
-                from("chronicle://engine/my/path?addresses=localhost:9876&subscribeMapEvents=false&subscribeTopicEvents=true")
+                from("chronicle://localhost:9876/my/path?subscribeMapEvents=false&subscribeTopicEvents=true")
                     //.to("log:org.apache.camel.component.chronicle.engine?level=INFO&showAll=true")
                     .to("mock:topic-events");
             }

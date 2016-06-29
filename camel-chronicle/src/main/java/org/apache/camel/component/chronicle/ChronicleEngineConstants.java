@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle.engine;
+package org.apache.camel.component.chronicle;
 
 public interface ChronicleEngineConstants {
     String ASSET_NAME = "ChronicleEngineAssetName";

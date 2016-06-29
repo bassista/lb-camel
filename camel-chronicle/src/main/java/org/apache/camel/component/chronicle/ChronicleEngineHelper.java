@@ -17,23 +17,23 @@
 
 package org.apache.camel.component.chronicle;
 
-import org.apache.camel.Processor;
-import org.apache.camel.impl.DefaultConsumer;
+import org.apache.camel.Message;
+import org.apache.camel.util.ObjectHelper;
 
-/**
- * An Abstract Chronicle consumer.
- */
-public abstract class AbstractChronicleConsumer<C extends ChronicleConfiguration, E extends AbstractChronicleEndpoint<C>> extends DefaultConsumer {
-    protected AbstractChronicleConsumer(E endpoint, Processor processor) {
-        super(endpoint, processor);
+public final class ChronicleEngineHelper {
+    private ChronicleEngineHelper() {
     }
 
-    @SuppressWarnings("unchecked")
-    protected E getChronicleEnpoint() {
-        return (E)super.getEndpoint();
+
+    public static Object mandatoryHeader(Message message, String header) {
+        return ObjectHelper.notNull(message.getHeader(header), header);
     }
 
-    protected C getConfiguration() {
-        return getChronicleEnpoint().getConfiguration();
+    public static Object mandatoryKey(Message message) {
+        return mandatoryHeader(message, ChronicleEngineConstants.KEY);
+    }
+
+    public static Object mandatoryBody(Message message) {
+        return ObjectHelper.notNull(message.getBody(), ChronicleEngineConstants.VALUE);
     }
 }
