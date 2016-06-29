@@ -75,7 +75,13 @@ public class ChronicleEngineEnpoint extends DefaultEndpoint {
     }
 
     protected String getPath() {
-        return this.configuration.getPath();
+        return configuration.getPath();
+    }
+
+    protected String getUri() {
+        return configuration.isPersistent()
+            ? configuration.getPath()
+            : configuration.getPath() + "?dontPersist=true";
     }
 
     protected AssetTree createRemoteAssetTree() {

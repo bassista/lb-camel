@@ -17,55 +17,38 @@
 
 package org.apache.camel.component.chronicle;
 
-import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import net.openhft.chronicle.engine.api.map.MapView;
+import net.openhft.chronicle.engine.api.pubsub.Publisher;
 import net.openhft.chronicle.engine.api.pubsub.TopicPublisher;
 import net.openhft.chronicle.engine.api.tree.AssetTree;
+import net.openhft.chronicle.engine.tree.QueueView;
 import org.apache.camel.InvokeOnHeader;
 import org.apache.camel.Message;
 import org.apache.camel.impl.HeaderSelectorProducer;
 import org.apache.camel.util.ObjectHelper;
 
+import static org.apache.camel.component.chronicle.ChronicleEngineHelper.WeakRef;
 import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryBody;
 import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryKey;
 
-
 public class ChronicleEngineProducer extends HeaderSelectorProducer {
-    private final String path;
-    private WeakReference<TopicPublisher<Object, Object>> topicPublisher;
-    private WeakReference<MapView<Object, Object>> mapView;
+    private final String uri;
+    private WeakRef<TopicPublisher<Object, Object>> topicPublisher;
+    private WeakRef<Publisher<Object>> publisher;
+    private WeakRef<MapView<Object, Object>> mapView;
+    private WeakRef<QueueView<Object, Object>> queueView;
     private AssetTree client;
 
     public ChronicleEngineProducer(ChronicleEngineEnpoint endpoint) {
         super(endpoint, ChronicleEngineConstants.ACTION, endpoint.getConfiguration().getAction());
 
-        this.path = endpoint.getPath();
-        this.topicPublisher = null;
-        this.mapView = null;
-    }
-
-    private synchronized TopicPublisher<Object, Object> topicPublisher() {
-        TopicPublisher<Object, Object> rv = topicPublisher.get();
-        if (rv == null) {
-            topicPublisher = new WeakReference<>(
-                rv = client.acquireTopicPublisher(path, Object.class, Object.class)
-            );
-        }
-
-        return rv;
-    }
-
-    private synchronized MapView<Object, Object> mapView() {
-        MapView<Object, Object> rv = mapView.get();
-        if (rv == null) {
-            mapView = new WeakReference<>(
-                rv = client.acquireMap(path, Object.class, Object.class)
-            );
-        }
-
-        return rv;
+        this.uri = endpoint.getUri();
+        this.topicPublisher = WeakRef.create(() -> client.acquireTopicPublisher(uri, Object.class, Object.class));
+        this.publisher = WeakRef.create(() -> client.acquirePublisher(uri, Object.class));
+        this.mapView = WeakRef.create(() -> client.acquireMap(uri, Object.class, Object.class));
+        this.queueView = WeakRef.create(() -> client.acquireQueue(uri, Object.class, Object.class));
     }
 
     // ***************************
@@ -99,7 +82,21 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
 
     @InvokeOnHeader(ChronicleEngineConstants.ACTION_PUBLISH)
     public void onPublish(Message message) {
-        topicPublisher().publish(mandatoryKey(message), mandatoryBody(message));
+        final Object key = message.getHeader(ChronicleEngineConstants.KEY);
+        final Object val = mandatoryBody(message);
+
+        if (key == null) {
+            publisher.get().publish(val);
+        } else {
+            topicPublisher.get().publish(key, val);
+        }
+    }
+    @InvokeOnHeader(ChronicleEngineConstants.ACTION_PUBLISH_AND_INDEX)
+    public void onPublishAndIndex(Message message) {
+        message.setHeader(
+            ChronicleEngineConstants.QUEUE_INDEX,
+            queueView.get().publishAndIndex(mandatoryKey(message), mandatoryBody(message))
+        );
     }
 
     // ***************************
@@ -110,20 +107,20 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
     public void onPut(Message message) {
         message.setHeader(
             ChronicleEngineConstants.OLD_VALUE,
-            mapView().put(mandatoryKey(message), mandatoryBody(message))
+            mapView.get().put(mandatoryKey(message), mandatoryBody(message))
         );
     }
 
     @InvokeOnHeader(ChronicleEngineConstants.ACTION_GET_AND_PUT)
     public void onGetAndPut(Message message) {
         message.setBody(
-            mapView().getAndPut(mandatoryKey(message), mandatoryBody(message))
+            mapView.get().getAndPut(mandatoryKey(message), mandatoryBody(message))
         );
     }
 
     @InvokeOnHeader(ChronicleEngineConstants.ACTION_PUT_ALL)
     public void onPutAll(Message message) {
-        mapView().putAll(
+        mapView.get().putAll(
             ObjectHelper.notNull(message.getBody(Map.class), ChronicleEngineConstants.VALUE)
         );
     }
@@ -132,7 +129,7 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
     public void onPutIfAbsent(Message message) {
         message.setHeader(
             ChronicleEngineConstants.RESULT,
-            mapView().putIfAbsent(mandatoryKey(message), mandatoryBody(message))
+            mapView.get().putIfAbsent(mandatoryKey(message), mandatoryBody(message))
         );
     }
 
@@ -142,17 +139,26 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
 
     @InvokeOnHeader(ChronicleEngineConstants.ACTION_GET)
     public void onGet(Message message) {
-        message.setBody(
-            mapView().getOrDefault(
-                mandatoryKey(message),
-                message.getHeader(ChronicleEngineConstants.DEFAULT_VALUE))
-        );
+        final Long index = message.getHeader(ChronicleEngineConstants.QUEUE_INDEX, Long.class);
+
+        if (index == null) {
+            message.setBody(
+                mapView.get().getOrDefault(
+                    mandatoryKey(message),
+                    message.getHeader(ChronicleEngineConstants.DEFAULT_VALUE))
+            );
+        } else {
+            QueueView.Excerpt<Object, Object> excerpt = queueView.get().get(index.longValue());
+
+            message.setHeader(ChronicleEngineConstants.PATH, excerpt.topic());
+            message.setBody(excerpt.message());
+        }
     }
 
     @InvokeOnHeader(ChronicleEngineConstants.ACTION_GET_AND_REMOVE)
     public void onGetAndRemove(Message message) {
         message.setBody(
-            mapView().getAndRemove(mandatoryKey(message))
+            mapView.get().getAndRemove(mandatoryKey(message))
         );
     }
 
@@ -166,12 +172,12 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
         if (oldValue != null) {
             message.setHeader(
                 ChronicleEngineConstants.RESULT,
-                mapView().remove(mandatoryKey(message),oldValue)
+                mapView.get().remove(mandatoryKey(message),oldValue)
             );
         } else {
             message.setHeader(
                 ChronicleEngineConstants.OLD_VALUE,
-                mapView().remove(mandatoryKey(message))
+                mapView.get().remove(mandatoryKey(message))
             );
         }
     }
@@ -180,7 +186,7 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
     public void onIsEmpty(Message message) {
         message.setHeader(
             ChronicleEngineConstants.RESULT,
-            mapView().isEmpty()
+            mapView.get().isEmpty()
         );
     }
 
@@ -188,7 +194,7 @@ public class ChronicleEngineProducer extends HeaderSelectorProducer {
     public void onSize(Message message) {
         message.setHeader(
             ChronicleEngineConstants.RESULT,
-            mapView().size()
+            mapView.get().size()
         );
     }
 

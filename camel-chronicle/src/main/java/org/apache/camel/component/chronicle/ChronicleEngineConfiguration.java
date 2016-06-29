@@ -44,6 +44,9 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
     @UriParam
     private String action;
 
+    @UriParam(defaultValue = "true")
+    private boolean persistent = true;
+
     private CamelContext camelContext;
     private String[] addresses;
     private String path;
@@ -190,5 +193,13 @@ public class ChronicleEngineConfiguration implements CamelContextAware {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+    public boolean isPersistent() {
+        return persistent;
+    }
+
+    public void setPersistent(boolean persistent) {
+        this.persistent = persistent;
     }
 }

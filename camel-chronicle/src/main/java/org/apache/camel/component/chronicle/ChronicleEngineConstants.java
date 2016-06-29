@@ -17,29 +17,36 @@
 
 package org.apache.camel.component.chronicle;
 
-public interface ChronicleEngineConstants {
-    String ASSET_NAME = "ChronicleEngineAssetName";
-    String PATH = "ChronicleEnginePath";
-    String TOPIC = "ChronicleEngineTopic";
-    String TOPOLOGICAL_EVENT_NAME = "ChronicleEngineTopologicalEventName";
-    String TOPOLOGICAL_EVENT_FULL_NAME = "ChronicleEngineTopologicalEventFullName";
-    String TOPOLOGICAL_EVENT_ADDED = "ChronicleEngineTopologicalEventAdded";
-    String MAP_EVENT_TYPE = "ChronicleEngineMapEventType";
-    String RESULT = "ChronicleEngineResult";
-    String KEY = "ChronicleEngineKey";
-    String VALUE = "ChronicleEngineValue";
-    String DEFAULT_VALUE = "ChronicleEngineDefaultValue";
-    String OLD_VALUE = "ChronicleEngineOldValue";
-    String ACTION = "ChronicleEngineAction";
-    String ACTION_PUBLISH = "PUBLISH";
-    String ACTION_PUT = "PUT";
-    String ACTION_GET_AND_PUT = "GET_AND_PUT";
-    String ACTION_PUT_ALL = "PUT_ALL";
-    String ACTION_PUT_IF_ABSENT = "PUT_IF_ABSENT";
-    String ACTION_GET = "GET";
-    String ACTION_GET_AND_REMOVE = "GET_AND_REMOVE";
-    String ACTION_GET_OR_DEFAULT = "GET_OR_DEFAULT";
-    String ACTION_REMOVE = "REMOVE";
-    String ACTION_IS_EMPTY = "IS_EMPTY";
-    String ACTION_IS_SIZE = "SIZE";
+public final class ChronicleEngineConstants {
+    private ChronicleEngineConstants() {
+    }
+
+    // Headers
+    public static final String ASSET_NAME = "ChronicleEngineAssetName";
+    public static final String PATH = "ChronicleEnginePath";
+    public static final String TOPIC = "ChronicleEngineTopic";
+    public static final String TOPOLOGICAL_EVENT_NAME = "ChronicleEngineTopologicalEventName";
+    public static final String TOPOLOGICAL_EVENT_FULL_NAME = "ChronicleEngineTopologicalEventFullName";
+    public static final String TOPOLOGICAL_EVENT_ADDED = "ChronicleEngineTopologicalEventAdded";
+    public static final String MAP_EVENT_TYPE = "ChronicleEngineMapEventType";
+    public static final String RESULT = "ChronicleEngineResult";
+    public static final String QUEUE_INDEX = "ChronicleEngineQueueIndex";
+    public static final String KEY = "ChronicleEngineKey";
+    public static final String VALUE = "ChronicleEngineValue";
+    public static final String DEFAULT_VALUE = "ChronicleEngineDefaultValue";
+    public static final String OLD_VALUE = "ChronicleEngineOldValue";
+    public static final String ACTION = "ChronicleEngineAction";
+
+    // Actions
+    public static final String ACTION_PUBLISH = "PUBLISH";
+    public static final String ACTION_PUBLISH_AND_INDEX = "PUBLISH_AND_INDEX";
+    public static final String ACTION_PUT = "PUT";
+    public static final String ACTION_GET_AND_PUT = "GET_AND_PUT";
+    public static final String ACTION_PUT_ALL = "PUT_ALL";
+    public static final String ACTION_PUT_IF_ABSENT = "PUT_IF_ABSENT";
+    public static final String ACTION_GET = "GET";
+    public static final String ACTION_GET_AND_REMOVE = "GET_AND_REMOVE";
+    public static final String ACTION_REMOVE = "REMOVE";
+    public static final String ACTION_IS_EMPTY = "IS_EMPTY";
+    public static final String ACTION_IS_SIZE = "SIZE";
 }

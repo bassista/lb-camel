@@ -17,13 +17,15 @@
 
 package org.apache.camel.component.chronicle;
 
+import java.lang.ref.WeakReference;
+import java.util.function.Supplier;
+
 import org.apache.camel.Message;
 import org.apache.camel.util.ObjectHelper;
 
 public final class ChronicleEngineHelper {
     private ChronicleEngineHelper() {
     }
-
 
     public static Object mandatoryHeader(Message message, String header) {
         return ObjectHelper.notNull(message.getHeader(header), header);
@@ -35,5 +37,29 @@ public final class ChronicleEngineHelper {
 
     public static Object mandatoryBody(Message message) {
         return ObjectHelper.notNull(message.getBody(), ChronicleEngineConstants.VALUE);
+    }
+
+    public static final class WeakRef<T> {
+        private final Supplier<T> supplier;
+        private WeakReference<T> ref;
+
+        public WeakRef(Supplier<T> supplier) {
+            this.supplier = supplier;
+        }
+
+        public synchronized T get() {
+            T rv = ref.get();
+            if (rv == null) {
+                ref = new WeakReference<>(
+                    rv = supplier.get()
+                );
+            }
+
+            return rv;
+        }
+
+        public static <T> WeakRef<T> create(Supplier<T> supplier) {
+            return new WeakRef<>(supplier);
+        }
     }
 }

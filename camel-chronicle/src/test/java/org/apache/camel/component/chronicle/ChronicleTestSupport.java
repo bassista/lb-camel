@@ -20,6 +20,7 @@ package org.apache.camel.component.chronicle;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.openhft.chronicle.core.io.Closeable;
 import net.openhft.chronicle.engine.server.ServerEndpoint;
 import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import net.openhft.chronicle.network.TCPRegistry;
@@ -92,16 +93,10 @@ public class ChronicleTestSupport extends CamelTestSupport {
     public void tearDown() throws Exception {
         super.tearDown();
 
-        for (VanillaAssetTree client : clients) {
-            try {
-                client.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
+        clients.forEach(Closeable::closeQuietly);
 
-        serverAssetTree.close();
-        serverEndpoint.close();
+        Closeable.closeQuietly(serverAssetTree);
+        Closeable.closeQuietly(serverEndpoint);
 
         TcpChannelHub.closeAllHubs();
         TCPRegistry.reset();
