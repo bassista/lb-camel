@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.Map;
 
@@ -27,13 +27,13 @@ import org.apache.camel.util.ObjectHelper;
 /**
  * Represents the component that manages {@link ChronicleEngineEnpoint}.
  */
-public class ChronicleComponent extends UriEndpointComponent {
+public class ChronicleEngineComponent extends UriEndpointComponent {
     
-    public ChronicleComponent() {
+    public ChronicleEngineComponent() {
         super(ChronicleEngineEnpoint.class);
     }
 
-    public ChronicleComponent(CamelContext context) {
+    public ChronicleEngineComponent(CamelContext context) {
         super(context, ChronicleEngineEnpoint.class);
     }
 

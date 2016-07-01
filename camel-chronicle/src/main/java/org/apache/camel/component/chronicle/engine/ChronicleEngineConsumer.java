@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.ArrayList;
 import java.util.List;

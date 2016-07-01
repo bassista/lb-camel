@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.Map;
 
@@ -29,9 +29,9 @@ import org.apache.camel.Message;
 import org.apache.camel.impl.HeaderSelectorProducer;
 import org.apache.camel.util.ObjectHelper;
 
-import static org.apache.camel.component.chronicle.ChronicleEngineHelper.WeakRef;
-import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryBody;
-import static org.apache.camel.component.chronicle.ChronicleEngineHelper.mandatoryKey;
+import static org.apache.camel.component.chronicle.engine.ChronicleEngineHelper.WeakRef;
+import static org.apache.camel.component.chronicle.engine.ChronicleEngineHelper.mandatoryBody;
+import static org.apache.camel.component.chronicle.engine.ChronicleEngineHelper.mandatoryKey;
 
 public class ChronicleEngineProducer extends HeaderSelectorProducer {
     private final String uri;

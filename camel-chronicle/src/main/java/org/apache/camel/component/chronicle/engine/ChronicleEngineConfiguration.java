@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import net.openhft.chronicle.wire.WireType;
 import org.apache.camel.CamelContext;

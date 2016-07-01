@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import net.openhft.chronicle.engine.api.tree.AssetTree;
 import net.openhft.chronicle.engine.tree.VanillaAssetTree;
@@ -33,7 +33,7 @@ public class ChronicleEngineEnpoint extends DefaultEndpoint {
     @UriParam
     private final ChronicleEngineConfiguration configuration;
 
-    public ChronicleEngineEnpoint(String uri, ChronicleComponent component, ChronicleEngineConfiguration configuration) throws Exception {
+    public ChronicleEngineEnpoint(String uri, ChronicleEngineComponent component, ChronicleEngineConfiguration configuration) throws Exception {
         super(uri, component);
         this.configuration = configuration;
 

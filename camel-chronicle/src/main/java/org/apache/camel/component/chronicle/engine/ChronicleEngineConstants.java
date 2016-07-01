@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 public final class ChronicleEngineConstants {
     private ChronicleEngineConstants() {

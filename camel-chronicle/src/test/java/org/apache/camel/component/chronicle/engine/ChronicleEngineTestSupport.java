@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -26,13 +26,14 @@ import net.openhft.chronicle.engine.tree.VanillaAssetTree;
 import net.openhft.chronicle.network.TCPRegistry;
 import net.openhft.chronicle.network.connection.TcpChannelHub;
 import net.openhft.chronicle.wire.WireType;
+import org.apache.camel.test.AvailablePortFinder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
 @Ignore
-public class ChronicleTestSupport extends CamelTestSupport {
+public class ChronicleEngineTestSupport extends CamelTestSupport {
     @Rule
     public final TestName name = new TestName();
 
@@ -40,8 +41,9 @@ public class ChronicleTestSupport extends CamelTestSupport {
     private VanillaAssetTree serverAssetTree;
     private ServerEndpoint serverEndpoint;
     private WireType wireType;
+    private String address;
 
-    protected  ChronicleTestSupport() {
+    protected ChronicleEngineTestSupport() {
         this.clients = new LinkedList<>();
     }
 
@@ -62,7 +64,7 @@ public class ChronicleTestSupport extends CamelTestSupport {
     }
 
     public String getAddress() {
-        return "localhost:9876";
+        return address;
     }
 
     public String[] getAddresses() {
@@ -84,9 +86,10 @@ public class ChronicleTestSupport extends CamelTestSupport {
 
     @Override
     protected void doPreSetup() throws Exception {
+        address = "localhost:" + AvailablePortFinder.getNextAvailable();
         wireType = WireType.TEXT;
         serverAssetTree = new VanillaAssetTree().forTesting();
-        serverEndpoint = new ServerEndpoint(getAddress(), serverAssetTree);
+        serverEndpoint = new ServerEndpoint(address, serverAssetTree);
     }
 
     @Override

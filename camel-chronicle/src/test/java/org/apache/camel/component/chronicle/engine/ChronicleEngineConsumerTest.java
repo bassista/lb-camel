@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.camel.component.chronicle;
+package org.apache.camel.component.chronicle.engine;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +25,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Test;
 
-public class ChronicleEngineTest extends ChronicleTestSupport {
+public class ChronicleEngineConsumerTest extends ChronicleEngineTestSupport {
 
     @Test
     public void testMapEvents() throws Exception {
@@ -106,13 +106,13 @@ public class ChronicleEngineTest extends ChronicleTestSupport {
     protected RoutesBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("chronicle://localhost:9876/my/path")
+                fromF("chronicle-engine://%s/my/path?persistent=false", getAddress())
                     .to("mock:map-events");
-                from("chronicle://localhost:9876/my/path?filteredMapEvents=update")
+                fromF("chronicle-engine://%s/my/path?persistent=false&filteredMapEvents=update", getAddress())
                     .to("mock:map-events-filtering");
-                from("chronicle://localhost:9876/my/path?subscribeMapEvents=false&subscribeTopologicalEvents=true")
+                fromF("chronicle-engine://%s/my/path?persistent=false&subscribeMapEvents=false&subscribeTopologicalEvents=true", getAddress())
                     .to("mock:topological-events");
-                from("chronicle://localhost:9876/my/path?subscribeMapEvents=false&subscribeTopicEvents=true")
+                fromF("chronicle-engine://%s/my/path?persistent=false&subscribeMapEvents=false&subscribeTopicEvents=true", getAddress())
                     //.to("log:org.apache.camel.component.chronicle.engine?level=INFO&showAll=true")
                     .to("mock:topic-events");
             }
