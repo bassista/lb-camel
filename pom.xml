@@ -43,11 +43,10 @@
 
         <!-- deps -->
         <version.slf4j>1.7.21</version.slf4j>
-        <version.camel>2.18-SNAPSHOT</version.camel>
+        <version.camel>2.17.2</version.camel>
         <!--<version.camel>2.17.0</version.camel>-->
         <version.log4j>1.2.17</version.log4j>
         <version.common.lang3>3.4</version.common.lang3>
-        <version.chronicle.engine>1.13.0-SNAPSHOT</version.chronicle.engine>
         <version.teiid>9.0.0.Final</version.teiid>
         <version.oltu.oauth2>1.0.1</version.oltu.oauth2>
 
@@ -416,7 +415,6 @@
     <!-- ******************************************************************* -->
 
     <modules>
-        <module>camel-chronicle</module>
         <module>camel-teiid</module>
         <module>camel-samples</module>
     </modules>
