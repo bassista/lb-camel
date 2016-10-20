@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.lburgazzoli</groupId>
     <artifactId>lb-camel</artifactId>
-    <version>2.18-SNAPSHOT</version>
+    <version>2.18.0-SNAPSHOT</version>
     <name>lb-camel</name>
 
     <prerequisites>
@@ -38,28 +38,26 @@
         <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
 
         <!-- OSGi -->
-        <version.maven.bundle.plugin>3.0.1</version.maven.bundle.plugin>
+        <version.maven.bundle.plugin>3.2.0</version.maven.bundle.plugin>
         <version.depends.maven.plugin>1.3.1</version.depends.maven.plugin>
 
         <!-- deps -->
         <version.slf4j>1.7.21</version.slf4j>
-        <version.camel>2.17.2</version.camel>
+        <version.camel>2.18.0</version.camel>
         <!--<version.camel>2.17.0</version.camel>-->
         <version.log4j>1.2.17</version.log4j>
-        <version.common.lang3>3.4</version.common.lang3>
-        <version.teiid>9.0.0.Final</version.teiid>
-        <version.oltu.oauth2>1.0.1</version.oltu.oauth2>
+        <version.commons.lang3>3.5</version.commons.lang3>
+        <version.teiid>9.1.0.Final</version.teiid>
 
         <jdk.version>1.8</jdk.version>
         <cxf-version>3.1.6</cxf-version>
         <junit-version>4.12</junit-version>
-        <htmlunit.version>2.15</htmlunit.version>
-        <jackson2-version>2.7.5</jackson2-version>
-        <spring4-version>4.2.0.RELEASE</spring4-version>
+        <jackson2-version>2.8.4</jackson2-version>
+        <spring4-version>4.3.3.RELEASE</spring4-version>
         <spring-version>${spring4-version}</spring-version>
-        <infinispan-version>8.2.2.Final</infinispan-version>
-        <log4j2-version>2.6.1</log4j2-version>
-        <spring-boot-version>1.3.5.RELEASE</spring-boot-version>
+        <log4j2-version>2.77</log4j2-version>
+        <spring-boot-version>1.4.1.RELEASE</spring-boot-version>
+        <infinispan-version>8.2.4.Final</infinispan-version>
     </properties>
 
     <!-- ******************************************************************* -->
@@ -72,7 +70,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>${version.common.lang3}</version>
+                <version>${version.commons.lang3}</version>
             </dependency>
 
             <dependency>
@@ -93,9 +91,9 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-spring-boot-starter</artifactId>
-                <version>${version.camel}</version>
+              <groupId>org.apache.camel</groupId>
+              <artifactId>camel-spring-boot-starter</artifactId>
+              <version>${version.camel}</version>
             </dependency>
 
             <dependency>
